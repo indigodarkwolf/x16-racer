@@ -180,10 +180,11 @@ graphics_fade_in:
     jsr sys_wait_for_frame
 
     lda Gfx_all_palettes_cleared
-    cmp #0
+    cmp #1
     beq +
     jmp graphics_fade_in
 
+__gfx__graphics_fade_in_return
 +   rts
 
 ;=================================================

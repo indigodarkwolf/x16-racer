@@ -108,11 +108,11 @@ HEADER_A000_IN_USE=1
 ; MODIFIES: A, X, Y
 ; 
 !macro SYS_END_IRQ {
-    PLA
-    TAY
-    PLA
-    TAX
-    PLA
+    pla
+    tay
+    pla
+    tax
+    pla
     rti
 }
 

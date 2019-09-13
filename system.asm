@@ -2,6 +2,7 @@
 ; SYSTEM_ASM=1
 
 !src "system.inc"
+!src "vera.inc"
 
 ;=================================================
 ;=================================================
@@ -78,4 +79,5 @@ sys_wait_for_frame:
 ; 
 sys_inc_frame:
     inc Sys_frame
+    +VERA_END_IRQ
     +SYS_END_IRQ
