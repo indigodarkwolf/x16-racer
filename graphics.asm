@@ -139,13 +139,14 @@ graphics_fade_in:
     txa
     eor ($FE), Y
     cmp #$10
-    bmi +
+    bcc +
     txa
+    clc
     adc #$10
     tax
 +   eor ($FE), Y
     and #$0F
-    bne +
+    beq +
     inx
 +   txa
 .store_gb:
@@ -179,12 +180,13 @@ graphics_fade_in:
 
     jsr sys_wait_for_frame
 
+__gfx__graphics_fade_in_all_palettes_cleared:
     lda Gfx_all_palettes_cleared
     cmp #1
     beq +
     jmp graphics_fade_in
 
-__gfx__graphics_fade_in_return
+__gfx__graphics_fade_in_return:
 +   rts
 
 ;=================================================

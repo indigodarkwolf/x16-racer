@@ -187,13 +187,13 @@ __start__fill_palette_of_remaining_chars:
     bne .yloop
 }
 
-    ; lda #<Matrix_palette
-    ; sta $FB
-    ; lda #>Matrix_palette
-    ; sta $FC
-    ; lda #((Matrix_palette_end - Matrix_palette) >> 1)
-    ; sta $FD
-    ; jsr graphics_fade_in
+    lda #<Matrix_palette
+    sta $FB
+    lda #>Matrix_palette
+    sta $FC
+    lda #((Matrix_palette_end - Matrix_palette) >> 1)
+    sta $FD
+    jsr graphics_fade_in
 
     +SYS_SET_IRQ irq_handler
     cli
