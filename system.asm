@@ -45,18 +45,32 @@ sys_rand:
     rts
 
 ;=================================================
-; sys_inc_frame
+; sys_wait_one_frame
 ;   Wait for a new frame
 ;-------------------------------------------------
 ; INPUTS:   (none)
 ;
 ;-------------------------------------------------
-; MODIFIES: A, X, $
+; MODIFIES: A, X, Sys_frame
 ; 
+sys_wait_one_frame:
+    lda #1
+    jsr sys_wait_for_frame
+    rts
 
+;=================================================
+; sys_wait_for_frame
+;   Wait for a new frame
+;-------------------------------------------------
+; INPUTS:   A   number of frames to wait
+;
+;-------------------------------------------------
+; MODIFIES: A, X, Sys_frame
+; 
 sys_wait_for_frame:
-    ldx Sys_frame
-    inx
+    clc
+    adc Sys_frame
+    tax
 
     +SYS_SET_IRQ sys_inc_frame
     cli
@@ -69,7 +83,7 @@ sys_wait_for_frame:
     rts
 
 ;=================================================
-; sys_inc_new_frame
+; sys_inc_frame
 ;   Increment a value when a new frame arrives
 ;-------------------------------------------------
 ; INPUTS:   (none)

@@ -46,6 +46,7 @@ start:
     +SYS_RAND_SEED $34, $56, $fe
 
     jsr graphics_fade_out
+    jsr splash_do
 
     ;
     ; Palette memory should now be all 0s, or a black screen.
@@ -346,31 +347,31 @@ VERA_stream_out_data:
     txa
     cmp #0
     tax
-    beq @no_blocks
+    beq .no_blocks
 
     ; Copy X pages to VERA_data
     ldy #0
-@loop:
+.loop:
     lda ($FB),Y
     sta VERA_data
     iny
-    bne @loop
+    bne .loop
 
     inc $FC
     dex
-    bne @loop
+    bne .loop
 
-@no_blocks:
+.no_blocks:
     ; Copy X bytes to VERA_data
     pla
     tax
     ldy #0
-@loop2:
+.loop2:
     lda ($FB),Y
     sta VERA_data
     iny
     dex
-    bne @loop2
+    bne .loop2
     rts
 
 ;=================================================
@@ -381,6 +382,7 @@ VERA_stream_out_data:
 ;-------------------------------------------------
 !src "system.asm"
 !src "graphics.asm"
+!src "splash.asm"
 
 ;=================================================
 ;=================================================
@@ -416,6 +418,7 @@ Matrix_palette_rev_end:
 ;
 ;-------------------------------------------------
 !src "x16-racer_vars.asm"
+!src "splash_vars.asm"
 !src "graphics_vars.asm"
 !src "system_vars.asm"
 

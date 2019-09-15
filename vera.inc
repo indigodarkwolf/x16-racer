@@ -1,6 +1,8 @@
 !ifdef VERA_INC !eof
 VERA_INC=1
 
+!src "system.inc"
+
 ;=================================================
 ;=================================================
 ;
@@ -129,6 +131,85 @@ VERA_INC=1
 }
 
 ;=================================================
+; VERA_CONFIGURE_TILE_LAYER
+;   Apply the given params to a layer.
+;-------------------------------------------------
+; INPUTS:   .layer			Layer (0|1)
+;			.mode			0: text 1bpp, 16 color f/g
+;							1: text 1bpp, 256 color f
+;							2: tile 2bpp
+;							3: tile 4bpp
+;							4: tile 8bpp
+;			.16p_tilew		(0|1) enable 16-width tiles?
+;			.16p_tileh		(0|1) enable 16-height tiles?
+;			.mapw, .maph	0: 32 tiles/chars
+;							1: 64 tiles/chars
+;							2: 128 tiles/chars
+;							3: 256 tiles/chars
+;			.map_base		Start address of map indices (4-byte align)
+;			.tile_base		Start address of tile indices (4-byte align)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+!macro VERA_CONFIGURE_TILE_LAYER .layer, .mode, .16p_tilew, .16p_tileh, .mapw, .maph, .map_base, .tile_base {
+	+VERA_SET_ADDR (VRAM_layer1 + (.layer << 4)), 1
+
+	; Mode
+	lda #((.mode << 5) | 1)
+	sta VERA_data
+
+	; Tile and map size
+	lda #((.16p_tileh << 5) | (.16p_tilew << 4) | (.maph << 2) | (.mapw))
+	sta VERA_data
+
+	; Map base
+	lda #<(.map_base >> 2)
+	sta VERA_data
+	lda #>(.map_base >> 2)
+	sta VERA_data
+
+	; Tile base
+	lda #<(.tile_base >> 2)
+	sta VERA_data
+	lda #>(.tile_base >> 2)
+	sta VERA_data
+}
+
+;=================================================
+; VERA_CONFIGURE_BMP_LAYER
+;   Apply the given params to a layer.
+;-------------------------------------------------
+; INPUTS:   .layer			Layer (0|1)
+;			.mode			5: bitmap 2bpp
+;							6: bitmap 4bpp
+;							7: bitmap 8bpp
+;			.640p			(0|1) enable 640p height?
+;			.palette_index	Which 16-color palette should it use?
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+!macro VERA_CONFIGURE_BMP_LAYER .layer, .mode, .640p, .palette_offset {
+	+VERA_SET_ADDR (VRAM_layer1 + (.layer << 4)), 1
+
+	; Mode
+	lda #((.mode << 5) | 1)
+	sta VERA_data
+
+	; Tile and map size
+	lda #(.640p << 8)
+	sta VERA_data
+
+	; Palette offset
+	lda #((.layer << 4) | 7)
+	sta VERA_addr_low
+
+	lda #((.palette_index) >> 4)
+	sta VERA_data
+}
+
+;=================================================
 ; VERA_SET_SPRITE
 ;   Set the current address channel to target
 ;	an indexed sprite_data entry in VRAM_sprdata
@@ -140,6 +221,37 @@ VERA_INC=1
 ; 
 !macro VERA_SET_SPRITE .sprite_index {
 	+VERA_SET_ADDR (VRAM_sprdata + (.sprite_index << 3))
+}
+
+;=================================================
+; VERA_CONFIGURE_SPRITE
+;   Configure sprite data at the current sprite
+;-------------------------------------------------
+; INPUTS:   .data_addr	Location in VRAM where sprite data exists
+;			.colors			0: 4bpp
+;							1: 8bpp
+;			.xpos			X-position
+;			.ypos			Y-position
+;			.hflip			toggle horizontal flip
+;			.vflip			toggle verticle flip
+;			.zdepth			Z-depth of sprite
+;			.palette_index	16-color-palette index selection
+;			.width, .height	0: 8px
+;							1: 16px
+;							2: 32px
+;							3: 64px
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+!macro VERA_CONFIGURE_SPRITE .data_addr, .colors, .xpos, .ypos, .hflip, .vflip, .zdepth, .palette_index, .width, .height {
+!if ((.data_addr & $1FF) != .data_addr) {
+	!error "Sprite data does not obey alignment rules"
+}
+	+VERA_WRITE <(.data_addr >> 5), >(((.data_addr >> 5) & $0f) | (.colors << 7))
+	+VERA_WRITE <(.xpos & $0FF), >(.xpos & $300), <(.ypos & $0FF), >(.ypos & $300)
+	+VERA_WRITE	((.hflip) | (.vflip << 1) | (.zdepth << 2))
+	+VERA_WRITE ((.palette_index & $0F) | (.width << 4) | (.height << 6))
 }
 
 ;=================================================

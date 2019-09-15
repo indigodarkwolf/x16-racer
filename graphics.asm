@@ -68,7 +68,7 @@ graphics_fade_out:
     dey
     bne .decrement_palette_entry
 
-    jsr sys_wait_for_frame
+    jsr sys_wait_one_frame
 
     lda Gfx_all_palettes_cleared
     cmp #0
@@ -128,13 +128,13 @@ graphics_fade_in:
     ;           return color;
     ;       }
     ;
-    ;       Yeah. What a waste of electricity.
+    ;       Yeah. What a waste of electricity compared to:
     ;
     ;       unsigned short increment(unsigned short color, unsigned short target) {
     ;           unsigned short bit_diff = color ^ target
     ;           if(bit_diff >= 0x10) color += 0x10;
     ;           if(bit_diff & 0x0F) color += 0x01;
-    ;}
+    ;       }
 
     txa
     eor ($FE), Y
@@ -178,7 +178,7 @@ graphics_fade_in:
     cpy $FD
     bne .increment_palette_entry
 
-    jsr sys_wait_for_frame
+    jsr sys_wait_one_frame
 
 __gfx__graphics_fade_in_all_palettes_cleared:
     lda Gfx_all_palettes_cleared
