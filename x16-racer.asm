@@ -47,6 +47,7 @@ start:
 
     jsr graphics_fade_out
     jsr splash_do
+    jsr race_do
 
     ;
     ; Palette memory should now be all 0s, or a black screen.
@@ -65,37 +66,37 @@ start:
     +VERA_WRITE >(VROM_petscii >> 2)        ; Tile data immediately after map indices
     +VERA_WRITE 0, 0, 0, 0                  ; Hscroll and VScroll to 0
 
-!zn __start__clear_video_memory {
-__start__clear_video_memory:
-    +VERA_SET_ADDR DEFAULT_SCREEN_ADDR, 2
-    +VERA_SELECT_ADDR 1
-    +VERA_SET_ADDR DEFAULT_SCREEN_ADDR+1, 2
-    +VERA_SELECT_ADDR 0
+; !zn __start__clear_video_memory {
+; __start__clear_video_memory:
+;     +VERA_SET_ADDR DEFAULT_SCREEN_ADDR, 2
+;     +VERA_SELECT_ADDR 1
+;     +VERA_SET_ADDR DEFAULT_SCREEN_ADDR+1, 2
+;     +VERA_SELECT_ADDR 0
 
-    ldx #0
-    ldy #0
+;     ldx #0
+;     ldy #0
 
-.yloop:
-    tya
-    pha
-.xloop:
-    txa
-    pha
+; .yloop:
+;     tya
+;     pha
+; .xloop:
+;     txa
+;     pha
 
-    lda #0
-    sta VERA_data
-    sta VERA_data2
+;     lda #0
+;     sta VERA_data
+;     sta VERA_data2
 
-    pla
-    tax
-    dex
-    bne .xloop
+;     pla
+;     tax
+;     dex
+;     bne .xloop
 
-    pla
-    tay
-    dey
-    bne .yloop
-}
+;     pla
+;     tay
+;     dey
+;     bne .yloop
+; }
 
 !zn __start__fill_text_buffer_with_random_chars {
 __start__fill_text_buffer_with_random_chars:
@@ -271,7 +272,7 @@ irq_handler:
 ; Palette cycle (redux) for double-density!
 ;
     lda Palette_cycle_index
-    adc #128
+    adc #127
     clc
 
     ; Set the starting address of the VRAM palette we're going to cycle
@@ -329,51 +330,6 @@ irq_handler:
 ; being runtime data.
 ;
 
-;==============================================
-; VERA_stream_out_data
-; Stream out a block of memory to VERA_data
-;----------------------------------------------
-; INPUT: X   - number of pages to stream
-;        Y   - number of bytes to stream
-;        $FB - low byte of starting address
-;        $FC - high byte of starting address
-;----------------------------------------------
-; Modifies: A, X, Y, $FC
-;
-VERA_stream_out_data:
-    tya
-    pha
-    ; If no pages to copy, skip to bytes
-    txa
-    cmp #0
-    tax
-    beq .no_blocks
-
-    ; Copy X pages to VERA_data
-    ldy #0
-.loop:
-    lda ($FB),Y
-    sta VERA_data
-    iny
-    bne .loop
-
-    inc $FC
-    dex
-    bne .loop
-
-.no_blocks:
-    ; Copy X bytes to VERA_data
-    pla
-    tax
-    ldy #0
-.loop2:
-    lda ($FB),Y
-    sta VERA_data
-    iny
-    dex
-    bne .loop2
-    rts
-
 ;=================================================
 ;=================================================
 ; 
@@ -383,6 +339,8 @@ VERA_stream_out_data:
 !src "system.asm"
 !src "graphics.asm"
 !src "splash.asm"
+!src "race.asm"
+!src "vera.asm"
 
 ;=================================================
 ;=================================================

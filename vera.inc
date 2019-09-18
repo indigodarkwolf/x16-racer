@@ -16,23 +16,23 @@ VERA_INC=1
 	} else {
 		VERA_base = $9f20
 	}
-	VERA_addr_bank  = VERA_base+0
+	VERA_addr_low   = VERA_base+0
 	VERA_addr_high  = VERA_base+1
-	VERA_addr_low   = VERA_base+2
+	VERA_addr_bank  = VERA_base+2
 	VERA_data       = VERA_base+3
 	VERA_data2      = VERA_base+4
 	VERA_ctrl       = VERA_base+5
 	VERA_irq_ctrl   = VERA_base+6
 	VERA_irq        = VERA_base+7
 
-	VRAM_layer1   = $40000
-	VRAM_layer2   = $40010
-	VRAM_sprinfo  = $40020
-	VRAM_composer = $40040
-	VRAM_palette  = $40200
-	VRAM_sprdata  = $40800
+	VRAM_composer = $F0000
+	VRAM_palette  = $F1000
+	VRAM_layer1   = $F2000
+	VRAM_layer2   = $F3000
+	VRAM_sprinfo  = $F4000
+	VRAM_sprdata  = $F5800
 
-	VROM_petscii = $20000
+	VROM_petscii = $1F000
 }
 
 ;=================================================
@@ -131,10 +131,44 @@ VERA_INC=1
 }
 
 ;=================================================
+; VERA_ENABLE_LAYER
+;   Enable the specified layer
+;-------------------------------------------------
+; INPUTS:   .layer	Which layer to enable
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+!macro VERA_ENABLE_LAYER .layer {
+	+VERA_SET_ADDR (VRAM_layer1 + (.layer << 4)), 0
+	lda VERA_data
+	ora #$01
+	sta VERA_data
+}
+
+;=================================================
+; VERA_DISABLE_LAYER
+;   Disable the specified layer
+;-------------------------------------------------
+; INPUTS:   .layer	Which layer to enable
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+!macro VERA_DISABLE_LAYER .layer {
+	+VERA_SET_ADDR (VRAM_layer1 + (.layer << 4)), 0
+	lda VERA_data
+	and #$FE
+	sta VERA_data
+}
+
+;=================================================
 ; VERA_CONFIGURE_TILE_LAYER
 ;   Apply the given params to a layer.
 ;-------------------------------------------------
 ; INPUTS:   .layer			Layer (0|1)
+;			.enable			0: disable layer
+;							1: enable layer
 ;			.mode			0: text 1bpp, 16 color f/g
 ;							1: text 1bpp, 256 color f
 ;							2: tile 2bpp
@@ -152,16 +186,24 @@ VERA_INC=1
 ;-------------------------------------------------
 ; MODIFIES: A
 ; 
-!macro VERA_CONFIGURE_TILE_LAYER .layer, .mode, .16p_tilew, .16p_tileh, .mapw, .maph, .map_base, .tile_base {
+!macro VERA_CONFIGURE_TILE_LAYER .layer, .enable, .mode, .w16_tiles, .h16_tiles, .mapw, .maph, .map_base, .tile_base {
 	+VERA_SET_ADDR (VRAM_layer1 + (.layer << 4)), 1
 
 	; Mode
-	lda #((.mode << 5) | 1)
+	lda #((.mode << 5) | .enable)
 	sta VERA_data
 
 	; Tile and map size
-	lda #((.16p_tileh << 5) | (.16p_tilew << 4) | (.maph << 2) | (.mapw))
+	lda #((.h16_tiles << 5) | (.w16_tiles << 4) | (.maph << 2) | (.mapw))
 	sta VERA_data
+
+!if (.map_base & $FFFC) != .map_base {
+	!error "Map data does not obey alignment rules"
+}
+
+!if (.tile_base & $FFFC) != .tile_base {
+	!error "Tile data does not obey alignment rules"
+}
 
 	; Map base
 	lda #<(.map_base >> 2)
@@ -210,6 +252,36 @@ VERA_INC=1
 }
 
 ;=================================================
+; VERA_ENABLE_SPRITES
+;   Enables sprites layer
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+!macro VERA_ENABLE_SPRITES  {
+    +VERA_SET_ADDR VRAM_sprinfo
+    lda #1
+    sta VERA_data
+}
+
+;=================================================
+; VERA_DISABLE_SPRITES
+;   Disables sprites layer
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+!macro VERA_DISABLE_SPRITES  {
+    +VERA_SET_ADDR VRAM_sprinfo
+    lda #0
+    sta VERA_data
+}
+
+;=================================================
 ; VERA_SET_SPRITE
 ;   Set the current address channel to target
 ;	an indexed sprite_data entry in VRAM_sprdata
@@ -245,7 +317,7 @@ VERA_INC=1
 ; MODIFIES: A
 ; 
 !macro VERA_CONFIGURE_SPRITE .data_addr, .colors, .xpos, .ypos, .hflip, .vflip, .zdepth, .palette_index, .width, .height {
-!if ((.data_addr & $1FF) != .data_addr) {
+!if (((.data_addr >> 9) << 9) != .data_addr) {
 	!error "Sprite data does not obey alignment rules"
 }
 	+VERA_WRITE <(.data_addr >> 5), >(((.data_addr >> 5) & $0f) | (.colors << 7))
@@ -272,6 +344,89 @@ VERA_INC=1
 !macro VERA_SET_PALETTE .palette_index, .color_offset {
 	+VERA_SET_ADDR (VRAM_palette + (.palette_index << 5) + (.color_offset << 1))
 }
+
+;=================================================
+; VERA_STREAM_OUT
+;   Stream out a block of data to a location in VRAM
+;-------------------------------------------------
+; INPUTS:   .src	Source data
+;			.dst	Destination start location
+;			.size	Numbers of bytes to stream out (max 64KiB)
+;
+;-------------------------------------------------
+; MODIFIES: A, X, Y, $FB, $FC
+; 
+!macro VERA_STREAM_OUT .src, .dst, .size {
+    +VERA_SET_ADDR .dst
+    ldy #<(.size)
+    ldx #>(.size)
+    lda #<.src
+    sta $FB
+    lda #>.src
+    sta $FC
+    jsr vera_stream_out_data	
+}
+
+;=================================================
+; VERA_ENABLE_ALL
+;   Enables all layers and global sprites
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+!macro VERA_ENABLE_ALL  {
+    +VERA_SET_ADDR VRAM_layer1, 13
+	+VERA_SELECT_ADDR 1
+    +VERA_SET_ADDR VRAM_layer1, 13
+
+	; Layer 0
+    lda VERA_data
+    ora #$01
+	sta VERA_data2
+
+	; Layer 1
+    lda VERA_data
+    ora #$01
+	sta VERA_data2
+
+	;Sprites
+    lda VERA_data
+    ora #$01
+	sta VERA_data2
+}
+
+;=================================================
+; VERA_DISABLE_ALL
+;   Enables all layers and global sprites
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+!macro VERA_DISABLE_ALL  {
+    +VERA_SET_ADDR VRAM_layer1, 13
+	+VERA_SELECT_ADDR 1
+    +VERA_SET_ADDR VRAM_layer1, 13
+
+	; Layer 0
+    lda VERA_data
+    and #$FE
+	sta VERA_data2
+
+	; Layer 1
+    lda VERA_data
+    and #$FE
+	sta VERA_data2
+
+	;Sprites
+    lda VERA_data
+    and #$FE
+	sta VERA_data2
+}
+
 
 ;=================================================
 ; VERA_RESET
@@ -312,13 +467,8 @@ VERA_INC=1
 ; MODIFIES: A
 ; 
 !macro VIDEO_INIT {
-	lda #0
-	sta VERA_ctrl ; set ADDR1 active
-	sta VERA_addr_high
-	lda #$14    ; $40040 - Composer output mode and chroma toggle
-	sta VERA_addr_bank
-	lda #$40
-	sta VERA_addr_low
+	+VERA_SELECT_ADDR 0
+	+VERA_SET_ADDR VRAM_composer, 1
 	lda #1
 	sta VERA_data ; VGA output
 }
