@@ -1,8 +1,8 @@
-; !ifdef SYSTEM_ASM !eof
-; SYSTEM_ASM=1
+.ifndef SYSTEM_ASM
+SYSTEM_ASM=1
 
-!src "system.inc"
-!src "vera.inc"
+.include "system.inc"
+.include "vera.inc"
 
 ;=================================================
 ;=================================================
@@ -29,21 +29,19 @@
 ;-------------------------------------------------
 ; MODIFIES: A, X, Sys_rand_mem
 ; 
-
 sys_rand:
     ldx #8
     lda Sys_rand_mem
--   asl
+:   asl
     rol Sys_rand_mem+1
     rol Sys_rand_mem+2
-    bcc +
+    bcc :+
     eor #$1B
-+   dex
-    bne -
+:   dex
+    bne :--
     sta Sys_rand_mem
     cmp #0
     rts
-
 ;=================================================
 ; sys_wait_one_frame
 ;   Wait for a new frame
@@ -72,12 +70,12 @@ sys_wait_for_frame:
     adc Sys_frame
     tax
 
-    +SYS_SET_IRQ sys_inc_frame
+    SYS_SET_IRQ sys_inc_frame
     cli
 
     ; Tight loop until next frame
--   cpx Sys_frame
-    bne -
+:   cpx Sys_frame
+    bne :-
 
     sei
     rts
@@ -93,5 +91,7 @@ sys_wait_for_frame:
 ; 
 sys_inc_frame:
     inc Sys_frame
-    +VERA_END_IRQ
-    +SYS_END_IRQ
+    VERA_END_IRQ
+    SYS_END_IRQ
+
+.endif ; SYSTEM_ASM

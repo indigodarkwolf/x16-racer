@@ -13,9 +13,9 @@ Sorry_camel_peeps
 ; after the section comment.
 ;
 
-!src "library_macros_and_defines_are_in_a_header_with_an_extension_of.inc"
-!src "and_included_at_the_top_of_any_file_that_needs_them.inc"
-!src "which_is_hopefully_only_the_main_file_of_the_program.inc"
+.include "library_macros_and_defines_are_in_a_header_with_an_extension_of.inc"
+.include "and_included_at_the_top_of_any_file_that_needs_them.inc"
+.include "which_is_hopefully_only_the_main_file_of_the_program.inc"
 
 ;=================================================
 ; Macros_have_a_header_comment
@@ -30,7 +30,7 @@ Sorry_camel_peeps
 ;-------------------------------------------------
 ; MODIFIES: A, X, Y, $And_variables_as_appropriate
 
-!macro MACROS_ARE_ALWAYS_UPPER_CASE {}
+.macro MACROS_ARE_ALWAYS_UPPER_CASE {}
 
 !define DEFINES_ARE_ALSO_UPPER_CASE=1
 
@@ -86,10 +86,10 @@ sys_function_names_from_a_lib_are_prefixed_with_a_subsytem_name_or_abbreviation:
     label
     jmp .loop
 
--   short
+:   short
     loops
     dont
-    jmp -
+    jmp :-
 
 .prefer_prefixing_local_labels_with_dots:
     ; This is because ACME's treatment of the @ symbol is confusing to me.
@@ -101,32 +101,32 @@ sys_function_names_from_a_lib_are_prefixed_with_a_subsytem_name_or_abbreviation:
 ; Libs
 ;
 ;-------------------------------------------------
-!src "library_definitions_and_implementations_are_in_a_source_file_with_an_extension_of.asm"
+.include "library_definitions_and_implementations_are_in_a_source_file_with_an_extension_of.asm"
 
 ;=================================================
 ; Data
 ;
 ;-------------------------------------------------
 Constant_data_variables_go_into_their_own_block:
-    !byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
 ;=================================================
 ; Variables
 ;
 ;-------------------------------------------------
-Global_variable_labels_begin_with_upper_case: !byte $00
-Sys_global_variables_from_a_lib_are_prefixed_with_a_subsystem_name_or_abbreviation: !byte 00
+Global_variable_labels_begin_with_upper_case: .byte $00
+Sys_global_variables_from_a_lib_are_prefixed_with_a_subsystem_name_or_abbreviation: .byte 00
 
 Large_blocks_of_data_begin_on_the_following_line:
-    !byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    !byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    !byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    !byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
+    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
 
 ; Avoid putting more than 16 bytes on a single line, for readability.
 
-!src "external_variables_go_into_a_source_file_ending_with_vars.asm"
-!src "system_vars.asm"    ; system_vars always comes last. 
+.include "external_variables_go_into_a_source_file_ending_with_vars.asm"
+.include "system_vars.asm"    ; system_vars always comes last. 
 
 ; sys_vars.asm includes a label to the end of the variables list
 ; which is referenced for defines, such as when reserving complex

@@ -1,4 +1,4 @@
-!ifdef GRAPHICS_INC !eof
+.ifndef GRAPHICS_INC
 GRAPHICS_INC=1
 
 ;=================================================
@@ -10,9 +10,9 @@ GRAPHICS_INC=1
 ;-------------------------------------------------
 ; MODIFIES: A, X, Y, $FB-$FF
 ; 
-!macro GRAPHICS_FADE_OUT {
+.macro GRAPHICS_FADE_OUT
     jsr graphics_fade_out
-}
+.endmacro
 
 ;=================================================
 ; GRAPHICS_FADE_IN
@@ -24,13 +24,15 @@ GRAPHICS_INC=1
 ;-------------------------------------------------
 ; MODIFIES: A, X, Y, $FB-$FF
 ; 
-!macro GRAPHICS_FADE_IN .palette_data, .num_colors {
-    lda #<.palette_data
+.macro GRAPHICS_FADE_IN palette_data, num_colors
+    lda #<palette_data
     sta $FB
-    lda #>.palette_data
+    lda #>palette_data
     sta $FC
-    lda #.num_colors
+    lda #num_colors
     sta $FD
 
     jsr graphics_fade_in
-}
+.endmacro
+
+.endif ; GRAPHICS_INC

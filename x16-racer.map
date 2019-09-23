@@ -1,0 +1,53 @@
+Modules list:
+-------------
+x16-racer.o:
+    CODE              Offs=000000  Size=0090C8  Align=00001  Fill=0000
+C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\lib/c64.lib(exehdr.o):
+    EXEHDR            Offs=000000  Size=00000C  Align=00001  Fill=0000
+C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\lib/c64.lib(loadaddr.o):
+    LOADADDR          Offs=000000  Size=000002  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+LOADADDR              0007FF  000800  000002  00001
+EXEHDR                000801  00080C  00000C  00001
+CODE                  00080D  0098D4  0090C8  00001
+
+
+Exports list by name:
+---------------------
+__EXEHDR__                000001 REA    __HEADER_LAST__           00080D RLA    
+__HIMEM__                 00D000 REA    __LOADADDR__              000001 REA    
+__ONCE_RUN__              0098D5 RLA    __STACKSIZE__             000800 REA    
+
+
+
+Exports list by value:
+----------------------
+__EXEHDR__                000001 REA    __LOADADDR__              000001 REA    
+__STACKSIZE__             000800 REA    __HEADER_LAST__           00080D RLA    
+__ONCE_RUN__              0098D5 RLA    __HIMEM__                 00D000 REA    
+
+
+
+Imports list:
+-------------
+__EXEHDR__ (exehdr.o):
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(6)
+__HEADER_LAST__ ([linker generated]):
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(14)
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(14)
+__HIMEM__ ([linker generated]):
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(15)
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(14)
+__LOADADDR__ (loadaddr.o):
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(5)
+__ONCE_RUN__ ([linker generated]):
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(15)
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(15)
+__STACKSIZE__ ([linker generated]):
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(15)
+

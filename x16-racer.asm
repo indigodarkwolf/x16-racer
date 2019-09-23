@@ -1,5 +1,3 @@
-!symbollist "x16-racer.sym"
-
 ;=================================================
 ;=================================================
 ; 
@@ -7,8 +5,8 @@
 ;
 ;-------------------------------------------------
 
-!src "vera.inc"
-!src "system.inc"
+.include "vera.inc"
+.include "system.inc"
 
 ;=================================================
 ; Macros
@@ -27,14 +25,17 @@ DEFAULT_SCREEN_SIZE = (128*64)*2
 ;-------------------------------------------------
 ; MODIFIES: A
 ; 
-!macro MOD .v {
--   sec
-    sbc #.v
-    bcs -
-    adc #.v
-}
+.macro MOD v
+.local @sub
+@sub:
+    sec
+    sbc #v
+    bcs @sub
+    adc #v
+.endscope
+.endmacro
 
-    +SYS_HEADER_0801
+SYS_HEADER_0801
 
 ;=================================================
 ;=================================================
@@ -43,7 +44,7 @@ DEFAULT_SCREEN_SIZE = (128*64)*2
 ;
 ;-------------------------------------------------
 start:
-    +SYS_RAND_SEED $34, $56, $fe
+    SYS_RAND_SEED $34, $56, $fe
 
     jsr graphics_fade_out
     jsr splash_do
@@ -55,60 +56,27 @@ start:
     ; have used that. Mei banfa.
     ;
 
-    +VERA_SELECT_ADDR 0
+    VERA_SELECT_ADDR 0
 
-    +VERA_SET_ADDR VRAM_layer1
-    +VERA_WRITE ($01 << 5) | $01            ; Mode 1 (256-color text), enabled
-    +VERA_WRITE %00000110                   ; 8x8 tiles, 128x64 map
-    +VERA_WRITE <(DEFAULT_SCREEN_ADDR >> 2) ; Map indices at VRAM address 0
-    +VERA_WRITE >(DEFAULT_SCREEN_ADDR >> 2) ; 
-    +VERA_WRITE <(VROM_petscii >> 2)        ; Tile data immediately after map indices
-    +VERA_WRITE >(VROM_petscii >> 2)        ; Tile data immediately after map indices
-    +VERA_WRITE 0, 0, 0, 0                  ; Hscroll and VScroll to 0
+    VERA_SET_ADDR VRAM_layer1
+    VERA_WRITE ($01 << 5) | $01            ; Mode 1 (256-color text), enabled
+    VERA_WRITE %00000110                   ; 8x8 tiles, 128x64 map
+    VERA_WRITE <(DEFAULT_SCREEN_ADDR >> 2) ; Map indices at VRAM address 0
+    VERA_WRITE >(DEFAULT_SCREEN_ADDR >> 2) ; 
+    VERA_WRITE <(VROM_petscii >> 2)        ; Tile data immediately after map indices
+    VERA_WRITE >(VROM_petscii >> 2)        ; Tile data immediately after map indices
+    VERA_WRITE 0, 0, 0, 0                  ; Hscroll and VScroll to 0
 
-; !zn __start__clear_video_memory {
-; __start__clear_video_memory:
-;     +VERA_SET_ADDR DEFAULT_SCREEN_ADDR, 2
-;     +VERA_SELECT_ADDR 1
-;     +VERA_SET_ADDR DEFAULT_SCREEN_ADDR+1, 2
-;     +VERA_SELECT_ADDR 0
-
-;     ldx #0
-;     ldy #0
-
-; .yloop:
-;     tya
-;     pha
-; .xloop:
-;     txa
-;     pha
-
-;     lda #0
-;     sta VERA_data
-;     sta VERA_data2
-
-;     pla
-;     tax
-;     dex
-;     bne .xloop
-
-;     pla
-;     tay
-;     dey
-;     bne .yloop
-; }
-
-!zn __start__fill_text_buffer_with_random_chars {
 __start__fill_text_buffer_with_random_chars:
-    +VERA_SET_ADDR DEFAULT_SCREEN_ADDR, 2
+    VERA_SET_ADDR DEFAULT_SCREEN_ADDR, 2
 
     ldx #128
     ldy #64
 
-.yloop:
+@yloop:
     tya
     pha
-.xloop:
+@xloop:
     txa
 
     jsr sys_rand
@@ -120,51 +88,47 @@ __start__fill_text_buffer_with_random_chars:
 
     tax
     dex
-    bne .xloop
+    bne @xloop
 
     pla
     tay
     dey
-    bne .yloop
-}
+    bne @yloop
 
-!zn __start__offset_palette_of_each_column {
 __start__offset_palette_of_each_column:
-    +VERA_SET_ADDR DEFAULT_SCREEN_ADDR+1, 2
+    VERA_SET_ADDR DEFAULT_SCREEN_ADDR+1, 2
 
     lda #128
 
-.xloop:
+@xloop:
     pha
 
     jsr sys_rand
     ; If we're about to assign palette index 0 (background), increment to 1
     cmp #0
-    beq +
+    beq :+
     clc
     adc #1
-+   sta VERA_data
+:   sta VERA_data
 
     pla
     sec
     sbc #1
-    bne .xloop
-}
+    bne @xloop
 
-!zn __start__fill_palette_of_remaining_chars {
 __start__fill_palette_of_remaining_chars:
-    +VERA_SET_ADDR DEFAULT_SCREEN_ADDR+1, 2
-    +VERA_SELECT_ADDR 1
-    +VERA_SET_ADDR DEFAULT_SCREEN_ADDR+257, 2
-    +VERA_SELECT_ADDR 0
+    VERA_SET_ADDR (DEFAULT_SCREEN_ADDR+1), 2
+    VERA_SELECT_ADDR 1
+    VERA_SET_ADDR (DEFAULT_SCREEN_ADDR+257), 2
+    VERA_SELECT_ADDR 0
 
     ldx #127
     ldy #64
 
-.yloop:
+@yloop:
     tya
     pha
-.xloop:
+@xloop:
     txa
     pha
 
@@ -173,21 +137,21 @@ __start__fill_palette_of_remaining_chars:
     adc #1
     ; If we're about to assign palette index 0 (background), increment to 1
     cmp #0
-    bne +
+    bne :+
     clc
     adc #1
-+   sta VERA_data2
+:   sta VERA_data2
 
     pla
     tax
     dex
-    bne .xloop
+    bne @xloop
 
     pla
     tay
     dey
-    bne .yloop
-}
+    bne @yloop
+
 
     lda #<Matrix_palette
     sta $FB
@@ -197,7 +161,7 @@ __start__fill_palette_of_remaining_chars:
     sta $FD
     jsr graphics_fade_in
 
-    +SYS_SET_IRQ irq_handler
+    SYS_SET_IRQ irq_handler
     cli
 
     jmp *
@@ -224,7 +188,7 @@ __start__fill_palette_of_remaining_chars:
 ; MODIFIES: A, X, Y, VRAM_palette
 ; 
 irq_handler:
-    +VERA_SELECT_ADDR 0
+    VERA_SELECT_ADDR 0
 
     ; Increment which palette index we're starting at
     lda Palette_cycle_index
@@ -256,17 +220,17 @@ irq_handler:
     ldx Palette_cycle_index
     ldy #0
 
--   lda ($FB),Y
+:   lda ($FB),Y
     sta VERA_data
     iny
     lda ($FB),Y
     sta VERA_data
     iny
     inx
-    bne +
-    +VERA_SET_PALETTE 0, 1
-+   cpy #(Matrix_palette_end - Matrix_palette)
-    bne -
+    bne :+
+    VERA_SET_PALETTE 0, 1
+:   cpy #(Matrix_palette_end - Matrix_palette)
+    bne :--
 
 ;
 ; Palette cycle (redux) for double-density!
@@ -295,20 +259,20 @@ irq_handler:
     tax
     ldy #0
 
--   lda ($FB),Y
+:   lda ($FB),Y
     sta VERA_data
     iny
     lda ($FB),Y
     sta VERA_data
     iny
     inx
-    bne +
-    +VERA_SET_PALETTE 0, 1
-+   cpy #(Matrix_palette_end - Matrix_palette)
-    bne -
+    bne :+
+    VERA_SET_PALETTE 0, 1
+:   cpy #(Matrix_palette_end - Matrix_palette)
+    bne :--
 
-    +VERA_END_IRQ
-    +SYS_END_IRQ
+    VERA_END_IRQ
+    SYS_END_IRQ
 
 ;=================================================
 ;=================================================
@@ -336,11 +300,11 @@ irq_handler:
 ;   Libs
 ;
 ;-------------------------------------------------
-!src "system.asm"
-!src "graphics.asm"
-!src "splash.asm"
-!src "race.asm"
-!src "vera.asm"
+.include "system.asm"
+.include "graphics.asm"
+.include "splash.asm"
+.include "race.asm"
+.include "vera.asm"
 
 ;=================================================
 ;=================================================
@@ -349,24 +313,25 @@ irq_handler:
 ;
 ;-------------------------------------------------
 Petscii_table:
-    !for i,1,$60 {
-        !byte i
-    }
-    !for i,0,$20 {
-        !byte i+$A0
-    }
+    .repeat $60, i
+        .byte i
+    .endrep
+
+    .repeat $20, i
+        .byte i+$A0
+    .endrep
 
 Matrix_palette:
-    !le16 $0000, $0000, $0020, $0020, $0030, $0030, $0040, $0040
-    !le16 $0050, $0050, $0060, $0060, $0070, $0070, $0080, $0080
-    !le16 $0090, $0090, $00A0, $00A0, $00B0, $00B0, $00C0, $00C0
-    !le16 $00D0, $00D0, $00E0, $00E0, $00F0, $00F0, $08FC
+    .word $0000, $0000, $0020, $0020, $0030, $0030, $0040, $0040
+    .word $0050, $0050, $0060, $0060, $0070, $0070, $0080, $0080
+    .word $0090, $0090, $00A0, $00A0, $00B0, $00B0, $00C0, $00C0
+    .word $00D0, $00D0, $00E0, $00E0, $00F0, $00F0, $08FC
 Matrix_palette_end:
 Matrix_palette_rev:
-    !le16 $0000, $0000, $08FC, $00F0, $00F0, $00E0, $00E0, $00D0
-    !le16 $00D0, $00C0, $00C0, $00B0, $00B0, $00A0, $00A0, $0090
-    !le16 $0090, $0080, $0080, $0070, $0070, $0060, $0060, $0050
-    !le16 $0050, $0040, $0040, $0030, $0030, $0020, $0020
+    .word $0000, $0000, $08FC, $00F0, $00F0, $00E0, $00E0, $00D0
+    .word $00D0, $00C0, $00C0, $00B0, $00B0, $00A0, $00A0, $0090
+    .word $0090, $0080, $0080, $0070, $0070, $0060, $0060, $0050
+    .word $0050, $0040, $0040, $0030, $0030, $0020, $0020
 Matrix_palette_rev_end:
 
 ;=================================================
@@ -375,9 +340,9 @@ Matrix_palette_rev_end:
 ;   Variables
 ;
 ;-------------------------------------------------
-!src "x16-racer_vars.asm"
-!src "splash_vars.asm"
-!src "graphics_vars.asm"
-!src "system_vars.asm"
+.include "x16-racer_vars.asm"
+.include "splash_vars.asm"
+.include "graphics_vars.asm"
+.include "system_vars.asm"
 
-    +SYS_FOOTER
+SYS_FOOTER

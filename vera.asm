@@ -1,5 +1,5 @@
-; !ifdef VERA_ASM !eof
-; VERA_ASM=1
+.ifndef VERA_ASM
+VERA_ASM=1
 
 ;==============================================
 ; vera_stream_out_data
@@ -19,29 +19,31 @@ vera_stream_out_data:
     txa
     cmp #0
     tax
-    beq .no_blocks
+    beq @no_blocks
 
     ; Copy X pages to VERA_data
     ldy #0
-.loop:
+@loop:
     lda ($FB),Y
     sta VERA_data
     iny
-    bne .loop
+    bne @loop
 
     inc $FC
     dex
-    bne .loop
+    bne @loop
 
-.no_blocks:
+@no_blocks:
     ; Copy X bytes to VERA_data
     pla
     tax
     ldy #0
-.loop2:
+@loop2:
     lda ($FB),Y
     sta VERA_data
     iny
     dex
-    bne .loop2
+    bne @loop2
     rts
+
+.endif ; VERA_ASM
