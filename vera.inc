@@ -193,7 +193,11 @@ VROM_petscii   = $1F000
 ; MODIFIES: A
 ; 
 .macro VERA_CONFIGURE_TILE_LAYER layer, enable, mode, w16_tiles, h16_tiles, mapw, maph, map_base, tile_base
-	VERA_SET_ADDR (VRAM_layer1 + (layer << 4)), 1
+	.if layer = 0
+		VERA_SET_ADDR VRAM_layer1, 1
+	.else
+		VERA_SET_ADDR VRAM_layer2, 1
+	.endif
 
 	; Mode
 	lda #((mode << 5) | enable)

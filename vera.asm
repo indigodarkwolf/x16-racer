@@ -18,7 +18,6 @@ vera_stream_out_data:
     ; If no pages to copy, skip to bytes
     txa
     cmp #0
-    tax
     beq @no_blocks
 
     ; Copy X pages to VERA_data
