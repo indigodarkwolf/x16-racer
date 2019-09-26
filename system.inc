@@ -176,6 +176,8 @@ SYSTEM_INC=1
 ; MODIFIES: A, X, Y, $FB-$FF
 ; 
 .macro SYS_COPY src, dst, size
+.local @loop
+.local @loop2
     lda #<src ;src to $FC $FB 
     sta $FB
     lda #>src
@@ -189,33 +191,35 @@ SYSTEM_INC=1
                     ; page copy portion which needs a 5th byte to track the number
                     ; of pages to copy.
 
-        lda #>size ; number of pages to copy
+        lda #(size >> 8) ; number of pages to copy
         sta $FF
 
         ldy #$00 ; reset y for our loop
 
--       lda ($FB),Y ; indirect index source memory address
+@loop:
+        lda ($FB),Y ; indirect index source memory address
         sta ($FD),Y ; indirect index dest memory address
         iny
-        bne :-       ; loop until our dest goes over 255
+        bne @loop       ; loop until our dest goes over 255
 
         inc $FC     ; increment high order source memory address
         inc $FE     ; increment high order dest memory address
 
         dec $FF     ; decrement number of pages remaining
-        bne :-       ; If we still have at least 1 page to copy, go back and copy it
+        bne @loop       ; If we still have at least 1 page to copy, go back and copy it
     .endif
-    .if <size > 0
+    .if (size & $FF) > 0
                     ; If we're not copying exactly some number of pages, include
                     ; the "copy the rest of it" section
         ldy #0
         ldx #<size
 
--       lda ($FB),Y
+@loop2:
+        lda ($FB),Y
         sta ($FD),Y
         iny
         dex
-        bne :-
+        bne @loop2
     .endif
 .endmacro
 
@@ -234,6 +238,8 @@ SYSTEM_INC=1
 ; MODIFIES: A, X, Y, $FB-$FC, $FF
 ; 
 .macro SYS_STREAM_OUT src, dst, size
+.local @loop
+.local @loop2
     lda #<src ;src to $FC $FB 
     sta $FB
     lda #>src
@@ -244,33 +250,35 @@ SYSTEM_INC=1
                     ; page copy portion which needs a 5th byte to track the number
                     ; of pages to copy.
 
-        lda #>size ; number of pages to copy
+        lda #(size >> 8) ; number of pages to copy
         sta $FF
 
         ldy #$00 ; reset y for our loop
 
--       lda ($FB),Y ; indirect index source memory address
+@loop:
+        lda ($FB),Y ; indirect index source memory address
         sta dst
         iny
-        bne :-       ; loop until our dest goes over 255
+        bne @loop       ; loop until our dest goes over 255
 
         inc $FC     ; increment high order source memory address
 
         dec $FF     ; decrement number of pages remaining
-        bne :-       ; If we still have at least 1 page to copy, go back and copy it
+        bne @loop       ; If we still have at least 1 page to copy, go back and copy it
     .endif
 
-    .if <size > 0 
+    .if (size & $FF) > 0 
                     ; If we're not copying exactly some number of pages, include
                     ; the "copy the rest of it" section
         ldy #0
-        ldx #<size
+        ldx #(size & $FF)
 
--       lda ($FB),Y
+@loop2:
+        lda ($FB),Y
         sta dst
         iny
         dex
-        bne :-
+        bne @loop2
     .endif
 .endmacro
 
@@ -288,6 +296,8 @@ SYSTEM_INC=1
 ; MODIFIES: A, X, Y, $FD-$FF
 ; 
 .macro SYS_STREAM_IN src, dst, size
+.local @loop
+.local @loop2
     lda #<dst ;dst to $FE $FD
     sta $FD
     lda #>dst
@@ -298,7 +308,7 @@ SYSTEM_INC=1
                     ; page copy portion which needs a 5th byte to track the number
                     ; of pages to copy.
 
-        lda #>size ; number of pages to copy
+        lda #(size >> 8) ; number of pages to copy
         sta $FF
 
         ldy #$00 ; reset y for our loop
@@ -313,17 +323,18 @@ SYSTEM_INC=1
         dec $FF     ; decrement number of pages remaining
         bne @loop   ; If we still have at least 1 page to copy, go back and copy it
     .endif
-    .if <size > 0
+    .if (size & $FF) > 0
                     ; If we're not copying exactly some number of pages, include
                     ; the "copy the rest of it" section
         ldy #0
-        ldx #<size
+        ldx #(size & $FF)
 
--       lda src
+@loop2:
+        lda src
         sta ($FD),Y
         iny
         dex
-        bne :-
+        bne @loop2
     .endif
 .endmacro
 
@@ -342,6 +353,9 @@ SYSTEM_INC=1
 ; MODIFIES: A, X, Y, $FF
 ; 
 .macro SYS_STREAM src, dst, size
+.local @loop
+.local @loop2
+
     .if size > $FF
                     ; If we have at least 1 full page to copy, then include the 
                     ; page copy portion which needs a 5th byte to track the number
@@ -352,25 +366,27 @@ SYSTEM_INC=1
 
         ldy #0 ; reset y for our loop
 
--       lda src
+@loop:
+        lda src
         sta dst
         iny
-        bne :-       ; loop until our dest goes over 255
+        bne @loop       ; loop until our dest goes over 255
 
-        dec $FF     ; decrement number of pages remaining
-        bne :-       ; If we still have at least 1 page to copy, go back and copy it
+        dec $FF         ; decrement number of pages remaining
+        bne @loop       ; If we still have at least 1 page to copy, go back and copy it
     .endif
-    .if <size > 0 
+    .if (size & $FF) > 0 
                     ; If we're not copying exactly some number of pages, include
                     ; the "copy the rest of it" section
         ldy #0
-        ldx #<size
+        ldx #(size & $FF)
 
--       lda src
+@loop2:
+        lda src
         sta dst
         iny
         dex
-        bne :-
+        bne @loop2
     .endif
 .endmacro
 

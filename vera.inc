@@ -487,4 +487,10 @@ DATA_ADDR=(data_addr >> 5)
 	sta VERA_data ; VGA output
 .endmacro
 
+;=================================================
+; SPRITE_ALIGN
+;   Align an address to a sprite boundary
+;-------------------------------------------------
+.define SPRITE_ALIGN(ADDR)	(((ADDR) + ((1 << 5) - 1) >> 5) << 5)
+
 .endif ; VERA_INC

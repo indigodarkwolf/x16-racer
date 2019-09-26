@@ -1,7 +1,7 @@
 Modules list:
 -------------
 x16-racer.o:
-    CODE              Offs=000000  Size=008785  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=0026F1  Align=00001  Fill=0000
 C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\lib/c64.lib(exehdr.o):
     EXEHDR            Offs=000000  Size=00000C  Align=00001  Fill=0000
 C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\lib/c64.lib(loadaddr.o):
@@ -14,14 +14,14 @@ Name                   Start     End    Size  Align
 ----------------------------------------------------
 LOADADDR              0007FF  000800  000002  00001
 EXEHDR                000801  00080C  00000C  00001
-CODE                  00080D  008F91  008785  00001
+CODE                  00080D  002EFD  0026F1  00001
 
 
 Exports list by name:
 ---------------------
 __EXEHDR__                000001 REA    __HEADER_LAST__           00080D RLA    
 __HIMEM__                 00D000 REA    __LOADADDR__              000001 REA    
-__ONCE_RUN__              008F92 RLA    __STACKSIZE__             000800 REA    
+__ONCE_RUN__              002EFE RLA    __STACKSIZE__             000800 REA    
 
 
 
@@ -29,7 +29,7 @@ Exports list by value:
 ----------------------
 __EXEHDR__                000001 REA    __LOADADDR__              000001 REA    
 __STACKSIZE__             000800 REA    __HEADER_LAST__           00080D RLA    
-__ONCE_RUN__              008F92 RLA    __HIMEM__                 00D000 REA    
+__ONCE_RUN__              002EFE RLA    __HIMEM__                 00D000 REA    
 
 
 

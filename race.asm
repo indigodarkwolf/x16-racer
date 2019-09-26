@@ -5,20 +5,48 @@ RACE_ASM=1
 .include "system.inc"
 .include "graphics.inc"
 
+.include "assets/mountains.inc"
+.include "assets/forest.inc"
+.include "assets/car.inc"
+
 RACE_MOUNTAINS_BG_ADDR=0
-RACE_MOUNTAINS_BG_SIZE=$4000 ; 128*64*2
+RACE_MOUNTAINS_BG_SIZE=128*64*2
 
-RACE_FOREST_BG_ADDR=$4000
-RACE_FOREST_BG_SIZE=$4000 ; 128*64*2
+RACE_FOREST_BG_ADDR=(RACE_MOUNTAINS_BG_ADDR + RACE_MOUNTAINS_BG_SIZE)
+RACE_FOREST_BG_SIZE=128*64*2
 
-RACE_MOUNTAINS_BG_TILES_ADDR=$8000
-RACE_MOUNTAINS_BG_TILES_SIZE=((4 * 8) * 6) ; 6 tiles
+RACE_MOUNTAINS_BG_TILES_ADDR=(RACE_FOREST_BG_ADDR + RACE_FOREST_BG_SIZE)
+RACE_MOUNTAINS_BG_TILES_SIZE=(mountain_end - mountain)
 
 RACE_FOREST_BG_TILES_ADDR=(RACE_MOUNTAINS_BG_TILES_ADDR + RACE_MOUNTAINS_BG_TILES_SIZE)
-RACE_FOREST_BG_TILES_SIZE=((4 * 8) * 2) ; 2 tiles
+RACE_FOREST_BG_TILES_SIZE=(forest_end - forest)
 
-RACE_CAR_ADDR=$8000 + ((4 * 8) * 8); (RACE_FOREST_BG_TILES_ADDR + RACE_FOREST_BG_TILES_SIZE), aligned to 5 bits
-RACE_CAR_SIZE=$0800 ; ((64 * 32) * 1)
+RACE_CAR_ADDR=SPRITE_ALIGN(RACE_FOREST_BG_TILES_ADDR + RACE_FOREST_BG_TILES_SIZE)
+RACE_CAR_SIZE=(car_end - car)
+
+;=================================================
+; RACE_STREAM_ROW
+;   Stream a row of 8 tilemap entries to VRAM,
+;   assuming the source pattern is 8 tiles wide
+;-------------------------------------------------
+; INPUTS:   start  Start of the tilemap pattern
+;           row    Row number to stream
+;
+;-------------------------------------------------
+; MODIFIES: A, X, Y, $FF
+; 
+.macro RACE_STREAM_ROW start, row
+.local @stream
+    lda #(128/8)
+@stream:
+    pha    
+    SYS_STREAM_OUT (start + (16 * row)), VERA_data, 16
+    pla
+    sec
+    sbc #1
+    cmp #0
+    bne @stream
+.endmacro
 
 ;=================================================
 ;=================================================
@@ -33,14 +61,29 @@ RACE_CAR_SIZE=$0800 ; ((64 * 32) * 1)
 race_do:
     ; Copy data into video memory
     VERA_SELECT_ADDR 0
-    VERA_STREAM_OUT Race_mountains_map, RACE_MOUNTAINS_BG_ADDR, RACE_MOUNTAINS_BG_SIZE
-    VERA_STREAM_OUT Race_forest_map, RACE_FOREST_BG_ADDR, RACE_FOREST_BG_SIZE
-    VERA_STREAM_OUT Race_mountains_tiles, RACE_MOUNTAINS_BG_TILES_ADDR, RACE_MOUNTAINS_BG_TILES_SIZE
-    VERA_STREAM_OUT Race_forest_tiles, RACE_FOREST_BG_TILES_ADDR, RACE_FOREST_BG_TILES_SIZE
-    VERA_STREAM_OUT Race_car, RACE_CAR_ADDR, RACE_CAR_SIZE
-    VERA_STREAM_OUT Race_mountains_palette, VRAM_palette0, 16*2
-    VERA_STREAM_OUT Race_forest_palette, VRAM_palette1, 16*2
-    VERA_STREAM_OUT Race_car_palette, VRAM_palette2, 16*2
+
+    ; VERA_STREAM_OUT Race_mountains_map, RACE_MOUNTAINS_BG_ADDR, RACE_MOUNTAINS_BG_SIZE
+    VERA_SET_ADDR RACE_MOUNTAINS_BG_ADDR
+    SYS_STREAM Race_mountains_map, VERA_data, 128*12*2
+    .repeat 8, i
+        RACE_STREAM_ROW Race_mountains_map, i
+    .endrep
+    SYS_STREAM Race_mountains_map, VERA_data, 128*40*2
+    
+    ; VERA_STREAM_OUT Race_forest_map, RACE_FOREST_BG_ADDR, RACE_FOREST_BG_SIZE
+    VERA_SET_ADDR RACE_FOREST_BG_ADDR
+    SYS_STREAM Race_forest_map, VERA_data, 128*20
+    .repeat 8, i
+        RACE_STREAM_ROW Race_forest_map, i
+    .endrep
+    SYS_STREAM Race_forest_map, VERA_data, 128*32
+
+    VERA_STREAM_OUT mountain, RACE_MOUNTAINS_BG_TILES_ADDR, RACE_MOUNTAINS_BG_TILES_SIZE
+    VERA_STREAM_OUT forest, RACE_FOREST_BG_TILES_ADDR, RACE_FOREST_BG_TILES_SIZE
+    VERA_STREAM_OUT car, RACE_CAR_ADDR, RACE_CAR_SIZE
+    VERA_STREAM_OUT mountain_palette, VRAM_palette0, 16*2
+    VERA_STREAM_OUT forest_palette, VRAM_palette1, 16*2
+    VERA_STREAM_OUT car_palette, VRAM_palette2, 16*2
 
 __race__setup_scene:
     VERA_CONFIGURE_TILE_LAYER 0, 0, 3, 0, 0, 2, 1, RACE_MOUNTAINS_BG_ADDR, RACE_MOUNTAINS_BG_TILES_ADDR
@@ -68,191 +111,22 @@ __race__cleanup:
 HFLIP=(1 << 10)
 VFLIP=(1 << 11)
 
-Race_mountains_map: 
-; In row-major order
-.repeat 4, i
-    .repeat 32, j
-        .word $0001
-        .word $0001
-        .word $0002
-        .word $0003
-    .endrep
-    .repeat 32, j
-        .word $0001
-        .word $0001
-        .word $0001
-        .word $0001
-    .endrep
-    .repeat 32, j
-        .word $0001
-        .word $0002
-        .word $0003
-        .word $0001
-    .endrep
-    .repeat 32, j
-        .word $0001
-        .word $0001
-        .word $0001
-        .word $0001
-    .endrep
-.endrep
-.repeat 32, j
-    .word $0004
-    .word $0004+HFLIP
-    .word $0004
-    .word $0004+HFLIP
-.endrep
-.repeat 32, j
-    .word $0005
-    .word $0005+HFLIP
-    .word $0005
-    .word $0005+HFLIP
-.endrep
-Race_mountains_map_end:
+Race_mountains_map:
+    .word $0000, $0000, $0000, $0001, $0002, $0000, $0000, $0000
+    .word $0000, $0003, $0004, $0005, $0006, $0007, $0008, $0000
+    .word $0009, $000a, $000b, $000c, $000d, $000e, $000f, $0010
+    .word $0011, $0012, $0013, $0014, $0015, $0016, $0017, $0018
+    .word $0019, $001a, $001b, $001c, $001d, $001e, $001f, $0020
+    .word $0021, $0022, $0023, $0024, $0025, $0026, $0027, $0028
+    .word $0029, $002a, $002b, $002c, $002d, $002e, $002f, $0030
+    .word $0031, $0032, $0033, $0034, $0035, $0036, $0037, $0038
 
 Race_forest_map:
-; In row-major order
-.repeat 32, i
-    .repeat 128, j
-        .word $1000
+    .repeat 8, yi
+        .repeat 8, xi
+            .word yi*8 + xi + 1
+        .endrep
     .endrep
-.endrep
-.repeat 64, i
-    .repeat 128, j
-        .word $1001
-    .endrep
-.endrep
-Race_forest_map_end:
-
-Race_tiles:
-Race_mountains_tiles:
-Race_mountains_blank_tile:
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-
-Race_mountains_tile_sky:
-    .byte $11, $11, $11, $11
-    .byte $11, $11, $11, $11
-    .byte $11, $11, $11, $11
-    .byte $11, $11, $11, $11
-    .byte $11, $11, $11, $11
-    .byte $11, $11, $11, $11
-    .byte $11, $11, $11, $11
-    .byte $11, $11, $11, $11
-
-Race_mountains_tile_sky_cloud1_left:
-    .byte $11, $11, $11, $11
-    .byte $11, $11, $22, $22
-    .byte $11, $12, $22, $22
-    .byte $11, $12, $22, $22
-    .byte $11, $12, $22, $22
-    .byte $11, $11, $11, $11
-    .byte $11, $11, $11, $11
-    .byte $11, $11, $11, $11
-
-Race_mountains_tile_sky_cloud1_right:
-    .byte $11, $11, $11, $11
-    .byte $22, $11, $11, $11
-    .byte $22, $21, $11, $11
-    .byte $22, $22, $22, $11
-    .byte $22, $22, $22, $11
-    .byte $22, $11, $11, $11
-    .byte $11, $11, $11, $11
-    .byte $11, $11, $11, $11
-
-Race_mountains_tile_mountain1:
-    .byte $22, $22, $22, $23
-    .byte $22, $22, $22, $33
-    .byte $22, $22, $23, $33
-    .byte $22, $22, $33, $33
-    .byte $22, $23, $33, $33
-    .byte $22, $33, $33, $33
-    .byte $23, $33, $33, $33
-    .byte $33, $33, $33, $33
-
-Race_mountains_tile_mountain2:
-    .byte $22, $23, $32, $22
-    .byte $22, $33, $33, $22
-    .byte $23, $33, $33, $32
-    .byte $33, $33, $33, $33
-    .byte $33, $33, $33, $33
-    .byte $33, $33, $33, $33
-    .byte $33, $33, $33, $33
-    .byte $33, $33, $33, $33
-Race_mountains_tiles_end:
-
-Race_forest_tiles:
-Race_forest_blank_tile:
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-    .byte $00, $00, $00, $00
-
-Race_forest_tile_top:
-    .byte $44, $00, $44, $00
-    .byte $44, $00, $44, $00
-    .byte $44, $00, $44, $00
-    .byte $44, $00, $44, $00
-    .byte $44, $00, $44, $00
-    .byte $44, $00, $44, $00
-    .byte $44, $00, $44, $00
-    .byte $44, $00, $44, $00
-Race_forest_tiles_end:
-
-Race_car:
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00
-    .byte $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00
-    .byte $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00
-    .byte $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00
-    .byte $00, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $00
-    .byte $00, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00
-    .byte $00, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00
-    .byte $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00
-    .byte $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00
-    .byte $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $11, $11, $11, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-    .byte $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00
-Race_car_end:
-
-Race_mountains_palette:
-    .word $0000, $07EF, $0FFF, $000E, $000D, $000C, $000B, $000A, $0009, $0007, $0006, $0005, $0004, $0003, $0002, $0001
-Race_palette_end:
-Race_forest_palette:
-    .word $0000, $0080, $00F0, $00E0, $00D0, $00C0, $00B0, $00A0, $0090, $0070, $0060, $0050, $0040, $0030, $0020, $0010
-Race_forest_palette_end:
-Race_car_palette:
-    .word $0000, $0800, $0F00, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000
-Race_car_palette_end:
 
 .include "system.asm"
 .endif ; RACE_ASM
