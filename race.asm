@@ -8,6 +8,7 @@ RACE_ASM=1
 .include "assets/mountains.inc"
 .include "assets/forest.inc"
 .include "assets/car.inc"
+.include "assets/road.inc"
 
 RACE_MOUNTAINS_BG_ADDR=0
 RACE_MOUNTAINS_BG_SIZE=128*64*2
@@ -23,6 +24,9 @@ RACE_FOREST_BG_TILES_SIZE=(forest_end - forest)
 
 RACE_CAR_ADDR=((RACE_FOREST_BG_TILES_ADDR + RACE_FOREST_BG_TILES_SIZE))
 RACE_CAR_SIZE=(car_end - car)
+
+ROAD_ADDR=((RACE_CAR_ADDR + RACE_CAR_SIZE))
+ROAD_SIZE=(road_end - road)
 
 ;=================================================
 ; RACE_STREAM_ROW
@@ -88,18 +92,24 @@ race_do:
     VERA_STREAM_OUT mountain, RACE_MOUNTAINS_BG_TILES_ADDR, RACE_MOUNTAINS_BG_TILES_SIZE
     VERA_STREAM_OUT forest, RACE_FOREST_BG_TILES_ADDR, RACE_FOREST_BG_TILES_SIZE
     VERA_STREAM_OUT car, RACE_CAR_ADDR, RACE_CAR_SIZE
+    VERA_STREAM_OUT road, ROAD_ADDR, ROAD_SIZE
 
     ; Palette data
     VERA_STREAM_OUT mountain_palette, VRAM_palette0, 16*2
     VERA_STREAM_OUT forest_palette, VRAM_palette1, 16*2
     VERA_STREAM_OUT car_palette, VRAM_palette2, 16*2
+    VERA_STREAM_OUT road_palette, VRAM_palette3, 6*2
 
 __race__setup_scene:
     VERA_CONFIGURE_TILE_LAYER 0, 1, 3, 0, 0, 2, 1, RACE_MOUNTAINS_BG_ADDR, RACE_MOUNTAINS_BG_TILES_ADDR
     VERA_CONFIGURE_TILE_LAYER 1, 1, 3, 0, 0, 2, 1, RACE_FOREST_BG_ADDR, RACE_FOREST_BG_TILES_ADDR
 
     VERA_SET_SPRITE 0
-    VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320-32), (240-32), 0, 0, 1, 2, 3, 2
+    VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320-32), (224), 0, 0, 1, 2, 3, 2
+
+    .repeat 11, i
+    VERA_CONFIGURE_SPRITE ROAD_ADDR, 0, (64 * i), (240-32), 0, 0, 1, 3, 3, 3
+    .endrep
 
     ; These were just tests of the palettes
 
@@ -129,6 +139,7 @@ race_irq_first:
     ; go the "slow" way. 
     ;
     ; Listen to that, it's the world's smallest fiddle, playing "my heart cries out for you."
+    ; It's playing for me.
     ;
     ; VERA_ENABLE_ALL
 
@@ -138,82 +149,133 @@ race_irq_first:
     SYS_SET_IRQ race_irq
 
 race_irq:
+.macro ADD_24 dst, lhs, rhs
     clc
-    lda Mountains_pos
-    adc Mountains_speed
-    sta Mountains_pos
-    lda Mountains_pos+1
-    adc Mountains_speed+1
-    sta Mountains_pos+1
+    .repeat 3, i
+    lda lhs+i
+    adc rhs+i
+    sta dst+i
+    .endrep
+.endmacro
 
-    clc
-    lda Forest_pos
-    adc Forest_speed
-    sta Forest_pos
-    lda Forest_pos+1
-    adc Forest_speed+1
-    sta Forest_pos+1
-
+.macro VERA_SET_LAYER_SCROLL_X layer, src
+.if layer = 0
     VERA_SET_ADDR (VRAM_layer1+6), 1
-    lda Mountains_pos
-    and #$F0
-    lsr
-    lsr
-    lsr
-    lsr
-    sta Swap
-    lda Mountains_pos+1
-    and #$0F
-    asl
-    asl
-    asl
-    asl
-    adc Swap
-    sta VERA_data
-
-    lda Mountains_pos+1
-    and #$F0
-    asl
-    asl
-    asl
-    asl
-    sta VERA_data
-
+.else
     VERA_SET_ADDR (VRAM_layer2+6), 1
-    lda Forest_pos
-    and #$F0
-    lsr
-    lsr
-    lsr
-    lsr
-    sta Swap
-    lda Forest_pos+1
+.endif
+    lda src
+    sta VERA_data
+    lda src+1
     and #$0F
-    asl
-    asl
-    asl
-    asl
-    adc Swap
     sta VERA_data
+.endmacro
 
-    lda Forest_pos+1
-    and #$F0
-    asl
-    asl
-    asl
-    asl
+.macro VERA_SET_LAYER_SCROLL_Y layer, src
+.if layer = 0
+    VERA_SET_ADDR (VRAM_layer1+8), 1
+.else
+    VERA_SET_ADDR (VRAM_layer2+8), 1
+.endif
+    lda src
     sta VERA_data
+    lda src+1
+    and #$0F
+    sta VERA_data
+.endmacro
+
+.macro VERA_SET_SPRITE_POS_X sprite, src
+    VERA_SET_ADDR (VRAM_sprdata + (8 * sprite) + 2), 1
+    lda src
+    sta VERA_data
+    lda src+1
+    and #$03
+    sta VERA_data
+.endmacro
+
+.macro VERA_SET_SPRITE_POS_Y sprite, src
+    VERA_SET_ADDR (VRAM_sprdata + (8 * sprite) + 4), 1
+    lda src
+    sta VERA_data
+    lda src+1
+    and #$03
+    sta VERA_data
+.endmacro
+
+    ADD_24 Mountains_pos, Mountains_pos, Mountains_speed
+    ADD_24 Forest_pos, Forest_pos, Forest_speed
+
+    VERA_SET_LAYER_SCROLL_X 0, Mountains_pos+1
+    VERA_SET_LAYER_SCROLL_X 1, Forest_pos+1
+
+    .repeat 11, i
+    ADD_24 Road0_pos+(3*i), Road0_pos+(3*i), Roads_speed
+    .endrep
+
+.macro WRAP_X_TO_SCREEN_24 pos
+.local @offscreen
+.local @onscreen
+
+    ADD_24 Temp, pos, Wrap_amount
+
+    lda Temp+2
+    cmp Screen_width+2
+    bcc @offscreen
+    bne @onscreen
+    lda Temp+1
+    cmp Screen_width+1
+    bcs @onscreen
+@offscreen:
+    lda Temp
+    sta pos
+    lda Temp+1
+    sta pos+1
+    lda Temp+2
+    sta pos+2
+@onscreen:
+.endmacro
+
+    .repeat 11, i
+    WRAP_X_TO_SCREEN_24 Road0_pos+(3*i)
+    .endrep
+
+    .repeat 11, i
+    VERA_SET_SPRITE_POS_X (i+1), Road0_pos+(3*i)+1
+    .endrep
 
     VERA_END_IRQ
     SYS_END_IRQ
 
-Mountains_pos: .word $0000
-Forest_pos: .word $0000
+Mountains_pos: .byte $00, $00, $00
+Forest_pos: .byte $00, $00, $00
 
-Mountains_speed: .word $0008
-Forest_speed: .word $0023
+Mountains_speed: .word $0088
+    .byte 0
+Forest_speed: .word $0233
+    .byte 0
 
-Swap: .byte $00
+Road0_pos: .byte $00, $00, $00
+Road1_pos: .byte $00, $40, $00
+Road2_pos: .byte $00, $80, $00
+Road3_pos: .byte $00, $C0, $00
+Road4_pos: .byte $00, $00, $01
+Road5_pos: .byte $00, $40, $01
+Road6_pos: .byte $00, $80, $01
+Road7_pos: .byte $00, $C0, $01
+Road8_pos: .byte $00, $00, $02
+Road9_pos: .byte $00, $40, $02
+RoadA_pos: .byte $00, $80, $02
+
+Wrap_amount: .byte $00, $C0, $02   ; 704 pixels (640+64)
+Screen_width: .byte $00, $80, $02   ; 640 pixels
+
+Temp: .byte $00, $00, $00
+
+Roads_speed: .word $F776
+    .byte $FF
+
+; Roads_speed: .word $0000
+;      .byte $00
 
 HFLIP=(1 << 10)
 VFLIP=(1 << 11)
