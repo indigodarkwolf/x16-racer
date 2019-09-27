@@ -51,9 +51,9 @@ splash_do:
 __splash__setup_sprite:
     VERA_SET_SPRITE 0
 .if GIANT_SPLASH = 1
-    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 1, (320-32), (240-32), 0, 0, 1, 0, 3, 3
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32), (240-32), 0, 0, 1, 0, 3, 3
 .else
-    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 1, (320-16), (240-16), 0, 0, 1, 0, 2, 2
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-16), (240-16), 0, 0, 1, 0, 2, 2
 .endif
     GRAPHICS_FADE_IN Splash_palette, 2
 

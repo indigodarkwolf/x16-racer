@@ -334,9 +334,9 @@ DATA_ADDR=(data_addr >> 5)
 	.error "Sprite data does not obey alignment rules"
 .endif
 
-	VERA_WRITE <DATA_ADDR, >(DATA_ADDR | (colors << 7))
-	VERA_WRITE <(xpos & $0FF), >(xpos & $300), <(ypos & $0FF), >(ypos & $300)
-	VERA_WRITE	((hflip) | (vflip << 1) | (zdepth << 2))
+	VERA_WRITE (DATA_ADDR & $FF), ((DATA_ADDR >> 8) | (colors << 7))
+	VERA_WRITE (xpos & $0FF), ((xpos & $300) >> 8), (ypos & $0FF), ((ypos & $300) >> 8)
+	VERA_WRITE ((hflip) | (vflip << 1) | (zdepth << 2))
 	VERA_WRITE ((palette_index & $0F) | (width << 4) | (height << 6))
 .endmacro
 
