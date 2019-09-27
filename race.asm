@@ -9,6 +9,8 @@ RACE_ASM=1
 .include "assets/forest.inc"
 .include "assets/car.inc"
 .include "assets/road.inc"
+.include "assets/pillar.inc"
+.include "assets/wheel.inc"
 
 RACE_MOUNTAINS_BG_ADDR=0
 RACE_MOUNTAINS_BG_SIZE=128*64*2
@@ -27,6 +29,15 @@ RACE_CAR_SIZE=(car_end - car)
 
 ROAD_ADDR=((RACE_CAR_ADDR + RACE_CAR_SIZE))
 ROAD_SIZE=(road_end - road)
+
+PILLAR_ADDR=((ROAD_ADDR + ROAD_SIZE))
+PILLAR_SIZE=(pillar_end - pillar)
+
+WHEEL0_ADDR=((PILLAR_ADDR + PILLAR_SIZE))
+WHEEL0_SIZE=(wheel_01_00 - wheel_00_00)
+
+WHEEL1_ADDR=((WHEEL0_ADDR + WHEEL0_SIZE))
+WHEEL1_SIZE=(wheel_end - wheel_01_00)
 
 ;=================================================
 ; RACE_STREAM_ROW
@@ -74,42 +85,53 @@ race_do:
 
     ; The mountains background tilemap
     VERA_SET_ADDR RACE_MOUNTAINS_BG_ADDR
-    SYS_STREAM Race_mountains_map, VERA_data, (256*12)
+    SYS_STREAM Race_mountains_map, VERA_data, (256*22)
     .repeat 8, i
         RACE_STREAM_ROW Race_mountains_map, i
     .endrep
-    SYS_STREAM Race_mountains_map, VERA_data, 128*40*2
+    SYS_STREAM Race_mountains_map, VERA_data, 256*30
     
     ; The forest background tilemap
     VERA_SET_ADDR RACE_FOREST_BG_ADDR
-    SYS_STREAM Race_mountains_map, VERA_data, 256*18
+    SYS_STREAM Race_mountains_map, VERA_data, 256*28
     .repeat 8, i
         RACE_STREAM_ROW Race_forest_map, i
     .endrep
-    SYS_STREAM Race_mountains_map, VERA_data, 256*34
+    SYS_STREAM Race_mountains_map, VERA_data, 256*24
 
     ; Tile data
     VERA_STREAM_OUT mountain, RACE_MOUNTAINS_BG_TILES_ADDR, RACE_MOUNTAINS_BG_TILES_SIZE
     VERA_STREAM_OUT forest, RACE_FOREST_BG_TILES_ADDR, RACE_FOREST_BG_TILES_SIZE
     VERA_STREAM_OUT car, RACE_CAR_ADDR, RACE_CAR_SIZE
     VERA_STREAM_OUT road, ROAD_ADDR, ROAD_SIZE
+    VERA_STREAM_OUT pillar, PILLAR_ADDR, PILLAR_SIZE
+    VERA_STREAM_OUT wheel_00_00, WHEEL0_ADDR, WHEEL0_SIZE
+    VERA_STREAM_OUT wheel_01_00, WHEEL1_ADDR, WHEEL1_SIZE
 
     ; Palette data
     VERA_STREAM_OUT mountain_palette, VRAM_palette0, 16*2
     VERA_STREAM_OUT forest_palette, VRAM_palette1, 16*2
     VERA_STREAM_OUT car_palette, VRAM_palette2, 16*2
     VERA_STREAM_OUT road_palette, VRAM_palette3, 6*2
+    VERA_STREAM_OUT pillar_palette, VRAM_palette4, 16*2
+    VERA_STREAM_OUT wheel_palette, VRAM_palette5, 16*2
 
 __race__setup_scene:
     VERA_CONFIGURE_TILE_LAYER 0, 1, 3, 0, 0, 2, 1, RACE_MOUNTAINS_BG_ADDR, RACE_MOUNTAINS_BG_TILES_ADDR
     VERA_CONFIGURE_TILE_LAYER 1, 1, 3, 0, 0, 2, 1, RACE_FOREST_BG_ADDR, RACE_FOREST_BG_TILES_ADDR
 
     VERA_SET_SPRITE 0
-    VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320-32), (224), 0, 0, 1, 2, 3, 2
+    VERA_CONFIGURE_SPRITE WHEEL0_ADDR, 0, (297), (320), 0, 0, 1, 5, 1, 1
+    VERA_CONFIGURE_SPRITE WHEEL0_ADDR, 0, (328), (320), 0, 0, 1, 5, 1, 1
+
+    VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320-32), (304), 0, 0, 1, 2, 3, 2
 
     .repeat 11, i
-    VERA_CONFIGURE_SPRITE ROAD_ADDR, 0, (64 * i), (240-32), 0, 0, 1, 3, 3, 3
+    VERA_CONFIGURE_SPRITE ROAD_ADDR, 0, (64 * i), (288), 0, 0, 1, 3, 3, 3
     .endrep
+
+    VERA_CONFIGURE_SPRITE PILLAR_ADDR, 0, (64), (352), 0, 0, 1, 4, 3, 3
+    VERA_CONFIGURE_SPRITE PILLAR_ADDR, 0, (64), (416), 0, 0, 1, 4, 3, 3
 
     ; These were just tests of the palettes
 
@@ -208,7 +230,7 @@ race_irq:
     VERA_SET_LAYER_SCROLL_X 0, Mountains_pos+1
     VERA_SET_LAYER_SCROLL_X 1, Forest_pos+1
 
-    .repeat 11, i
+    .repeat 13, i
     ADD_24 Road0_pos+(3*i), Road0_pos+(3*i), Roads_speed
     .endrep
 
@@ -235,14 +257,52 @@ race_irq:
 @onscreen:
 .endmacro
 
-    .repeat 11, i
+    .repeat 13, i
     WRAP_X_TO_SCREEN_24 Road0_pos+(3*i)
     .endrep
 
-    .repeat 11, i
-    VERA_SET_SPRITE_POS_X (i+1), Road0_pos+(3*i)+1
+    .repeat 13, i
+    VERA_SET_SPRITE_POS_X (i+3), Road0_pos+(3*i)+1
     .endrep
 
+    clc
+    lda Wheel_state
+    adc Wheel_speed
+    sta Wheel_state
+    lda Wheel_state+1
+    adc Wheel_speed+1
+    sta Wheel_state+1
+
+    lda Wheel_state+1
+    and #$01
+    beq @set_wheel0
+
+    VERA_SET_ADDR (VRAM_sprdata)
+    lda #((WHEEL1_ADDR >> 5) & $FF)
+    sta VERA_data
+    lda #(WHEEL1_ADDR >> 13)
+    sta VERA_data
+
+    VERA_SET_ADDR (VRAM_sprdata + 8)
+    lda #((WHEEL1_ADDR >> 5) & $FF)
+    sta VERA_data
+    lda #(WHEEL1_ADDR >> 13)
+    sta VERA_data
+    jmp @wheels_end
+@set_wheel0:
+    VERA_SET_ADDR (VRAM_sprdata)
+    lda #((WHEEL0_ADDR >> 5) & $FF)
+    sta VERA_data
+    lda #(WHEEL0_ADDR >> 13)
+    sta VERA_data
+
+    VERA_SET_ADDR (VRAM_sprdata + 8)
+    lda #((WHEEL0_ADDR >> 5) & $FF)
+    sta VERA_data
+    lda #(WHEEL0_ADDR >> 13)
+    sta VERA_data
+
+@wheels_end:
     VERA_END_IRQ
     SYS_END_IRQ
 
@@ -265,6 +325,11 @@ Road7_pos: .byte $00, $C0, $01
 Road8_pos: .byte $00, $00, $02
 Road9_pos: .byte $00, $40, $02
 RoadA_pos: .byte $00, $80, $02
+Pillar0_pos: .byte $00, $80, $02
+Pillar1_pos: .byte $00, $80, $02
+
+Wheel_state: .word $0000
+Wheel_speed: .word $0100
 
 Wrap_amount: .byte $00, $C0, $02   ; 704 pixels (640+64)
 Screen_width: .byte $00, $80, $02   ; 640 pixels
