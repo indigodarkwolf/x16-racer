@@ -59,10 +59,16 @@ RACE_CAR_SIZE=(car_end - car)
 ; Return to caller when done.
 ;
 race_do:
-    ; Copy data into video memory
-    VERA_SELECT_ADDR 0
+    VERA_DISABLE_ALL
 
-    ; VERA_STREAM_OUT Race_mountains_map, RACE_MOUNTAINS_BG_ADDR, RACE_MOUNTAINS_BG_SIZE
+    ; I've already spent a lot of memory on assets, and don't want to bother with file I/O just yet
+    ; or image compression (though the splash logo could *majorly* benefit from RLE encoding, let me
+    ; tell you).
+    ;
+    ; So instead of doing a nice, clean, block copy of pre-calculated tilemap data into VRAM, I'm
+    ; breaking it up into chunks of assembly because that's smaller.
+
+    ; The mountains background tilemap
     VERA_SET_ADDR RACE_MOUNTAINS_BG_ADDR
     SYS_STREAM Race_mountains_map, VERA_data, (256*12)
     .repeat 8, i
@@ -70,7 +76,7 @@ race_do:
     .endrep
     SYS_STREAM Race_mountains_map, VERA_data, 128*40*2
     
-    ; VERA_STREAM_OUT Race_forest_map, RACE_FOREST_BG_ADDR, RACE_FOREST_BG_SIZE
+    ; The forest background tilemap
     VERA_SET_ADDR RACE_FOREST_BG_ADDR
     SYS_STREAM Race_mountains_map, VERA_data, 256*18
     .repeat 8, i
@@ -78,12 +84,12 @@ race_do:
     .endrep
     SYS_STREAM Race_mountains_map, VERA_data, 256*34
 
+    ; Tile data
     VERA_STREAM_OUT mountain, RACE_MOUNTAINS_BG_TILES_ADDR, RACE_MOUNTAINS_BG_TILES_SIZE
     VERA_STREAM_OUT forest, RACE_FOREST_BG_TILES_ADDR, RACE_FOREST_BG_TILES_SIZE
-
-    VERA_SET_ADDR RACE_CAR_ADDR
     VERA_STREAM_OUT car, RACE_CAR_ADDR, RACE_CAR_SIZE
 
+    ; Palette data
     VERA_STREAM_OUT mountain_palette, VRAM_palette0, 16*2
     VERA_STREAM_OUT forest_palette, VRAM_palette1, 16*2
     VERA_STREAM_OUT car_palette, VRAM_palette2, 16*2
@@ -94,22 +100,19 @@ __race__setup_scene:
 
     VERA_SET_SPRITE 0
     VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320-32), (240-32), 0, 0, 1, 2, 3, 2
-    VERA_SET_SPRITE 1
-    VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320-64), (240-64), 0, 0, 1, 1, 3, 2
-    VERA_SET_SPRITE 2
-    VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320), (240-64), 0, 0, 1, 0, 3, 2
+
+    ; These were just tests of the palettes
+
+    ; VERA_SET_SPRITE 1
+    ; VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320-64), (240-64), 0, 0, 1, 1, 3, 2
+    ; VERA_SET_SPRITE 2
+    ; VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320), (240-64), 0, 0, 1, 0, 3, 2
 
 __race__begin:
-    ; VERA_ENABLE_SPRITES
-    ; VERA_ENABLE_LAYER 0
-    ; VERA_ENABLE_LAYER 1
+    lda #1
+    jsr sys_wait_for_frame
 
-    ; VERA_ENABLE_ALL
-
-    ; lda #1
-    ; jsr sys_wait_for_frame
-
-    SYS_SET_IRQ race_irq
+    SYS_SET_IRQ race_irq_first
     cli
 
     jmp *
@@ -117,6 +120,22 @@ __race__begin:
 __race__cleanup:
     VERA_DISABLE_SPRITES
     rts
+
+race_irq_first:
+    ; I'm not sure what I'm blowing up with this macro just yet. It's supposed to be a faster
+    ; way of toggling layers and sprites on, by taking advantage of the fact that the "enabled"
+    ; bit is the most significant bit of byte 0 on both layers and the sprite info, and that
+    ; there are all mapped $1000 bytes apart from each other. Until I solve that, I have to
+    ; go the "slow" way. 
+    ;
+    ; Listen to that, it's the world's smallest fiddle, playing "my heart cries out for you."
+    ;
+    ; VERA_ENABLE_ALL
+
+    VERA_ENABLE_LAYER 0
+    VERA_ENABLE_LAYER 1
+    VERA_ENABLE_SPRITES
+    SYS_SET_IRQ race_irq
 
 race_irq:
     clc

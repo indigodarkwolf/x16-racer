@@ -439,6 +439,8 @@ DATA_ADDR=(data_addr >> 5)
     lda VERA_data
     and #$FE
 	sta VERA_data2
+
+    VERA_SELECT_ADDR 0
 .endmacro
 
 
