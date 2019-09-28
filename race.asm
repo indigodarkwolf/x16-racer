@@ -7,6 +7,7 @@ RACE_ASM=1
 
 .include "assets/mountains.inc"
 .include "assets/forest.inc"
+.include "assets/forest-inner.inc"
 .include "assets/car.inc"
 .include "assets/road.inc"
 .include "assets/pillar.inc"
@@ -24,7 +25,10 @@ RACE_MOUNTAINS_BG_TILES_SIZE=(mountain_end - mountain)
 RACE_FOREST_BG_TILES_ADDR=(RACE_MOUNTAINS_BG_TILES_ADDR + RACE_MOUNTAINS_BG_TILES_SIZE)
 RACE_FOREST_BG_TILES_SIZE=(forest_end - forest)
 
-RACE_CAR_ADDR=((RACE_FOREST_BG_TILES_ADDR + RACE_FOREST_BG_TILES_SIZE))
+RACE_FOREST_INNER_BG_TILES_ADDR=(RACE_FOREST_BG_TILES_ADDR + RACE_FOREST_BG_TILES_SIZE)
+RACE_FOREST_INNER_BG_TILES_SIZE=(forest_inner_end - forest_inner)
+
+RACE_CAR_ADDR=((RACE_FOREST_INNER_BG_TILES_ADDR + RACE_FOREST_INNER_BG_TILES_SIZE))
 RACE_CAR_SIZE=(car_end - car)
 
 ROAD_ADDR=((RACE_CAR_ADDR + RACE_CAR_SIZE))
@@ -97,11 +101,20 @@ race_do:
     .repeat 8, i
         RACE_STREAM_ROW Race_forest_map, i
     .endrep
-    SYS_STREAM Race_mountains_map, VERA_data, 256*24
+    .repeat 8, i
+        RACE_STREAM_ROW Race_forest_inner_map, i
+    .endrep
+    .repeat 8, i
+        RACE_STREAM_ROW Race_forest_inner_map, i
+    .endrep
+    .repeat 8, i
+        RACE_STREAM_ROW Race_forest_inner_map, i
+    .endrep
 
     ; Tile data
     VERA_STREAM_OUT mountain, RACE_MOUNTAINS_BG_TILES_ADDR, RACE_MOUNTAINS_BG_TILES_SIZE
     VERA_STREAM_OUT forest, RACE_FOREST_BG_TILES_ADDR, RACE_FOREST_BG_TILES_SIZE
+    VERA_STREAM_OUT forest_inner, RACE_FOREST_INNER_BG_TILES_ADDR, RACE_FOREST_INNER_BG_TILES_SIZE
     VERA_STREAM_OUT car, RACE_CAR_ADDR, RACE_CAR_SIZE
     VERA_STREAM_OUT road, ROAD_ADDR, ROAD_SIZE
     VERA_STREAM_OUT pillar, PILLAR_ADDR, PILLAR_SIZE
@@ -115,6 +128,7 @@ race_do:
     VERA_STREAM_OUT road_palette, VRAM_palette3, 6*2
     VERA_STREAM_OUT pillar_palette, VRAM_palette4, 16*2
     VERA_STREAM_OUT wheel_palette, VRAM_palette5, 16*2
+    VERA_STREAM_OUT forest_inner_palette, VRAM_palette6, 16*2
 
 __race__setup_scene:
     VERA_CONFIGURE_TILE_LAYER 0, 1, 3, 0, 0, 2, 1, RACE_MOUNTAINS_BG_ADDR, RACE_MOUNTAINS_BG_TILES_ADDR
@@ -329,7 +343,7 @@ Pillar0_pos: .byte $00, $80, $02
 Pillar1_pos: .byte $00, $80, $02
 
 Wheel_state: .word $0000
-Wheel_speed: .word $0100
+Wheel_speed: .word $0030
 
 Wrap_amount: .byte $00, $C0, $02   ; 704 pixels (640+64)
 Screen_width: .byte $00, $80, $02   ; 640 pixels
@@ -359,6 +373,13 @@ Race_forest_map:
     .repeat 8, yi
         .repeat 8, xi
             .word ($1000 | (yi*8 + xi + 1))
+        .endrep
+    .endrep
+
+Race_forest_inner_map:
+    .repeat 8, yi
+        .repeat 8, xi
+            .word ($1000 | (yi*8 + xi + 65))
         .endrep
     .endrep
 
