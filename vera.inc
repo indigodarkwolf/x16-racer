@@ -52,6 +52,9 @@ VRAM_palette15 = $F1000 + (2*16)*15
 
 VROM_petscii   = $1F000
 
+TILE_HFLIP=(1 << 10)
+TILE_VFLIP=(1 << 11)
+
 ;=================================================
 ;=================================================
 ;
@@ -262,6 +265,54 @@ VROM_petscii   = $1F000
 .endmacro
 
 ;=================================================
+; VERA_SET_LAYER_SCROLL_X
+;   Apply the given X scroll parameter at a memory address to the layer
+;-------------------------------------------------
+; INPUTS:   layer	Layer (0|1)
+;			src		memory address containing WORD of scroll
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_SET_LAYER_SCROLL_X layer, src
+.if layer = 0
+    VERA_SET_ADDR (VRAM_layer1+6), 1
+.else
+    VERA_SET_ADDR (VRAM_layer2+6), 1
+.endif
+    lda src
+    sta VERA_data
+    lda src+1
+    and #$0F
+    sta VERA_data
+.endmacro
+
+
+;=================================================
+; VERA_SET_LAYER_SCROLL_Y
+;   Apply the given Y scroll parameter at a memory address to the layer
+;-------------------------------------------------
+; INPUTS:   layer	Layer (0|1)
+;			src		memory address containing WORD of scroll
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_SET_LAYER_SCROLL_Y layer, src
+.if layer = 0
+    VERA_SET_ADDR (VRAM_layer1+8), 1
+.else
+    VERA_SET_ADDR (VRAM_layer2+8), 1
+.endif
+    lda src
+    sta VERA_data
+    lda src+1
+    and #$0F
+    sta VERA_data
+.endmacro
+
+
+;=================================================
 ; VERA_ENABLE_SPRITES
 ;   Enables sprites layer
 ;-------------------------------------------------
@@ -339,6 +390,46 @@ DATA_ADDR=(data_addr >> 5)
 	VERA_WRITE ((hflip) | (vflip << 1) | (zdepth << 2))
 	VERA_WRITE ((palette_index & $0F) | (width << 4) | (height << 6))
 .endmacro
+
+
+;=================================================
+; VERA_SET_SPRITE_POS_X
+;   Set the X coordinate of the sprite from some location in memory
+;-------------------------------------------------
+; INPUTS:   sprite		Sprite index
+;			src			Memory location with X coordinate
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_SET_SPRITE_POS_X sprite, src
+    VERA_SET_ADDR (VRAM_sprdata + (8 * sprite) + 2), 1
+    lda src
+    sta VERA_data
+    lda src+1
+    and #$03
+    sta VERA_data
+.endmacro
+
+;=================================================
+; VERA_SET_SPRITE_POS_Y
+;   Set the Y coordinate of the sprite from some location in memory
+;-------------------------------------------------
+; INPUTS:   sprite		Sprite index
+;			src			Memory location with Y coordinate
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_SET_SPRITE_POS_Y sprite, src
+    VERA_SET_ADDR (VRAM_sprdata + (8 * sprite) + 4), 1
+    lda src
+    sta VERA_data
+    lda src+1
+    and #$03
+    sta VERA_data
+.endmacro
+
 
 ;=================================================
 ; VERA_SET_PALETTE

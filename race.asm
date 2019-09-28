@@ -6,12 +6,15 @@ RACE_ASM=1
 .include "graphics.inc"
 
 .include "assets/mountains.inc"
+.include "assets/font_courier_new.inc"
 .include "assets/forest.inc"
 .include "assets/forest-inner.inc"
 .include "assets/car.inc"
 .include "assets/road.inc"
 .include "assets/pillar.inc"
 .include "assets/wheel.inc"
+
+.include "assets/licenses.inc"
 
 RACE_MOUNTAINS_BG_ADDR=0
 RACE_MOUNTAINS_BG_SIZE=128*64*2
@@ -22,7 +25,10 @@ RACE_FOREST_BG_SIZE=128*64*2
 RACE_MOUNTAINS_BG_TILES_ADDR=(RACE_FOREST_BG_ADDR + RACE_FOREST_BG_SIZE)
 RACE_MOUNTAINS_BG_TILES_SIZE=(mountain_end - mountain)
 
-RACE_FOREST_BG_TILES_ADDR=(RACE_MOUNTAINS_BG_TILES_ADDR + RACE_MOUNTAINS_BG_TILES_SIZE)
+RACE_FONT_TILES_ADDR=(RACE_MOUNTAINS_BG_TILES_ADDR + RACE_MOUNTAINS_BG_TILES_SIZE)
+RACE_FONT_TILES_SIZE=(font_courier_new_end - font_courier_new)
+
+RACE_FOREST_BG_TILES_ADDR=(RACE_FONT_TILES_ADDR + RACE_FONT_TILES_SIZE)
 RACE_FOREST_BG_TILES_SIZE=(forest_end - forest)
 
 RACE_FOREST_INNER_BG_TILES_ADDR=(RACE_FOREST_BG_TILES_ADDR + RACE_FOREST_BG_TILES_SIZE)
@@ -42,6 +48,14 @@ WHEEL0_SIZE=(wheel_01_00 - wheel_00_00)
 
 WHEEL1_ADDR=((WHEEL0_ADDR + WHEEL0_SIZE))
 WHEEL1_SIZE=(wheel_end - wheel_01_00)
+
+LICENSE_0_SIZE=(license_0_end - license_0)
+LICENSE_1_SIZE=(license_1_end - license_1)
+LICENSE_2_SIZE=(license_2_end - license_2)
+LICENSE_3_SIZE=(license_3_end - license_3)
+LICENSE_4_SIZE=(license_4_end - license_4)
+LICENSE_5_SIZE=(license_5_end - license_5)
+LICENSE_6_SIZE=(license_6_end - license_6)
 
 ;=================================================
 ; RACE_STREAM_ROW
@@ -67,6 +81,74 @@ WHEEL1_SIZE=(wheel_end - wheel_01_00)
     bne @stream
 .endmacro
 
+
+; TODO: I'm going to need to create a math library at some point
+; to serve as a communal home for math ops. 
+;
+; For now, though, I'll just leave it here.
+
+;=================================================
+; ADD_24
+;   24-bit version of "dst = lhs + rhs"
+;-------------------------------------------------
+; INPUTS:   dst     Destination memory address
+;           lhs     Left-hand-side parameter
+;           rhs     Right-hand-side parameter
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro ADD_24 dst, lhs, rhs
+    clc
+    .repeat 3, i
+    lda lhs+i
+    adc rhs+i
+    sta dst+i
+    .endrep
+.endmacro
+
+
+;=================================================
+; WRAP_X_TO_SCREEN_24
+;   Given some 24-bit X coordinate in 16.8 fixed point,
+;   for a 64x64 sprite, check whether it's on-screen and,
+;   if not, wrap it to the other side
+;
+;   This is because I don't want to wait for the thing to
+;   go the entire numerical range off the screen. I'm 
+;   programming to a 16-sprite limit due to r31's limits,
+;   so I don't have the sprites to spare. Besides, it's
+;   wasteful to be updating positions on sprites that
+;   can't be seen, and I've only got so many CPU clocks.
+;-------------------------------------------------
+; INPUTS:   pos     Memory address of the 24-bit coordinate
+;
+;-------------------------------------------------
+; MODIFIES: A, pos
+; 
+.macro WRAP_X_TO_SCREEN_24 pos
+.local @offscreen
+.local @onscreen
+
+    ADD_24 Temp, pos, Wrap_amount
+
+    lda Temp+2
+    cmp Screen_width+2
+    bcc @offscreen
+    bne @onscreen
+    lda Temp+1
+    cmp Screen_width+1
+    bcs @onscreen
+@offscreen:
+    lda Temp
+    sta pos
+    lda Temp+1
+    sta pos+1
+    lda Temp+2
+    sta pos+2
+@onscreen:
+.endmacro
+
 ;=================================================
 ;=================================================
 ; 
@@ -87,9 +169,27 @@ race_do:
     ; So instead of doing a nice, clean, block copy of pre-calculated tilemap data into VRAM, I'm
     ; breaking it up into chunks of assembly because that's smaller.
 
-    ; The mountains background tilemap
+    ; The mountains background tilemap, with some art credits in the sky
     VERA_SET_ADDR RACE_MOUNTAINS_BG_ADDR
-    SYS_STREAM Race_mountains_map, VERA_data, (256*22)
+    SYS_STREAM Race_mountains_map, VERA_data, (256*2+56)
+
+    SYS_STREAM_OUT license_1, VERA_data, LICENSE_1_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 56 - LICENSE_1_SIZE + 58)
+    SYS_STREAM_OUT license_2, VERA_data, LICENSE_2_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 58 - LICENSE_2_SIZE + 60)
+    SYS_STREAM_OUT license_3, VERA_data, LICENSE_3_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 60 - LICENSE_3_SIZE)
+
+    SYS_STREAM Race_mountains_map, VERA_data, (256*3+128)
+
+    SYS_STREAM_OUT license_4, VERA_data, LICENSE_4_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 128 - LICENSE_4_SIZE + 130)
+    SYS_STREAM_OUT license_5, VERA_data, LICENSE_5_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 130 - LICENSE_5_SIZE + 132)
+    SYS_STREAM_OUT license_6, VERA_data, LICENSE_6_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 132 - LICENSE_6_SIZE)
+
+    SYS_STREAM Race_mountains_map, VERA_data, (256*11)
     .repeat 8, i
         RACE_STREAM_ROW Race_mountains_map, i
     .endrep
@@ -113,6 +213,7 @@ race_do:
 
     ; Tile data
     VERA_STREAM_OUT mountain, RACE_MOUNTAINS_BG_TILES_ADDR, RACE_MOUNTAINS_BG_TILES_SIZE
+    VERA_STREAM_OUT font_courier_new, RACE_FONT_TILES_ADDR, RACE_FONT_TILES_SIZE
     VERA_STREAM_OUT forest, RACE_FOREST_BG_TILES_ADDR, RACE_FOREST_BG_TILES_SIZE
     VERA_STREAM_OUT forest_inner, RACE_FOREST_INNER_BG_TILES_ADDR, RACE_FOREST_INNER_BG_TILES_SIZE
     VERA_STREAM_OUT car, RACE_CAR_ADDR, RACE_CAR_SIZE
@@ -128,7 +229,7 @@ race_do:
     VERA_STREAM_OUT road_palette, VRAM_palette3, 6*2
     VERA_STREAM_OUT pillar_palette, VRAM_palette4, 16*2
     VERA_STREAM_OUT wheel_palette, VRAM_palette5, 16*2
-    VERA_STREAM_OUT forest_inner_palette, VRAM_palette6, 16*2
+    VERA_STREAM_OUT font_courier_new_palette, VRAM_palette6, 3*2
 
 __race__setup_scene:
     VERA_CONFIGURE_TILE_LAYER 0, 1, 3, 0, 0, 2, 1, RACE_MOUNTAINS_BG_ADDR, RACE_MOUNTAINS_BG_TILES_ADDR
@@ -167,6 +268,13 @@ __race__cleanup:
     VERA_DISABLE_SPRITES
     rts
 
+; Since I'm doing a *lot* of work without waiting for frames (due to having everything turned off),
+; I may be mid-frame when I turn things on. So instead of just doing that any time, do it in a
+; one-off IRQ that flows sets and then continues into the real IRQ, so that we'll ideally avoid
+; screen-tearing on the first frame.
+;
+; Overthinking? Whatever, low-hanging fruit at this point.
+
 race_irq_first:
     ; I'm not sure what I'm blowing up with this macro just yet. It's supposed to be a faster
     ; way of toggling layers and sprites on, by taking advantage of the fact that the "enabled"
@@ -185,100 +293,31 @@ race_irq_first:
     SYS_SET_IRQ race_irq
 
 race_irq:
-.macro ADD_24 dst, lhs, rhs
-    clc
-    .repeat 3, i
-    lda lhs+i
-    adc rhs+i
-    sta dst+i
-    .endrep
-.endmacro
-
-.macro VERA_SET_LAYER_SCROLL_X layer, src
-.if layer = 0
-    VERA_SET_ADDR (VRAM_layer1+6), 1
-.else
-    VERA_SET_ADDR (VRAM_layer2+6), 1
-.endif
-    lda src
-    sta VERA_data
-    lda src+1
-    and #$0F
-    sta VERA_data
-.endmacro
-
-.macro VERA_SET_LAYER_SCROLL_Y layer, src
-.if layer = 0
-    VERA_SET_ADDR (VRAM_layer1+8), 1
-.else
-    VERA_SET_ADDR (VRAM_layer2+8), 1
-.endif
-    lda src
-    sta VERA_data
-    lda src+1
-    and #$0F
-    sta VERA_data
-.endmacro
-
-.macro VERA_SET_SPRITE_POS_X sprite, src
-    VERA_SET_ADDR (VRAM_sprdata + (8 * sprite) + 2), 1
-    lda src
-    sta VERA_data
-    lda src+1
-    and #$03
-    sta VERA_data
-.endmacro
-
-.macro VERA_SET_SPRITE_POS_Y sprite, src
-    VERA_SET_ADDR (VRAM_sprdata + (8 * sprite) + 4), 1
-    lda src
-    sta VERA_data
-    lda src+1
-    and #$03
-    sta VERA_data
-.endmacro
-
+    ; Scroll the background layers
     ADD_24 Mountains_pos, Mountains_pos, Mountains_speed
     ADD_24 Forest_pos, Forest_pos, Forest_speed
 
     VERA_SET_LAYER_SCROLL_X 0, Mountains_pos+1
     VERA_SET_LAYER_SCROLL_X 1, Forest_pos+1
 
+    ; Update the roads' positions based on their speed
     .repeat 13, i
     ADD_24 Road0_pos+(3*i), Road0_pos+(3*i), Roads_speed
     .endrep
 
-.macro WRAP_X_TO_SCREEN_24 pos
-.local @offscreen
-.local @onscreen
-
-    ADD_24 Temp, pos, Wrap_amount
-
-    lda Temp+2
-    cmp Screen_width+2
-    bcc @offscreen
-    bne @onscreen
-    lda Temp+1
-    cmp Screen_width+1
-    bcs @onscreen
-@offscreen:
-    lda Temp
-    sta pos
-    lda Temp+1
-    sta pos+1
-    lda Temp+2
-    sta pos+2
-@onscreen:
-.endmacro
-
+    ; Wrap any roads that went offscreen
     .repeat 13, i
     WRAP_X_TO_SCREEN_24 Road0_pos+(3*i)
     .endrep
 
+    ; Apply positions to the roads' sprites
     .repeat 13, i
     VERA_SET_SPRITE_POS_X (i+3), Road0_pos+(3*i)+1
     .endrep
 
+    ; "ADD_16 Wheel_state, Wheel_state, Wheel_speed", but I didn't macro it yet
+    ; because I'm only doing it once so far and don't need macro features like
+    ; ".local".
     clc
     lda Wheel_state
     adc Wheel_speed
@@ -287,6 +326,8 @@ race_irq:
     adc Wheel_speed+1
     sta Wheel_state+1
 
+    ; Update the wheel sprite to suggest spinning, using a bit to select between
+    ; two sprite graphics
     lda Wheel_state+1
     and #$01
     beq @set_wheel0
@@ -319,6 +360,13 @@ race_irq:
 @wheels_end:
     VERA_END_IRQ
     SYS_END_IRQ
+
+;=================================================
+;=================================================
+; 
+;   Variables
+;
+;-------------------------------------------------
 
 Mountains_pos: .byte $00, $00, $00
 Forest_pos: .byte $00, $00, $00
@@ -353,11 +401,8 @@ Temp: .byte $00, $00, $00
 Roads_speed: .word $F776
     .byte $FF
 
-; Roads_speed: .word $0000
-;      .byte $00
-
-HFLIP=(1 << 10)
-VFLIP=(1 << 11)
+Race_credits_map:
+    .word $0000
 
 Race_mountains_map:
     .word $0000, $0000, $0000, $0001, $0002, $0000, $0000, $0000

@@ -1,3 +1,16 @@
+--NOTE--
+Some of these originate in trying to avoid "gotchas" with ACME. 
+Except then I ran into other "gotchas" that simply seem to be
+"ACME's features break down in complex use cases".
+
+Hey, even MS can't get this right for their flagship compiler, 
+so it's not a criticism of ACME, per se.
+
+But I need to come back and update this to reflect how my
+practices are changing under ca65, which seems to be much more
+robust in complex cases.
+--/NOTE--
+
 All_names_use_underscore_instead_of_camel_case
 Sorry_camel_peeps
 
