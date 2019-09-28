@@ -229,7 +229,8 @@ race_do:
     VERA_STREAM_OUT road_palette, VRAM_palette3, 6*2
     VERA_STREAM_OUT pillar_palette, VRAM_palette4, 16*2
     VERA_STREAM_OUT wheel_palette, VRAM_palette5, 16*2
-    VERA_STREAM_OUT font_courier_new_palette, VRAM_palette6, 3*2
+    VERA_STREAM_OUT Race_credits_palette_start, VRAM_palette6, 3*2
+    ; VERA_STREAM_OUT font_courier_new_palette, VRAM_palette6, 3*2  ; It's a secret to everyone!
 
 __race__setup_scene:
     VERA_CONFIGURE_TILE_LAYER 0, 1, 3, 0, 0, 2, 1, RACE_MOUNTAINS_BG_ADDR, RACE_MOUNTAINS_BG_TILES_ADDR
@@ -358,6 +359,24 @@ race_irq:
     sta VERA_data
 
 @wheels_end:
+    dec Ticks_until_fade_in
+    lda #0
+    cmp Ticks_until_fade_in
+    beq @credits_fade_in
+    jmp @frame_done
+
+@credits_fade_in:
+    VERA_SET_ADDR (VRAM_palette6+5), 0
+    lda VERA_data
+    cmp font_courier_new_palette+5
+    beq @frame_done
+    clc
+    adc #1
+    sta VERA_data
+    lda #$10
+    sta Ticks_until_fade_in
+
+@frame_done:
     VERA_END_IRQ
     SYS_END_IRQ
 
@@ -398,11 +417,13 @@ Screen_width: .byte $00, $80, $02   ; 640 pixels
 
 Temp: .byte $00, $00, $00
 
+Ticks_until_fade_in: .byte $ff
+
 Roads_speed: .word $F776
     .byte $FF
 
-Race_credits_map:
-    .word $0000
+Race_credits_palette_start:
+	.word $0000, $00ff, $00ff
 
 Race_mountains_map:
     .word $0000, $0000, $0000, $0001, $0002, $0000, $0000, $0000

@@ -27,15 +27,6 @@ splash_do:
 
     VERA_STREAM_OUT Splash_logo, SPLASH_ADDR, (Splash_logo_end - Splash_logo)
 
-    ; VERA_SET_ADDR SPLASH_ADDR    
-    ; ldy #<(Splash_logo_end - Splash_logo)
-    ; ldx #>(Splash_logo_end - Splash_logo)
-    ; lda #<Splash_logo
-    ; sta $FB
-    ; lda #>Splash_logo
-    ; sta $FC
-    ; jsr vera_stream_out_data
-
     VERA_SET_ADDR VRAM_layer1, 0
     lda VERA_data
     and #$FE
