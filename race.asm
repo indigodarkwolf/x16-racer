@@ -81,33 +81,6 @@ LICENSE_6_SIZE=(license_6_end - license_6)
     bne @stream
 .endmacro
 
-
-; TODO: I'm going to need to create a math library at some point
-; to serve as a communal home for math ops. 
-;
-; For now, though, I'll just leave it here.
-
-;=================================================
-; ADD_24
-;   24-bit version of "dst = lhs + rhs"
-;-------------------------------------------------
-; INPUTS:   dst     Destination memory address
-;           lhs     Left-hand-side parameter
-;           rhs     Right-hand-side parameter
-;
-;-------------------------------------------------
-; MODIFIES: A
-; 
-.macro ADD_24 dst, lhs, rhs
-    clc
-    .repeat 3, i
-    lda lhs+i
-    adc rhs+i
-    sta dst+i
-    .endrep
-.endmacro
-
-
 ;=================================================
 ; WRAP_X_TO_SCREEN_24
 ;   Given some 24-bit X coordinate in 16.8 fixed point,
@@ -316,19 +289,10 @@ race_irq:
     VERA_SET_SPRITE_POS_X (i+3), Road0_pos+(3*i)+1
     .endrep
 
-    ; "ADD_16 Wheel_state, Wheel_state, Wheel_speed", but I didn't macro it yet
-    ; because I'm only doing it once so far and don't need macro features like
-    ; ".local".
-    clc
-    lda Wheel_state
-    adc Wheel_speed
-    sta Wheel_state
-    lda Wheel_state+1
-    adc Wheel_speed+1
-    sta Wheel_state+1
-
     ; Update the wheel sprite to suggest spinning, using a bit to select between
     ; two sprite graphics
+    ADD_16 Wheel_state, Wheel_state, Wheel_speed
+
     lda Wheel_state+1
     and #$01
     beq @set_wheel0

@@ -7,6 +7,7 @@
 
 .include "vera.inc"
 .include "system.inc"
+.include "math.inc"
 
 ;=================================================
 ; Macros
@@ -16,24 +17,6 @@
 DEFAULT_SCREEN_ADDR = 0
 DEFAULT_SCREEN_SIZE = (128*64)*2
 
-;=================================================
-; MOD
-;   Module the accumulator by a value.
-;-------------------------------------------------
-; INPUTS:   .v  Divisor of the modulo
-;
-;-------------------------------------------------
-; MODIFIES: A
-; 
-.macro MOD v
-.local @sub
-@sub:
-    sec
-    sbc #v
-    bcs @sub
-    adc #v
-.endscope
-.endmacro
 
 SYS_HEADER_0801
 
