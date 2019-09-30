@@ -105,6 +105,8 @@ LICENSE_6_SIZE=(license_6_end - license_6)
 
     ADD_24 Temp, pos, Wrap_amount
 
+; TODO: This is basically a BGE (branch greater-or-equal) Temp, Screen_width, @onscreen
+;       with some .macro BGE lhs, rhs, branch_target
     lda Temp+2
     cmp Screen_width+2
     bcc @offscreen
@@ -293,15 +295,15 @@ race_irq:
     ; two sprite graphics
     ADD_16 Wheel_state, Wheel_state, Wheel_speed
 
-    lda Wheel_state+1
-    and #$01
-    beq @set_wheel0
-
     VERA_SET_ADDR (VRAM_sprdata)
     lda #((WHEEL1_ADDR >> 5) & $FF)
     sta VERA_data
     lda #(WHEEL1_ADDR >> 13)
     sta VERA_data
+
+    lda Wheel_state+1
+    and #$01
+    beq @set_wheel0
 
     VERA_SET_ADDR (VRAM_sprdata + 8)
     lda #((WHEEL1_ADDR >> 5) & $FF)
@@ -309,13 +311,8 @@ race_irq:
     lda #(WHEEL1_ADDR >> 13)
     sta VERA_data
     jmp @wheels_end
-@set_wheel0:
-    VERA_SET_ADDR (VRAM_sprdata)
-    lda #((WHEEL0_ADDR >> 5) & $FF)
-    sta VERA_data
-    lda #(WHEEL0_ADDR >> 13)
-    sta VERA_data
 
+@set_wheel0:
     VERA_SET_ADDR (VRAM_sprdata + 8)
     lda #((WHEEL0_ADDR >> 5) & $FF)
     sta VERA_data
