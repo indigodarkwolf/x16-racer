@@ -10,7 +10,7 @@ x16-racer.o:
     STARTUP           Offs=000000  Size=000000  Align=00001  Fill=0000
     INIT              Offs=000000  Size=000000  Align=00001  Fill=0000
     ONCE              Offs=000000  Size=000000  Align=00001  Fill=0000
-C:\Users\Stephen.Horn\Desktop\stuff\X16\asm\x16-racer\bin\cc65\lib/c64.lib(exehdr.o):
+C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\lib/c64.lib(exehdr.o):
     CODE              Offs=005CC3  Size=000000  Align=00001  Fill=0000
     RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
@@ -18,7 +18,7 @@ C:\Users\Stephen.Horn\Desktop\stuff\X16\asm\x16-racer\bin\cc65\lib/c64.lib(exehd
     ZEROPAGE          Offs=000000  Size=000000  Align=00001  Fill=0000
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
     EXEHDR            Offs=000000  Size=00000C  Align=00001  Fill=0000
-C:\Users\Stephen.Horn\Desktop\stuff\X16\asm\x16-racer\bin\cc65\lib/c64.lib(loadaddr.o):
+C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\lib/c64.lib(loadaddr.o):
     CODE              Offs=005CC3  Size=000000  Align=00001  Fill=0000
     RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
@@ -83,29 +83,29 @@ __BSS_LOAD__ ([linker generated]):
 __BSS_RUN__ ([linker generated]):
 __BSS_SIZE__ ([linker generated]):
 __EXEHDR__ (exehdr.o):
-    [linker generated]        C:\Users\Stephen.Horn\Desktop\stuff\X16\asm\x16-racer\bin\cc65\cfg/c64.cfg(6)
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(6)
 __HEADER_FILEOFFS__ ([linker generated]):
 __HEADER_LAST__ ([linker generated]):
-    [linker generated]        C:\Users\Stephen.Horn\Desktop\stuff\X16\asm\x16-racer\bin\cc65\cfg/c64.cfg(14)
-    [linker generated]        C:\Users\Stephen.Horn\Desktop\stuff\X16\asm\x16-racer\bin\cc65\cfg/c64.cfg(14)
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(14)
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(14)
 __HEADER_SIZE__ ([linker generated]):
 __HEADER_START__ ([linker generated]):
 __HIMEM__ ([linker generated]):
-    [linker generated]        C:\Users\Stephen.Horn\Desktop\stuff\X16\asm\x16-racer\bin\cc65\cfg/c64.cfg(15)
-    [linker generated]        C:\Users\Stephen.Horn\Desktop\stuff\X16\asm\x16-racer\bin\cc65\cfg/c64.cfg(14)
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(15)
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(14)
 __LOADADDR__ (loadaddr.o):
-    [linker generated]        C:\Users\Stephen.Horn\Desktop\stuff\X16\asm\x16-racer\bin\cc65\cfg/c64.cfg(5)
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(5)
 __MAIN_FILEOFFS__ ([linker generated]):
 __MAIN_LAST__ ([linker generated]):
 __MAIN_SIZE__ ([linker generated]):
 __MAIN_START__ ([linker generated]):
 __ONCE_LOAD__ ([linker generated]):
 __ONCE_RUN__ ([linker generated]):
-    [linker generated]        C:\Users\Stephen.Horn\Desktop\stuff\X16\asm\x16-racer\bin\cc65\cfg/c64.cfg(15)
-    [linker generated]        C:\Users\Stephen.Horn\Desktop\stuff\X16\asm\x16-racer\bin\cc65\cfg/c64.cfg(15)
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(15)
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(15)
 __ONCE_SIZE__ ([linker generated]):
 __STACKSIZE__ ([linker generated]):
-    [linker generated]        C:\Users\Stephen.Horn\Desktop\stuff\X16\asm\x16-racer\bin\cc65\cfg/c64.cfg(15)
+    [linker generated]        C:\Users\User\Desktop\x16\ASM\x16-racer\bin\cc65\cfg/c64.cfg(15)
 __ZP_FILEOFFS__ ([linker generated]):
 __ZP_LAST__ ([linker generated]):
 __ZP_SIZE__ ([linker generated]):
