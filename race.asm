@@ -295,15 +295,15 @@ race_irq:
     ; two sprite graphics
     ADD_16 Wheel_state, Wheel_state, Wheel_speed
 
+    lda Wheel_state+1
+    and #$01
+    beq @set_wheel0
+
     VERA_SET_ADDR (VRAM_sprdata)
     lda #((WHEEL1_ADDR >> 5) & $FF)
     sta VERA_data
     lda #(WHEEL1_ADDR >> 13)
     sta VERA_data
-
-    lda Wheel_state+1
-    and #$01
-    beq @set_wheel0
 
     VERA_SET_ADDR (VRAM_sprdata + 8)
     lda #((WHEEL1_ADDR >> 5) & $FF)
@@ -313,6 +313,12 @@ race_irq:
     jmp @wheels_end
 
 @set_wheel0:
+    VERA_SET_ADDR (VRAM_sprdata)
+    lda #((WHEEL0_ADDR >> 5) & $FF)
+    sta VERA_data
+    lda #(WHEEL0_ADDR >> 13)
+    sta VERA_data
+
     VERA_SET_ADDR (VRAM_sprdata + 8)
     lda #((WHEEL0_ADDR >> 5) & $FF)
     sta VERA_data
