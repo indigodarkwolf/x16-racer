@@ -2,7 +2,7 @@
 SPLASH_RLE_INC=1
 
 .if (GIANT_SPLASH = 0)
-Splash_logo_rle:
+Splash_logo:
     .byte 16, $00
     .byte 6, $00, 1, $01, 1, $11, 8, $00
     .byte 5, $00, 1, $01, 1, $10, 1, $00, 1, $11, 1, $10, 6, $00
@@ -35,10 +35,10 @@ Splash_logo_rle:
     .byte 6, $00, 1, $11, 1, $10, 1, $01, 1, $11, 6, $00
     .byte 7, $00, 1, $01, 1, $11, 7, $00
     .byte 16, $00
-Splash_logo_rle_end:
+Splash_logo_end:
 
 .else
-Splash_logo_rle:
+Splash_logo:
     .byte 32, $00
     .byte 32, $00
     .byte 13, $00, 3, $11, 16, $00
@@ -103,7 +103,7 @@ Splash_logo_rle:
     .byte 15, $00, 3, $11, 14, $00
     .byte 32, $00
     .byte 32, $00
-Splash_logo_rle_end:
+Splash_logo_end:
 .endif ; (GIANT_SPLASH = 0)
 
 

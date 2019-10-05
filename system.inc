@@ -1,6 +1,16 @@
 .ifndef SYSTEM_INC
 SYSTEM_INC=1
 
+KERNAL_GETJOY = $FF06
+
+KERNAL_JOY1 = $EF
+KERNAL_JOY2 = $F2
+
+BUTTON_JOY_UP    = (1 << 3)
+BUTTON_JOY_DOWN  = (1 << 2)
+BUTTON_JOY_LEFT  = (1 << 1)
+BUTTON_JOY_RIGHT = (1 << 0)
+
 ;=================================================
 ; SYS_HEADER_0801
 ;   File header of a PRG loaded at $0801. Includes
