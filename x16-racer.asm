@@ -260,26 +260,6 @@ irq_handler:
 ;=================================================
 ;=================================================
 ; 
-;   Miscellaneous data copying
-;
-;-------------------------------------------------
-;
-; I wasn't sure what to do with this. I already have
-; SYS_STREAM_OUT, but I basically needed it for 
-; a source address and quantity of data that can
-; only be determined at run-time. I'm I'll eventually
-; convert this into some kind of other 
-; SYS_STREAM_OUT-like macro, so that I can
-; easily declare function definitions for a variety
-; of fixed destinations, and then come back and do 
-; the same for fixed sources with runtime destinations
-; and of course a function to just handle everything
-; being runtime data.
-;
-
-;=================================================
-;=================================================
-; 
 ;   Libs
 ;
 ;-------------------------------------------------
@@ -324,7 +304,6 @@ Matrix_palette_rev_end:
 ;
 ;-------------------------------------------------
 .include "x16-racer_vars.asm"
-.include "splash_vars.asm"
 .include "graphics_vars.asm"
 .include "system_vars.asm"
 
