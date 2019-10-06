@@ -461,7 +461,10 @@ DATA_ADDR=(data_addr >> 5)
 ;-------------------------------------------------
 ; MODIFIES: A, X, Y, $FB, $FC
 ; 
-.macro VERA_STREAM_OUT src, dst, size
+.macro VERA_STREAM_OUT_DATA src, dst, size
+.ifndef USING_VERA_STREAM_OUT_DATA
+	USING_VERA_STREAM_OUT_DATA=1
+.endif
     VERA_SET_ADDR dst
     ldy #<(size)
     ldx #>(size)
@@ -470,6 +473,31 @@ DATA_ADDR=(data_addr >> 5)
     lda #>src
     sta $FC
     jsr vera_stream_out_data
+.endmacro
+
+;=================================================
+; VERA_STREAM_OUT_RLE
+;   Stream out a block of rle-deflated data to a location in VRAM
+;-------------------------------------------------
+; INPUTS:   src	Source data
+;			dst	Destination start location
+;			size	Numbers of bytes to stream out (max 64KiB)
+;
+;-------------------------------------------------
+; MODIFIES: A, X, Y, $FB, $FC
+;
+.macro VERA_STREAM_OUT_RLE src, dst, size
+.ifndef USING_VERA_STREAM_OUT_RLE
+	USING_VERA_STREAM_OUT_RLE=1
+.endif
+    VERA_SET_ADDR dst
+    ldy #<(size)
+    ldx #>(size)
+    lda #<src
+    sta $FB
+    lda #>src
+    sta $FC
+    jsr vera_stream_out_rle
 .endmacro
 
 ;=================================================
