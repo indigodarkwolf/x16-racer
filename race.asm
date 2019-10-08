@@ -215,7 +215,7 @@ __race__setup_scene:
     VERA_CONFIGURE_SPRITE WHEEL0_ADDR, 0, (297), (320), 0, 0, 1, 5, 1, 1
     VERA_CONFIGURE_SPRITE WHEEL0_ADDR, 0, (328), (320), 0, 0, 1, 5, 1, 1
 
-    VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320-32), (304), 0, 0, 1, 2, 3, 2
+    VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (288), (304), 0, 0, 1, 2, 3, 2
 
     .repeat 11, i
     VERA_CONFIGURE_SPRITE ROAD_ADDR, 0, (64 * i), (288), 0, 0, 1, 3, 3, 3
@@ -269,6 +269,54 @@ race_irq_first:
     SYS_SET_IRQ race_irq
 
 race_irq:
+    lda VERA_irq
+    and #1 ; Check for vsync bit
+    bne @do_irq
+    jmp @irq_done
+
+@do_irq:
+    jsr KERNAL_GETJOY
+
+    ; Update car position
+    lda KERNAL_JOY1
+    tax
+
+    and #BUTTON_JOY_UP
+    bne @button_up_end
+    ADD_24 Car_pos_y, Car_pos_y, Car_move_speed_neg
+@button_up_end:
+    txa
+    and #BUTTON_JOY_DOWN
+    bne @button_down_end
+    ADD_24 Car_pos_y, Car_pos_y, Car_move_speed
+@button_down_end:
+    txa
+    and #BUTTON_JOY_LEFT
+    bne @button_left_end
+    ADD_24 Car_pos_x, Car_pos_x, Car_move_speed_neg
+@button_left_end:
+    txa
+    and #BUTTON_JOY_RIGHT
+    bne @button_right_end
+    ADD_24 Car_pos_x, Car_pos_x, Car_move_speed
+@button_right_end:
+
+    ; Update tire positions
+    ADD_24 Tire0_pos_x, Car_pos_x, Tire0_offset_x
+    ADD_24 Tire0_pos_y, Car_pos_y, Tire0_offset_y
+
+    ADD_24 Tire1_pos_x, Car_pos_x, Tire1_offset_x
+    ADD_24 Tire1_pos_y, Car_pos_y, Tire1_offset_y
+
+    ; Update the car and tires' sprite positions
+    VERA_SET_SPRITE_POS_X 0, Tire0_pos_x+1
+    VERA_SET_SPRITE_POS_X 1, Tire1_pos_x+1
+    VERA_SET_SPRITE_POS_X 2, Car_pos_x+1
+
+    VERA_SET_SPRITE_POS_Y 0, Tire0_pos_y+1
+    VERA_SET_SPRITE_POS_Y 1, Tire1_pos_y+1
+    VERA_SET_SPRITE_POS_Y 2, Car_pos_y+1
+
     ; Scroll the background layers
     ADD_24 Mountains_pos, Mountains_pos, Mountains_speed
     ADD_24 Forest_pos, Forest_pos, Forest_speed
@@ -345,6 +393,7 @@ race_irq:
 
 @frame_done:
     VERA_END_IRQ
+@irq_done:
     SYS_END_IRQ
 
 ;=================================================
@@ -375,6 +424,26 @@ Road9_pos: .byte $00, $40, $02
 RoadA_pos: .byte $00, $80, $02
 Pillar0_pos: .byte $00, $80, $02
 Pillar1_pos: .byte $00, $80, $02
+
+Car_pos_x: .byte $00, $20, $01
+Car_pos_y: .byte $00, $10, $01
+Tire0_pos_x: .byte $00, $29, $01
+Tire0_pos_y: .byte $00, $20, $01
+Tire1_pos_x: .byte $00, $48, $01
+Tire1_pos_y: .byte $00, $20, $01
+
+Car_move_speed: .byte $00, $01, $00
+Car_move_speed_neg: .byte $00, $FF, $FF
+
+Car_bb_left: .byte $00, $00, $01
+Car_bb_right: .byte $00, $40, $01
+Car_bb_top: .byte $00, $00, $01
+Car_bb_bottom: .byte $00, $20, $01
+
+Tire0_offset_x: .byte $00, $09, $00
+Tire0_offset_y: .byte $00, $10, $00
+Tire1_offset_x: .byte $00, $28, $00
+Tire1_offset_y: .byte $00, $10, $00
 
 Wheel_state: .word $0000
 Wheel_speed: .word $0030

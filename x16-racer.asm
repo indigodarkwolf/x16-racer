@@ -27,6 +27,7 @@ SYS_HEADER_0801
 ;
 ;-------------------------------------------------
 start:
+    SYS_INIT_IRQ
     SYS_RAND_SEED $34, $56, $fe
 
     jsr graphics_fade_out

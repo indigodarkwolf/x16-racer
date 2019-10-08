@@ -106,6 +106,26 @@ BUTTON_JOY_RIGHT = (1 << 0)
 ;-------------------------------------------------
 
 ;=================================================
+; SYS_INIT_IRQ
+;   Init the system IRQ variables. These keep a copy
+;   of the original kernel IRQ vector so that we can
+;   invoke it after doing our own interrupt work. This
+;   is necessary for various kernel functions like
+;   GETJOY.
+;-------------------------------------------------
+; INPUTS:   .address    Label or address of IRQ handler
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro SYS_INIT_IRQ
+    lda $0314
+    sta Sys_irq_redirect
+    lda $0315
+    sta Sys_irq_redirect+1
+.endmacro
+
+;=================================================
 ; SYS_SET_IRQ
 ;   Set where the kernal should jump to after
 ;   its own interrupt handling.
@@ -133,12 +153,13 @@ BUTTON_JOY_RIGHT = (1 << 0)
 ; MODIFIES: A, X, Y
 ; 
 .macro SYS_END_IRQ
-    pla
-    tay
-    pla
-    tax
-    pla
-    rti
+    jmp (Sys_irq_redirect)
+    ; pla
+    ; tay
+    ; pla
+    ; tax
+    ; pla
+    ; rti
 .endmacro
 
 ;=================================================
