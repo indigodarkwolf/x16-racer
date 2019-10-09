@@ -100,20 +100,21 @@ LICENSE_6_SIZE=(license_6_end - license_6)
 ; MODIFIES: A, pos
 ; 
 .macro WRAP_X_TO_SCREEN_24 pos
-.local @offscreen
 .local @onscreen
+.local @offscreen
 
     ADD_24 Temp, pos, Wrap_amount
 
-; TODO: This is basically a BGE (branch greater-or-equal) Temp, Screen_width, @onscreen
-;       with some .macro BGE lhs, rhs, branch_target
-    lda Temp+2
-    cmp Screen_width+2
-    bcc @offscreen
-    bne @onscreen
-    lda Temp+1
-    cmp Screen_width+1
-    bcs @onscreen
+    BGE_16 Temp+1, Screen_width+1, @onscreen
+; ; TODO: This is basically a BGE_24 (branch greater-or-equal) Temp, Screen_width, @onscreen
+; ;       with some .macro BGE lhs, rhs, branch_target
+;     lda Temp+2
+;     cmp Screen_width+2
+;     bcc @offscreen
+;     bne @onscreen
+;     lda Temp+1
+;     cmp Screen_width+1
+;     bcs @onscreen
 @offscreen:
     lda Temp
     sta pos
@@ -301,6 +302,41 @@ race_irq:
     ADD_24 Car_pos_x, Car_pos_x, Car_move_speed
 @button_right_end:
 
+    BGE_16 Car_pos_x+1, Car_bb_left+1, @check_car_left_end
+    lda Car_bb_left
+    sta Car_pos_x
+    lda Car_bb_left+1
+    sta Car_pos_x+1
+    lda Car_bb_left+2
+    sta Car_pos_x+2
+    jmp @check_car_right_end
+@check_car_left_end:
+    BLT_16 Car_pos_x+1, Car_bb_right+1, @check_car_right_end
+    lda Car_bb_right
+    sta Car_pos_x
+    lda Car_bb_right+1
+    sta Car_pos_x+1
+    lda Car_bb_right+2
+    sta Car_pos_x+2
+@check_car_right_end:
+    BGE_16 Car_pos_y+1, Car_bb_top+1, @check_car_top_end
+    lda Car_bb_top
+    sta Car_pos_y
+    lda Car_bb_top+1
+    sta Car_pos_y+1
+    lda Car_bb_top+2
+    sta Car_pos_y+2
+    jmp @check_car_bottom_end
+@check_car_top_end:
+    BLT_16 Car_pos_y+1, Car_bb_bottom+1, @check_car_bottom_end
+    lda Car_bb_bottom
+    sta Car_pos_y
+    lda Car_bb_bottom+1
+    sta Car_pos_y+1
+    lda Car_bb_bottom+2
+    sta Car_pos_y+2
+@check_car_bottom_end:
+
     ; Update tire positions
     ADD_24 Tire0_pos_x, Car_pos_x, Tire0_offset_x
     ADD_24 Tire0_pos_y, Car_pos_y, Tire0_offset_y
@@ -435,10 +471,10 @@ Tire1_pos_y: .byte $00, $20, $01
 Car_move_speed: .byte $00, $01, $00
 Car_move_speed_neg: .byte $00, $FF, $FF
 
-Car_bb_left: .byte $00, $00, $01
-Car_bb_right: .byte $00, $40, $01
-Car_bb_top: .byte $00, $00, $01
-Car_bb_bottom: .byte $00, $20, $01
+Car_bb_left: .byte $00, $90, $00
+Car_bb_right: .byte $00, $9F, $01
+Car_bb_top: .byte $00, $12, $01
+Car_bb_bottom: .byte $00, $3D, $01
 
 Tire0_offset_x: .byte $00, $09, $00
 Tire0_offset_y: .byte $00, $10, $00
