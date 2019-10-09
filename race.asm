@@ -276,6 +276,28 @@ race_irq:
     jmp @irq_done
 
 @do_irq:
+    ;
+    ; Start with draw updates
+    ;
+
+    ; Update the car and tires' sprite positions
+    VERA_SET_SPRITE_POS_X 0, Tire0_pos_x+1
+    VERA_SET_SPRITE_POS_X 1, Tire1_pos_x+1
+    VERA_SET_SPRITE_POS_X 2, Car_pos_x+1
+
+    VERA_SET_SPRITE_POS_Y 0, Tire0_pos_y+1
+    VERA_SET_SPRITE_POS_Y 1, Tire1_pos_y+1
+    VERA_SET_SPRITE_POS_Y 2, Car_pos_y+1
+
+    ; Apply positions to the roads' sprites
+    .repeat 13, i
+    VERA_SET_SPRITE_POS_X (i+3), Road0_pos+(3*i)+1
+    .endrep
+
+    ;
+    ; Now do everything else.
+    ;
+
     jsr KERNAL_GETJOY
 
     ; Update car position
@@ -344,21 +366,9 @@ race_irq:
     ADD_24 Tire1_pos_x, Car_pos_x, Tire1_offset_x
     ADD_24 Tire1_pos_y, Car_pos_y, Tire1_offset_y
 
-    ; Update the car and tires' sprite positions
-    VERA_SET_SPRITE_POS_X 0, Tire0_pos_x+1
-    VERA_SET_SPRITE_POS_X 1, Tire1_pos_x+1
-    VERA_SET_SPRITE_POS_X 2, Car_pos_x+1
-
-    VERA_SET_SPRITE_POS_Y 0, Tire0_pos_y+1
-    VERA_SET_SPRITE_POS_Y 1, Tire1_pos_y+1
-    VERA_SET_SPRITE_POS_Y 2, Car_pos_y+1
-
     ; Scroll the background layers
     ADD_24 Mountains_pos, Mountains_pos, Mountains_speed
     ADD_24 Forest_pos, Forest_pos, Forest_speed
-
-    VERA_SET_LAYER_SCROLL_X 0, Mountains_pos+1
-    VERA_SET_LAYER_SCROLL_X 1, Forest_pos+1
 
     ; Update the roads' positions based on their speed
     .repeat 13, i
@@ -370,10 +380,8 @@ race_irq:
     WRAP_X_TO_SCREEN_24 Road0_pos+(3*i)
     .endrep
 
-    ; Apply positions to the roads' sprites
-    .repeat 13, i
-    VERA_SET_SPRITE_POS_X (i+3), Road0_pos+(3*i)+1
-    .endrep
+    VERA_SET_LAYER_SCROLL_X 0, Mountains_pos+1
+    VERA_SET_LAYER_SCROLL_X 1, Forest_pos+1
 
     ; Update the wheel sprite to suggest spinning, using a bit to select between
     ; two sprite graphics
@@ -413,19 +421,19 @@ race_irq:
     dec Ticks_until_fade_in
     lda #0
     cmp Ticks_until_fade_in
-    beq @credits_fade_in
-    jmp @frame_done
+    bne @credits_fade_in_end
 
 @credits_fade_in:
     VERA_SET_ADDR (VRAM_palette6+5), 0
     lda VERA_data
     cmp font_courier_new_palette+5
-    beq @frame_done
+    beq @credits_fade_in_end
     clc
     adc #1
     sta VERA_data
     lda #$10
     sta Ticks_until_fade_in
+@credits_fade_in_end:
 
 @frame_done:
     VERA_END_IRQ
@@ -469,7 +477,7 @@ Tire1_pos_x: .byte $00, $48, $01
 Tire1_pos_y: .byte $00, $20, $01
 
 Car_move_speed: .byte $00, $01, $00
-Car_move_speed_neg: .byte $00, $FF, $FF
+Car_move_speed_neg: .byte $80, $FE, $FF
 
 Car_bb_left: .byte $00, $90, $00
 Car_bb_right: .byte $00, $9F, $01
