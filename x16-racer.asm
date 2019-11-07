@@ -29,6 +29,7 @@ SYS_HEADER_0801
 start:
     SYS_INIT_IRQ
     SYS_RAND_SEED $34, $56, $fe
+    SYS_CONFIGURE_MOUSE 0
 
     jsr graphics_fade_out
     jsr splash_do
