@@ -431,7 +431,7 @@ race_irq:
     clc
     adc #1
     sta VERA_data
-    lda #$10
+    lda #$20
     sta Ticks_until_fade_in
 @credits_fade_in_end:
 

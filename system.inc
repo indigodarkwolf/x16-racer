@@ -11,6 +11,10 @@ BUTTON_JOY_DOWN  = (1 << 2)
 BUTTON_JOY_LEFT  = (1 << 1)
 BUTTON_JOY_RIGHT = (1 << 0)
 
+ZP_COPY_SRC = $7E
+ZP_COPY_DST = $7C
+ZP_COPY_SIZE = $7A
+
 ;=================================================
 ; SYS_HEADER_0801
 ;   File header of a PRG loaded at $0801. Includes
