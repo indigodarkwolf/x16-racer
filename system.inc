@@ -2,9 +2,10 @@
 SYSTEM_INC=1
 
 KERNAL_GETJOY = $FF06
+KERNAL_MOUSE = $FF09
 
-KERNAL_JOY1 = $EF
-KERNAL_JOY2 = $F2
+KERNAL_JOY1 = $02BC
+KERNAL_JOY2 = $02BF
 
 BUTTON_JOY_UP    = (1 << 3)
 BUTTON_JOY_DOWN  = (1 << 2)
@@ -423,6 +424,26 @@ ZP_COPY_SIZE = $7A
         dex
         bne @loop2
     .endif
+.endmacro
+
+
+;=================================================
+;=================================================
+; 
+;   Kernal calls
+;
+;-------------------------------------------------
+
+.macro SYS_GETJOY
+    jsr KERNAL_GETJOY
+.endmacro
+
+.macro SYS_CONFIGURE_MOUSE enabled, scale
+    lda #enabled
+    .if enabled <> 0
+        ldx #scale
+    .endif
+    jsr KERNAL_MOUSE
 .endmacro
 
 .endif ; SYSTEM_INC

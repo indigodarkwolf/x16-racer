@@ -30,6 +30,7 @@ SYS_HEADER_0801
 start:
     SYS_INIT_IRQ
     SYS_RAND_SEED $34, $56, $fe
+    SYS_CONFIGURE_MOUSE 0
 
     YM2151_WRITE $20, $c0 ; Master channel config: C0 = L&R volume ON, no feedback, user OP algorithm 0
     YM2151_WRITE $58, $01 ; Fine detune / phase multiplier: $01 no detune and multiplier = 1
