@@ -1,3 +1,8 @@
+.segment "INIT"
+.segment "STARTUP"
+.segment "ONCE"
+.segment "CODE"
+
 ;=================================================
 ;=================================================
 ; 
@@ -17,9 +22,6 @@
 
 DEFAULT_SCREEN_ADDR = 0
 DEFAULT_SCREEN_SIZE = (128*64)*2
-
-
-SYS_HEADER_0801
 
 ;=================================================
 ;=================================================
@@ -318,5 +320,3 @@ Matrix_palette_rev_end:
 .include "x16-racer_vars.asm"
 .include "graphics_vars.asm"
 .include "system_vars.asm"
-
-SYS_FOOTER
