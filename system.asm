@@ -4,6 +4,14 @@ SYSTEM_ASM=1
 .include "system.inc"
 .include "vera.inc"
 
+.data
+Sys_irq_redirect: .byte $00, $00
+
+Sys_rand_mem: .byte $00, $00, $00
+
+Sys_frame: .byte $00
+.code
+
 ;=================================================
 ;=================================================
 ;
@@ -42,6 +50,7 @@ sys_rand:
     sta Sys_rand_mem
     cmp #0
     rts
+
 ;=================================================
 ; sys_wait_one_frame
 ;   Wait for a new frame

@@ -10,6 +10,13 @@ GRAPHICS_ASM=1
 ;
 ;-------------------------------------------------
 
+.data
+Gfx_all_palettes_cleared: .byte $00
+Gfx_fade_palette_addr: .word $0000
+Gfx_fade_palette_count: .byte $00
+
+.code
+
 ;=================================================
 ; graphics_fade_out
 ;   Use palette decrementing to fade out the screen to black.
