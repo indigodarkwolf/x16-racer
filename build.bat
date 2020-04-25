@@ -13,10 +13,14 @@ set LNK=bin\cc65\bin\cl65.exe
 %ASM% -o tables/math_tables.o tables/math_tables.asm
 %LNK% -o math_tables.seq tables/math_tables.o --target none
 
+%ASM% -o tables/graphics_tables.o tables/graphics_tables.asm
+%LNK% -o graphics_tables.seq tables/graphics_tables.o --target none
+
 :: Executable
 
 %ASM% -o %PROJECT%.o %PROJECT%.asm --cpu 65C02
 %LNK% -o %PROJECT%.prg -DC64 %PROJECT%.o
 
 copy math_tables.seq %EMU_DIR%
+copy graphics_tables.seq %EMU_DIR%
 copy %PROJECT%.prg %EMU_DIR%

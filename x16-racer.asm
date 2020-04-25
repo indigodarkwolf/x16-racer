@@ -2,6 +2,9 @@
 .segment "STARTUP"
 .segment "ONCE"
 .segment "CODE"
+.data
+start_data:
+.code
 
 ;=================================================
 ;=================================================
@@ -41,6 +44,7 @@ start:
     SYS_INIT_IRQ
     SYS_RAND_SEED $34, $56, $fe
     SYS_CONFIGURE_MOUSE 0
+    jsr graphics_init
     ; jsr math_init
 
     ; MUL_BEGIN

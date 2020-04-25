@@ -1,10 +1,6 @@
 .ifndef SYSTEM_INC
 SYSTEM_INC=1
 
-.macro DEBUG_LABEL name
-.out .sprintf("%s: $%04x", .string(name), $080d + (* - start))
-.endmacro
-
 KERNAL_joystick_scan = $FF53
 KERNAL_joystick_get = $FF56
 KERNAL_MOUSE = $FF68

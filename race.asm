@@ -1,6 +1,7 @@
 .ifndef RACE_ASM
 RACE_ASM=1
 
+.include "debug.inc"
 .include "vera.inc"
 .include "system.inc"
 .include "graphics.inc"
