@@ -25,20 +25,11 @@ GIANT_SPLASH=1
 ;
 splash_do:
     ; Copy the logo into video memory
-    VERA_SELECT_ADDR 0
+    VERA_SET_CTRL 0
 
     VERA_STREAM_OUT_RLE Splash_logo, SPLASH_ADDR, (Splash_logo_end - Splash_logo)
 
-    VERA_SET_ADDR VRAM_layer1, 0
-    lda VERA_data
-    and #$FE
-    sta VERA_data
-
-    VERA_SET_ADDR VRAM_layer2, 0
-    lda VERA_data
-    and #$FE
-    sta VERA_data
-
+    VERA_DISABLE_ALL
     VERA_ENABLE_SPRITES
 
 __splash__setup_sprite:

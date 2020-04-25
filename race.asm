@@ -16,38 +16,63 @@ RACE_ASM=1
 
 .include "assets/licenses.inc"
 
-RACE_MOUNTAINS_BG_ADDR=0
-RACE_MOUNTAINS_BG_SIZE=128*64*2
+;===========================
+;
+; Maps
+;
 
-RACE_FOREST_BG_ADDR=(RACE_MOUNTAINS_BG_ADDR + RACE_MOUNTAINS_BG_SIZE)
-RACE_FOREST_BG_SIZE=128*64*2
+RACE_MOUNTAINS_MAP_ADDR=$00000
+RACE_MOUNTAINS_MAP_SIZE=$04000 ; 128*64*2 bytes
 
-RACE_MOUNTAINS_BG_TILES_ADDR=(RACE_FOREST_BG_ADDR + RACE_FOREST_BG_SIZE)
-RACE_MOUNTAINS_BG_TILES_SIZE=(mountain_end - mountain)
+RACE_FOREST_MAP_ADDR=$04000 ; (RACE_MOUNTAINS_MAP_ADDR + RACE_MOUNTAINS_MAP_SIZE)
+RACE_FOREST_MAP_SIZE=$04000 ; 128*64*2 bytes
 
-RACE_FONT_TILES_ADDR=(RACE_MOUNTAINS_BG_TILES_ADDR + RACE_MOUNTAINS_BG_TILES_SIZE)
+;===========================
+;
+; Tiles for mountains map
+;
+
+RACE_MOUNTAINS_TILES_ADDR=$08000 ; VERA_TILE_DATA_ALIGN(RACE_FOREST_MAP_ADDR + RACE_FOREST_MAP_SIZE)
+RACE_MOUNTAINS_TILES_SIZE=(mountain_end - mountain)
+
+RACE_FONT_TILES_ADDR=(RACE_MOUNTAINS_TILES_ADDR + RACE_MOUNTAINS_TILES_SIZE)
 RACE_FONT_TILES_SIZE=(font_courier_new_end - font_courier_new)
 
-RACE_FOREST_BG_TILES_ADDR=(RACE_FONT_TILES_ADDR + RACE_FONT_TILES_SIZE)
-RACE_FOREST_BG_TILES_SIZE=(forest_end - forest)
+;===========================
+;
+; Tiles for forest map
+;
 
-RACE_FOREST_INNER_BG_TILES_ADDR=(RACE_FOREST_BG_TILES_ADDR + RACE_FOREST_BG_TILES_SIZE)
-RACE_FOREST_INNER_BG_TILES_SIZE=(forest_inner_end - forest_inner)
+RACE_FOREST_TILES_ADDR=VERA_TILE_DATA_ALIGN(RACE_FONT_TILES_ADDR + RACE_FONT_TILES_SIZE)
+RACE_FOREST_TILES_SIZE=(forest_end - forest)
 
-RACE_CAR_ADDR=((RACE_FOREST_INNER_BG_TILES_ADDR + RACE_FOREST_INNER_BG_TILES_SIZE))
+RACE_FOREST_INNER_TILES_ADDR=(RACE_FOREST_TILES_ADDR + RACE_FOREST_TILES_SIZE)
+RACE_FOREST_INNER_TILES_SIZE=(forest_inner_end - forest_inner)
+
+;===========================
+;
+; Sprite data
+;
+
+RACE_CAR_ADDR=VERA_SPRITE_DATA_ALIGN((RACE_FOREST_INNER_TILES_ADDR + RACE_FOREST_INNER_TILES_SIZE))
 RACE_CAR_SIZE=(car_end - car)
 
-ROAD_ADDR=((RACE_CAR_ADDR + RACE_CAR_SIZE))
+ROAD_ADDR=VERA_SPRITE_DATA_ALIGN((RACE_CAR_ADDR + RACE_CAR_SIZE))
 ROAD_SIZE=(road_end - road)
 
-PILLAR_ADDR=((ROAD_ADDR + ROAD_SIZE))
+PILLAR_ADDR=VERA_SPRITE_DATA_ALIGN((ROAD_ADDR + ROAD_SIZE))
 PILLAR_SIZE=(pillar_end - pillar)
 
-WHEEL0_ADDR=((PILLAR_ADDR + PILLAR_SIZE))
+WHEEL0_ADDR=VERA_SPRITE_DATA_ALIGN((PILLAR_ADDR + PILLAR_SIZE))
 WHEEL0_SIZE=(wheel_01_00 - wheel_00_00)
 
-WHEEL1_ADDR=((WHEEL0_ADDR + WHEEL0_SIZE))
+WHEEL1_ADDR=VERA_SPRITE_DATA_ALIGN((WHEEL0_ADDR + WHEEL0_SIZE))
 WHEEL1_SIZE=(wheel_end - wheel_01_00)
+
+;===========================
+;
+; String lengths
+;
 
 LICENSE_0_SIZE=(license_0_end - license_0)
 LICENSE_1_SIZE=(license_1_end - license_1)
@@ -136,6 +161,7 @@ LICENSE_6_SIZE=(license_6_end - license_6)
 ; Return to caller when done.
 ;
 race_do:
+    DEBUG_LABEL race_do
     VERA_DISABLE_ALL
 
     ; I've already spent a lot of memory on assets, and don't want to bother with file I/O just yet
@@ -146,15 +172,16 @@ race_do:
     ; breaking it up into chunks of assembly because that's smaller.
 
     ; The mountains background tilemap, with some art credits in the sky
-    VERA_SET_ADDR RACE_MOUNTAINS_BG_ADDR
-    SYS_STREAM Race_mountains_map, VERA_data, (256*2+56)
+    VERA_SET_CTRL 0
+    VERA_SET_ADDR RACE_MOUNTAINS_MAP_ADDR
+    SYS_STREAM Race_mountains_map, VERA_data, (256*2+44)
 
     SYS_STREAM_OUT license_1, VERA_data, LICENSE_1_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 56 - LICENSE_1_SIZE + 58)
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 44 - LICENSE_1_SIZE + 46)
     SYS_STREAM_OUT license_2, VERA_data, LICENSE_2_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 58 - LICENSE_2_SIZE + 60)
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 46 - LICENSE_2_SIZE + 48)
     SYS_STREAM_OUT license_3, VERA_data, LICENSE_3_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 60 - LICENSE_3_SIZE)
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 48 - LICENSE_3_SIZE)
 
     SYS_STREAM Race_mountains_map, VERA_data, (256*3+128)
 
@@ -172,7 +199,7 @@ race_do:
     SYS_STREAM Race_mountains_map, VERA_data, 256*30
     
     ; The forest background tilemap
-    VERA_SET_ADDR RACE_FOREST_BG_ADDR
+    VERA_SET_ADDR RACE_FOREST_MAP_ADDR
     SYS_STREAM Race_mountains_map, VERA_data, 256*28
     .repeat 8, i
         RACE_STREAM_ROW Race_forest_map, i
@@ -188,10 +215,10 @@ race_do:
     .endrep
 
     ; Tile data
-    VERA_STREAM_OUT_DATA mountain, RACE_MOUNTAINS_BG_TILES_ADDR, RACE_MOUNTAINS_BG_TILES_SIZE
+    VERA_STREAM_OUT_DATA mountain, RACE_MOUNTAINS_TILES_ADDR, RACE_MOUNTAINS_TILES_SIZE
     VERA_STREAM_OUT_DATA font_courier_new, RACE_FONT_TILES_ADDR, RACE_FONT_TILES_SIZE
-    VERA_STREAM_OUT_DATA forest, RACE_FOREST_BG_TILES_ADDR, RACE_FOREST_BG_TILES_SIZE
-    VERA_STREAM_OUT_DATA forest_inner, RACE_FOREST_INNER_BG_TILES_ADDR, RACE_FOREST_INNER_BG_TILES_SIZE
+    VERA_STREAM_OUT_DATA forest, RACE_FOREST_TILES_ADDR, RACE_FOREST_TILES_SIZE
+    VERA_STREAM_OUT_DATA forest_inner, RACE_FOREST_INNER_TILES_ADDR, RACE_FOREST_INNER_TILES_SIZE
     VERA_STREAM_OUT_DATA car, RACE_CAR_ADDR, RACE_CAR_SIZE
     VERA_STREAM_OUT_DATA road, ROAD_ADDR, ROAD_SIZE
     VERA_STREAM_OUT_DATA pillar, PILLAR_ADDR, PILLAR_SIZE
@@ -209,8 +236,8 @@ race_do:
     ; VERA_STREAM_OUT_DATA font_courier_new_palette, VRAM_palette6, 3*2  ; It's a secret to everyone!
 
 __race__setup_scene:
-    VERA_CONFIGURE_TILE_LAYER 0, 1, 3, 0, 0, 2, 1, RACE_MOUNTAINS_BG_ADDR, RACE_MOUNTAINS_BG_TILES_ADDR
-    VERA_CONFIGURE_TILE_LAYER 1, 1, 3, 0, 0, 2, 1, RACE_FOREST_BG_ADDR, RACE_FOREST_BG_TILES_ADDR
+    VERA_CONFIGURE_TILE_LAYER 0, 2, 0, 0, 0, 2, 1, RACE_MOUNTAINS_MAP_ADDR, RACE_MOUNTAINS_TILES_ADDR
+    VERA_CONFIGURE_TILE_LAYER 1, 2, 0, 0, 0, 2, 1, RACE_FOREST_MAP_ADDR, RACE_FOREST_TILES_ADDR
 
     VERA_SET_SPRITE 0
     VERA_CONFIGURE_SPRITE WHEEL0_ADDR, 0, (297), (320), 0, 0, 3, 5, 1, 1
@@ -264,21 +291,20 @@ race_irq_first:
     ;
     ; VERA_ENABLE_ALL
 
-    VERA_ENABLE_LAYER 0
-    VERA_ENABLE_LAYER 1
-    VERA_ENABLE_SPRITES
+    VERA_ENABLE_ALL
     SYS_SET_IRQ race_irq
 
 race_irq:
-    lda VERA_irq
+    lda VERA_isr
     and #1 ; Check for vsync bit
     bne @do_irq
-    jmp @irq_done
+    jmp irq_done
 
 @do_irq:
     ;
     ; Start with draw updates
     ;
+    VERA_SET_CTRL 0
 
     ; Update the car and tires' sprite positions
     VERA_SET_SPRITE_POS_X 0, Tire0_pos_x+1
@@ -298,12 +324,10 @@ race_irq:
     ; Now do everything else.
     ;
 
-    jsr KERNAL_GETJOY
+    SYS_GETJOY 0
 
     ; Update car position
-    lda KERNAL_JOY1
     tax
-
     and #BUTTON_JOY_UP
     bne @button_up_end
     ADD_24 Car_pos_y, Car_pos_y, Car_move_speed_neg
@@ -391,13 +415,13 @@ race_irq:
     and #$01
     beq @set_wheel0
 
-    VERA_SET_ADDR (VRAM_sprdata)
+    VERA_SET_ADDR (VRAM_spr_attrib)
     lda #((WHEEL1_ADDR >> 5) & $FF)
     sta VERA_data
     lda #(WHEEL1_ADDR >> 13)
     sta VERA_data
 
-    VERA_SET_ADDR (VRAM_sprdata + 8)
+    VERA_SET_ADDR (VRAM_spr_attrib + 8)
     lda #((WHEEL1_ADDR >> 5) & $FF)
     sta VERA_data
     lda #(WHEEL1_ADDR >> 13)
@@ -405,13 +429,13 @@ race_irq:
     jmp @wheels_end
 
 @set_wheel0:
-    VERA_SET_ADDR (VRAM_sprdata)
+    VERA_SET_ADDR (VRAM_spr_attrib)
     lda #((WHEEL0_ADDR >> 5) & $FF)
     sta VERA_data
     lda #(WHEEL0_ADDR >> 13)
     sta VERA_data
 
-    VERA_SET_ADDR (VRAM_sprdata + 8)
+    VERA_SET_ADDR (VRAM_spr_attrib + 8)
     lda #((WHEEL0_ADDR >> 5) & $FF)
     sta VERA_data
     lda #(WHEEL0_ADDR >> 13)
@@ -437,7 +461,7 @@ race_irq:
 
 @frame_done:
     VERA_END_IRQ
-@irq_done:
+irq_done:
     SYS_END_IRQ
 
 ;=================================================

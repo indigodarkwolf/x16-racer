@@ -1,8 +1,13 @@
 .ifndef SYSTEM_INC
 SYSTEM_INC=1
 
-KERNAL_GETJOY = $FF06
-KERNAL_MOUSE = $FF09
+.macro DEBUG_LABEL name
+.out .sprintf("%s: $%04x", .string(name), $080d + (* - start))
+.endmacro
+
+KERNAL_joystick_scan = $FF53
+KERNAL_joystick_get = $FF56
+KERNAL_MOUSE = $FF68
 
 KERNAL_JOY1 = $02BC
 KERNAL_JOY2 = $02BF
@@ -72,12 +77,31 @@ ZP_COPY_SIZE = $7A
 ; 
 .macro SYS_END_IRQ
     jmp (Sys_irq_redirect)
-    ; pla
-    ; tay
-    ; pla
-    ; tax
+    ; ply
+    ; plx
     ; pla
     ; rti
+.endmacro
+
+;=================================================
+;=================================================
+; 
+;   Bank swapping
+;
+;-------------------------------------------------
+
+;=================================================
+; SYS_SET_BANK
+;   Set the current bank of high memory
+;-------------------------------------------------
+; INPUTS:   bank    Bank to set to.
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro SYS_SET_BANK bank
+    lda #bank
+    sta $9F61
 .endmacro
 
 ;=================================================
@@ -92,8 +116,7 @@ ZP_COPY_SIZE = $7A
 ;   Seed the PRNG implementation with the selected
 ;   values.
 ;-------------------------------------------------
-; INPUTS:   (none)
-;
+; INPUTS:   v0, v1, v2  Seed values
 ;-------------------------------------------------
 ; MODIFIES: A
 ; 
@@ -347,8 +370,9 @@ ZP_COPY_SIZE = $7A
 ;
 ;-------------------------------------------------
 
-.macro SYS_GETJOY
-    jsr KERNAL_GETJOY
+.macro SYS_GETJOY id
+    lda #id
+    jsr KERNAL_joystick_get
 .endmacro
 
 .macro SYS_CONFIGURE_MOUSE enabled, scale

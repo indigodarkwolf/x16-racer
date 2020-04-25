@@ -23,34 +23,74 @@ VERA_addr_bank  = VERA_base+2
 VERA_data       = VERA_base+3
 VERA_data2      = VERA_base+4
 VERA_ctrl       = VERA_base+5
-VERA_irq_ctrl   = VERA_base+6
-VERA_irq        = VERA_base+7
+VERA_ien   		= VERA_base+6
+VERA_isr        = VERA_base+7
+VERA_isrline_l	= VERA_base+8
 
-VRAM_composer  = $F0000
-VRAM_palette   = $F1000
-VRAM_layer1    = $F2000
-VRAM_layer2    = $F3000
-VRAM_sprinfo   = $F4000
-VRAM_sprdata   = $F5800
+VERA_dc_video	= VERA_base+9
+VERA_dc_hscale	= VERA_base+10
+VERA_dc_vscale	= VERA_base+11
+VERA_dc_border 	= VERA_base+12
+VERA_dc_hstart	= VERA_base+9
+VERA_dc_hstop 	= VERA_base+10
+VERA_dc_vstart	= VERA_base+11
+VERA_dc_vstop	= VERA_base+12
 
-VRAM_palette0  = $F1000 + (2*16)*0
-VRAM_palette1  = $F1000 + (2*16)*1
-VRAM_palette2  = $F1000 + (2*16)*2
-VRAM_palette3  = $F1000 + (2*16)*3
-VRAM_palette4  = $F1000 + (2*16)*4
-VRAM_palette5  = $F1000 + (2*16)*5
-VRAM_palette6  = $F1000 + (2*16)*6
-VRAM_palette7  = $F1000 + (2*16)*7
-VRAM_palette8  = $F1000 + (2*16)*8
-VRAM_palette9  = $F1000 + (2*16)*9
-VRAM_palette10 = $F1000 + (2*16)*10
-VRAM_palette11 = $F1000 + (2*16)*11
-VRAM_palette12 = $F1000 + (2*16)*12
-VRAM_palette13 = $F1000 + (2*16)*13
-VRAM_palette14 = $F1000 + (2*16)*14
-VRAM_palette15 = $F1000 + (2*16)*15
+VERA_l0_config	= VERA_base+13
+VERA_l0_mapbase = VERA_base+14
+VERA_l0_tilebase = VERA_base+15
+VERA_l0_hscroll_l = VERA_base+16
+VERA_l0_hscroll_h = VERA_base+17
+VERA_l0_vscroll_l = VERA_base+18
+VERA_l0_vscroll_h = VERA_base+19
 
-VROM_petscii   = $1F000
+VERA_l1_config	= VERA_base+20
+VERA_l1_mapbase = VERA_base+21
+VERA_l1_tilebase = VERA_base+22
+VERA_l1_hscroll_l = VERA_base+23
+VERA_l1_hscroll_h = VERA_base+24
+VERA_l1_vscroll_l = VERA_base+25
+VERA_l1_vscroll_h = VERA_base+26
+
+VERA_audio_ctrl = VERA_base+27
+VERA_audio_rate = VERA_base+28
+VERA_audio_data = VERA_base+29
+
+VERA_spi_data	= VERA_base+30
+VERA_spi_ctrl	= VERA_base+31
+
+VERA_l0_base = VERA_l0_config
+VERA_l1_base = VERA_l1_config
+
+VERA_layer_config = 0
+VERA_layer_mapbase = 1
+VERA_layer_tilebase = 2
+VERA_layer_hscroll_l = 3
+VERA_layer_hscroll_h = 4
+VERA_layer_vscroll_l = 5
+VERA_layer_vscroll_h = 6
+
+
+VRAM_psg		= $1F9C0
+VRAM_palette   	= $1FA00
+VRAM_spr_attrib	= $1FC00
+
+VRAM_palette0  = VRAM_palette + (2*16)*0
+VRAM_palette1  = VRAM_palette + (2*16)*1
+VRAM_palette2  = VRAM_palette + (2*16)*2
+VRAM_palette3  = VRAM_palette + (2*16)*3
+VRAM_palette4  = VRAM_palette + (2*16)*4
+VRAM_palette5  = VRAM_palette + (2*16)*5
+VRAM_palette6  = VRAM_palette + (2*16)*6
+VRAM_palette7  = VRAM_palette + (2*16)*7
+VRAM_palette8  = VRAM_palette + (2*16)*8
+VRAM_palette9  = VRAM_palette + (2*16)*9
+VRAM_palette10 = VRAM_palette + (2*16)*10
+VRAM_palette11 = VRAM_palette + (2*16)*11
+VRAM_palette12 = VRAM_palette + (2*16)*12
+VRAM_palette13 = VRAM_palette + (2*16)*13
+VRAM_palette14 = VRAM_palette + (2*16)*14
+VRAM_palette15 = VRAM_palette + (2*16)*15
 
 TILE_HFLIP=(1 << 10)
 TILE_VFLIP=(1 << 11)
@@ -63,7 +103,7 @@ TILE_VFLIP=(1 << 11)
 ;-------------------------------------------------
 
 ;=================================================
-; VERA_SELECT_ADDR
+; VERA_SET_CTRL
 ;   Select which address channel to configure (VERA_data vs. VERA_data2)
 ;-------------------------------------------------
 ; INPUTS:   addr	0 for VERA_data
@@ -72,8 +112,13 @@ TILE_VFLIP=(1 << 11)
 ;-------------------------------------------------
 ; MODIFIES: A
 ; 
-.macro VERA_SELECT_ADDR addr
-	lda #addr
+.macro VERA_SET_CTRL addr
+	lda VERA_ctrl
+	.if addr = 0
+		and #$FE
+	.else
+		ora #$01
+	.endif
 	sta VERA_ctrl
 .endmacro
 
@@ -88,17 +133,22 @@ TILE_VFLIP=(1 << 11)
 ; MODIFIES: A
 ; 
 .macro VERA_SET_ADDR addr, stride
+	lda #(<addr)
+	sta VERA_addr_low
+	lda #(>addr)
+	sta VERA_addr_high
+	
 	.ifnblank stride
-		lda #((^addr) | (stride << 4))
+		.if stride < 0
+			lda #((^addr) | (stride << 4)) | $08
+		.else
+			lda #((^addr) | (stride << 4))
+		.endif
 	.else
 		lda #(^addr) | $10
 	.endif
 
 	sta VERA_addr_bank
-	lda #(>addr)
-	sta VERA_addr_high
-	lda #(<addr)
-	sta VERA_addr_low
 .endmacro
 
 ;=================================================
@@ -149,10 +199,9 @@ TILE_VFLIP=(1 << 11)
 ; MODIFIES: A
 ; 
 .macro VERA_ENABLE_LAYER layer
-	VERA_SET_ADDR (VRAM_layer1 + (layer << 4)), 0
-	lda VERA_data
-	ora #$01
-	sta VERA_data
+	lda VERA_dc_video
+	ora #($04 << layer)
+	sta VERA_dc_video
 .endmacro
 
 ;=================================================
@@ -165,10 +214,9 @@ TILE_VFLIP=(1 << 11)
 ; MODIFIES: A
 ; 
 .macro VERA_DISABLE_LAYER layer
-	VERA_SET_ADDR (VRAM_layer1 + (layer << 4)), 0
-	lda VERA_data
-	and #$FE
-	sta VERA_data
+	lda VERA_dc_video
+	and #(~($04 << layer))
+	sta VERA_dc_video
 .endmacro
 
 ;=================================================
@@ -176,59 +224,52 @@ TILE_VFLIP=(1 << 11)
 ;   Apply the given params to a layer.
 ;-------------------------------------------------
 ; INPUTS:   layer			Layer (0|1)
-;			enable			0: disable layer
-;							1: enable layer
-;			mode			0: text 1bpp, 16 color f/g
-;							1: text 1bpp, 256 color f
-;							2: tile 2bpp
-;							3: tile 4bpp
-;							4: tile 8bpp
+;			bpp				0: glyphs
+;							1: tile 2bpp
+;							2: tile 4bpp
+;							3: tile 8bpp
+;			t256c			0: 16-color glyphs, fg+bg
+;							1: 256-color glyphs, fg only
 ;			w16_tiles		(0|1) enable 16-width tiles?
 ;			h16_tiles		(0|1) enable 16-height tiles?
 ;			mapw, maph		0: 32 tiles/chars
 ;							1: 64 tiles/chars
 ;							2: 128 tiles/chars
 ;							3: 256 tiles/chars
-;			map_base		Start address of map indices (4-byte align)
-;			tile_base		Start address of tile indices (4-byte align)
+;			map_base		Start address of map indices (512-byte align)
+;			tile_base		Start address of tile indices (2048-byte align)
 ;
 ;-------------------------------------------------
 ; MODIFIES: A
 ; 
-.macro VERA_CONFIGURE_TILE_LAYER layer, enable, mode, w16_tiles, h16_tiles, mapw, maph, map_base, tile_base
+.macro VERA_CONFIGURE_TILE_LAYER layer, bpp, t256c, w16_tiles, h16_tiles, mapw, maph, map_base, tile_base
+	.local layer_base
+
 	.if layer = 0
-		VERA_SET_ADDR VRAM_layer1, 1
+		layer_base = VERA_l0_base
 	.else
-		VERA_SET_ADDR VRAM_layer2, 1
+		layer_base = VERA_l1_base
 	.endif
 
-	; Mode
-	lda #((mode << 5) | enable)
-	sta VERA_data
+	.if (map_base & $FFE00) <> map_base
+		.error "Map data does not obey alignment rules (512-byte alignment)"
+	.endif
 
-	; Tile and map size
-	lda #((h16_tiles << 5) | (w16_tiles << 4) | (maph << 2) | (mapw))
-	sta VERA_data
+	.if (tile_base & $FF800) <> tile_base
+		.error "Tile data does not obey alignment rules (2048-byte alignment)"
+	.endif
 
-.if (map_base & $FFFFFC) <> map_base
-	.error "Map data does not obey alignment rules"
-.endif
-
-.if (tile_base & $FFFFFC) <> tile_base
-	.error "Tile data does not obey alignment rules"
-.endif
+	; Color mode and Map size
+	lda #((maph << 6) | (mapw << 4) | (t256c << 3) | (bpp))
+	sta layer_base + VERA_layer_config
 
 	; Map base
-	lda #<(map_base >> 2)
-	sta VERA_data
-	lda #>(map_base >> 2)
-	sta VERA_data
+	lda #(map_base >> 9)
+	sta layer_base + VERA_layer_mapbase
 
-	; Tile base
-	lda #<(tile_base >> 2)
-	sta VERA_data
-	lda #>(tile_base >> 2)
-	sta VERA_data
+	; Tile size and tile base
+	lda #(((tile_base >> 11) << 2) | (h16_tiles << 1) | (w16_tiles))
+	sta layer_base + VERA_layer_tilebase
 .endmacro
 
 ;=================================================
@@ -236,32 +277,41 @@ TILE_VFLIP=(1 << 11)
 ;   Apply the given params to a layer.
 ;-------------------------------------------------
 ; INPUTS:   layer			Layer (0|1)
-;			mode			5: bitmap 2bpp
-;							6: bitmap 4bpp
-;							7: bitmap 8bpp
-;			h640			(0|1) enable 640p height?
+;			bpp				0: bitmap 1bpp
+;							1: bitmap 2bpp
+;							2: bitmap 4bpp
+;							3: bitmap 8bpp
+;			w640			(0|1) enable 640p width?
 ;			palette_offset	Which 16-color palette should it use?
+;			image_base		Start address of bitmap data
 ;
 ;-------------------------------------------------
 ; MODIFIES: A
 ; 
-.macro VERA_CONFIGURE_BMP_LAYER layer, mode, h640, palette_offset
-	VERA_SET_ADDR (VRAM_layer1 + (layer << 4)), 1
+.macro VERA_CONFIGURE_BMP_LAYER layer, bpp, w640, palette_offset
+	.local layer_base
 
-	; Mode
-	lda #((mode << 5) | 1)
-	sta VERA_data
+	.if layer = 0
+		layer_base = VERA_l0_base
+	.else
+		layer_base = VERA_l1_base
+	.endif
 
-	; Tile and map size
-	lda #(h640 << 8)
-	sta VERA_data
+	.if (tile_base & $FFFF80) <> tile_base
+		.error "Tile data does not obey alignment rules"
+	.endif
+
+	; Color mode and Map size
+	lda #((1 << 2) | (bpp))
+	sta layer_base + VERA_layer_config
+
+	; Tile size and tile base
+	lda #(((tile_base >> 11) << 2) | (w640))
+	sta layer_base + VERA_layer_tilebase
 
 	; Palette offset
-	lda #((layer << 4) | 7)
-	sta VERA_addr_low
-
-	lda #((palette_offset) >> 4)
-	sta VERA_data
+	lda #palette_offset
+	sta layer_base + VERA_layer_hscroll_h
 .endmacro
 
 ;=================================================
@@ -275,16 +325,19 @@ TILE_VFLIP=(1 << 11)
 ; MODIFIES: A
 ; 
 .macro VERA_SET_LAYER_SCROLL_X layer, src
-.if layer = 0
-    VERA_SET_ADDR (VRAM_layer1+6), 1
-.else
-    VERA_SET_ADDR (VRAM_layer2+6), 1
-.endif
+	.local layer_base
+
+	.if layer = 0
+		layer_base = VERA_l0_base
+	.else
+		layer_base = VERA_l1_base
+	.endif
+
     lda src
-    sta VERA_data
+    sta layer_base + VERA_layer_hscroll_l
     lda src+1
     and #$0F
-    sta VERA_data
+    sta layer_base + VERA_layer_hscroll_h
 .endmacro
 
 
@@ -299,16 +352,19 @@ TILE_VFLIP=(1 << 11)
 ; MODIFIES: A
 ; 
 .macro VERA_SET_LAYER_SCROLL_Y layer, src
-.if layer = 0
-    VERA_SET_ADDR (VRAM_layer1+8), 1
-.else
-    VERA_SET_ADDR (VRAM_layer2+8), 1
-.endif
+	.local layer_base
+
+	.if layer = 0
+		layer_base = VERA_l0_base
+	.else
+		layer_base = VERA_l1_base
+	.endif
+
     lda src
-    sta VERA_data
+    sta layer_base + VERA_layer_vscroll_l
     lda src+1
     and #$0F
-    sta VERA_data
+    sta layer_base + VERA_layer_vscroll_h
 .endmacro
 
 
@@ -322,9 +378,9 @@ TILE_VFLIP=(1 << 11)
 ; MODIFIES: A
 ; 
 .macro VERA_ENABLE_SPRITES
-    VERA_SET_ADDR VRAM_sprinfo
-    lda #1
-    sta VERA_data
+    lda VERA_dc_video
+	ora #$40
+    sta VERA_dc_video
 .endmacro
 
 ;=================================================
@@ -337,15 +393,15 @@ TILE_VFLIP=(1 << 11)
 ; MODIFIES: A
 ; 
 .macro VERA_DISABLE_SPRITES
-    VERA_SET_ADDR VRAM_sprinfo
-    lda #0
-    sta VERA_data
+    lda VERA_dc_video
+	and #($ff - $40)
+    sta VERA_dc_video
 .endmacro
 
 ;=================================================
 ; VERA_SET_SPRITE
 ;   Set the current address channel to target
-;	an indexed sprite_data entry in VRAM_sprdata
+;	an indexed sprite_data entry in VRAM_spr_attrib
 ;-------------------------------------------------
 ; INPUTS:   sprite_index	Sprite index to target
 ;
@@ -353,7 +409,7 @@ TILE_VFLIP=(1 << 11)
 ; MODIFIES: A
 ; 
 .macro VERA_SET_SPRITE sprite_index
-	VERA_SET_ADDR (VRAM_sprdata + (sprite_index << 3))
+	VERA_SET_ADDR (VRAM_spr_attrib + (sprite_index << 3))
 .endmacro
 
 ;=================================================
@@ -378,12 +434,12 @@ TILE_VFLIP=(1 << 11)
 ; MODIFIES: A
 ; 
 .macro VERA_CONFIGURE_SPRITE data_addr, colors, xpos, ypos, hflip, vflip, zdepth, palette_index, width, height
-.local DATA_ADDR
-DATA_ADDR=(data_addr >> 5)
-
-.if ((DATA_ADDR << 5) <> data_addr)
+.if ((data_addr & $FFFE0) <> data_addr)
 	.error "Sprite data does not obey alignment rules"
 .endif
+
+.local DATA_ADDR
+DATA_ADDR=data_addr>>5
 
 	VERA_WRITE (DATA_ADDR & $FF), ((DATA_ADDR >> 8) | (colors << 7))
 	VERA_WRITE (xpos & $0FF), ((xpos & $300) >> 8), (ypos & $0FF), ((ypos & $300) >> 8)
@@ -403,7 +459,7 @@ DATA_ADDR=(data_addr >> 5)
 ; MODIFIES: A
 ; 
 .macro VERA_SET_SPRITE_POS_X sprite, src
-    VERA_SET_ADDR (VRAM_sprdata + (8 * sprite) + 2), 1
+    VERA_SET_ADDR (VRAM_spr_attrib + (8 * sprite) + 2), 1
     lda src
     sta VERA_data
     lda src+1
@@ -422,7 +478,7 @@ DATA_ADDR=(data_addr >> 5)
 ; MODIFIES: A
 ; 
 .macro VERA_SET_SPRITE_POS_Y sprite, src
-    VERA_SET_ADDR (VRAM_sprdata + (8 * sprite) + 4), 1
+    VERA_SET_ADDR (VRAM_spr_attrib + (8 * sprite) + 4), 1
     lda src
     sta VERA_data
     lda src+1
@@ -510,24 +566,9 @@ DATA_ADDR=(data_addr >> 5)
 ; MODIFIES: A
 ; 
 .macro VERA_ENABLE_ALL
-    VERA_SET_ADDR VRAM_layer1, 13
-	VERA_SELECT_ADDR 1
-    VERA_SET_ADDR VRAM_layer1, 13
-
-	; Layer 0
-    lda VERA_data
-    ora #$01
-	sta VERA_data2
-
-	; Layer 1
-    lda VERA_data
-    ora #$01
-	sta VERA_data2
-
-	;Sprites
-    lda VERA_data
-    ora #$01
-	sta VERA_data2
+	lda VERA_dc_video
+	ora #$70
+	sta VERA_dc_video
 .endmacro
 
 ;=================================================
@@ -540,28 +581,10 @@ DATA_ADDR=(data_addr >> 5)
 ; MODIFIES: A
 ; 
 .macro VERA_DISABLE_ALL
-    VERA_SET_ADDR VRAM_layer1, 13
-	VERA_SELECT_ADDR 1
-    VERA_SET_ADDR VRAM_layer1, 13
-
-	; Layer 0
-    lda VERA_data
-    and #$FE
-	sta VERA_data2
-
-	; Layer 1
-    lda VERA_data
-    and #$FE
-	sta VERA_data2
-
-	;Sprites
-    lda VERA_data
-    and #$FE
-	sta VERA_data2
-
-    VERA_SELECT_ADDR 0
+	lda VERA_dc_video
+	and #($ff - $70)
+	sta VERA_dc_video
 .endmacro
-
 
 ;=================================================
 ; VERA_RESET
@@ -589,29 +612,25 @@ DATA_ADDR=(data_addr >> 5)
 ; 
 .macro VERA_END_IRQ
 	lda #$1
-	sta VERA_irq
+	sta VERA_isr
 .endmacro
 
 ;=================================================
-; VIDEO_INIT
-;   Turn on the video display.
+; VERA_MAP_DATA_ALIGN
+;   Align an address to a map data offset
 ;-------------------------------------------------
-; INPUTS:   (none)
-;
-;-------------------------------------------------
-; MODIFIES: A
-; 
-.macro VIDEO_INIT
-	VERA_SELECT_ADDR 0
-	VERA_SET_ADDR VRAM_composer, 1
-	lda #1
-	sta VERA_data ; VGA output
-.endmacro
+.define VERA_MAP_DATA_ALIGN(ADDR)	((ADDR + ($FFFFF - $FFE00)) & $FFE00)
 
 ;=================================================
-; SPRITE_ALIGN
-;   Align an address to a sprite boundary
+; VERA_TILE_DATA_ALIGN
+;   Align an address to a tile data offset
 ;-------------------------------------------------
-.define SPRITE_ALIGN(ADDR)	(((ADDR) + ((1 << 5) - 1) >> 5) << 5)
+.define VERA_TILE_DATA_ALIGN(ADDR)	((ADDR + ($FFFFF - $FF800)) & $FF800)
+
+;=================================================
+; VERA_SPRITE_DATA_ALIGN
+;   Align an address to a sprite data offset
+;-------------------------------------------------
+.define VERA_SPRITE_DATA_ALIGN(ADDR)	((ADDR + ($FFFFF - $FFFE0)) & $FFFE0)
 
 .endif ; VERA_INC
