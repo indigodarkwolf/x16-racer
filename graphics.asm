@@ -322,11 +322,14 @@ next_palette_entry:
 .proc graphics_apply_palette
     VERA_SET_CTRL 0
     VERA_SET_PALETTE 0
-    VERA_SET_CTRL 1
-    VERA_SET_PALETTE 8
 
     ldy #0
 stream_byte:
+    lda Gfx_palette_gb,y
+    sta VERA_data
+    lda Gfx_palette_r,y
+    sta VERA_data
+    iny
     lda Gfx_palette_gb,y
     sta VERA_data
     lda Gfx_palette_r,y
