@@ -24,7 +24,7 @@ MATH_TABLES_STR: .asciiz MATH_TABLES_NAME
     SYS_SET_BANK MATH_TABLES_BANK
 
     ; Load tables into himem
-    KERNAL_SETLFS 1, 1, 0
+    KERNAL_SETLFS 1, 8, 0
     KERNAL_SETNAM .strlen(MATH_TABLES_NAME), MATH_TABLES_STR
     KERNAL_LOAD 0, $A000
 
@@ -40,95 +40,6 @@ MATH_TABLES_STR: .asciiz MATH_TABLES_NAME
     sta PTR_SOF_DIFF_HIGH+1
     rts
 .endproc
-
-; init_squares_over_four_table:
-;     SYS_SET_BANK MATH_TABLES_BANK
-
-;     lda #<LO_SQUARES_OVER_FOUR_TABLE_LO
-;     sta PTR_SOF_SUM_LOW
-;     lda #>LO_SQUARES_OVER_FOUR_TABLE_LO
-;     sta PTR_SOF_SUM_LOW+1
-
-;     lda #<LO_SQUARES_OVER_FOUR_TABLE_HI
-;     sta PTR_SOF_SUM_HIGH
-;     lda #>LO_SQUARES_OVER_FOUR_TABLE_HI
-;     sta PTR_SOF_SUM_HIGH+1
-
-;     ldy #0
-;     ldx #0
-;     lda #0
-
-;     sta $00
-;     sta $01
-;     sta $02
-;     sta $03
-
-; @next:
-;     clc
-;     lda $02
-;     adc $00
-;     sta $02
-;     sta (PTR_SOF_SUM_LOW),y
-;     lda $03
-;     adc $01
-;     sta $03
-;     sta (PTR_SOF_SUM_HIGH),y
-;     iny
-;     clc
-;     lda $02
-;     adc $00
-;     sta $02
-;     sta (PTR_SOF_SUM_LOW),y
-;     lda $03
-;     adc $01
-;     sta $03
-;     sta (PTR_SOF_SUM_HIGH),y
-;     iny
-;     clc
-;     lda #1
-;     adc $00
-;     sta $00
-;     lda #0
-;     adc $01
-;     sta $01
-;     cpy #0
-;     bne @next
-
-;     inc PTR_SOF_SUM_LOW+1
-;     inc PTR_SOF_SUM_HIGH+1
-
-; @next2:
-;     clc
-;     lda $02
-;     adc $00
-;     sta $02
-;     sta (PTR_SOF_SUM_LOW),y
-;     lda $03
-;     adc $01
-;     sta $03
-;     sta (PTR_SOF_SUM_HIGH),y
-;     iny
-;     clc
-;     lda $02
-;     adc $00
-;     sta $02
-;     sta (PTR_SOF_SUM_LOW),y
-;     lda $03
-;     adc $01
-;     sta $03
-;     sta (PTR_SOF_SUM_HIGH),y
-;     iny
-;     clc
-;     lda #1
-;     adc $00
-;     sta $00
-;     lda #0
-;     adc $01
-;     sta $01
-;     cpy #0
-;     bne @next2
-
-;     rts
 
 ;=================================================
 ; mul_x

@@ -4,51 +4,45 @@ GRAPHICS_ASM=1
 .include "debug.inc"
 .include "vera.inc"
 
-;=================================================
-;=================================================
-;
-;   General-purpose graphics routines
-;
-;-------------------------------------------------
+GRAPHICS_TABLES_BANK = $01
+Gfx_palette_decrement_table = $A000
+Gfx_palette                 = $A100
+Gfx_palette_gb              = $A100
+Gfx_palette_gb_0            = $A100
+Gfx_palette_gb_1            = $A110
+Gfx_palette_gb_2            = $A120
+Gfx_palette_gb_3            = $A130
+Gfx_palette_gb_4            = $A140
+Gfx_palette_gb_5            = $A150
+Gfx_palette_gb_6            = $A160
+Gfx_palette_gb_7            = $A170
+Gfx_palette_gb_8            = $A180
+Gfx_palette_gb_9            = $A190
+Gfx_palette_gb_10           = $A1A0
+Gfx_palette_gb_11           = $A1B0
+Gfx_palette_gb_12           = $A1C0
+Gfx_palette_gb_13           = $A1D0
+Gfx_palette_gb_14           = $A1E0
+Gfx_palette_gb_15           = $A1F0
+Gfx_palette_r              = $A200
+Gfx_palette_r_0            = $A200
+Gfx_palette_r_1            = $A210
+Gfx_palette_r_2            = $A220
+Gfx_palette_r_3            = $A230
+Gfx_palette_r_4            = $A240
+Gfx_palette_r_5            = $A250
+Gfx_palette_r_6            = $A260
+Gfx_palette_r_7            = $A270
+Gfx_palette_r_8            = $A280
+Gfx_palette_r_9            = $A290
+Gfx_palette_r_10           = $A2A0
+Gfx_palette_r_11           = $A2B0
+Gfx_palette_r_12           = $A2C0
+Gfx_palette_r_13           = $A2D0
+Gfx_palette_r_14           = $A2E0
+Gfx_palette_r_15           = $A2F0
 
 .data
-Gfx_palette_decrement_table = $0400
-Gfx_palette                 = $0500
-Gfx_palette_gb              = $0500
-Gfx_palette_gb_0            = $0500
-Gfx_palette_gb_1            = $0510
-Gfx_palette_gb_2            = $0520
-Gfx_palette_gb_3            = $0530
-Gfx_palette_gb_4            = $0540
-Gfx_palette_gb_5            = $0550
-Gfx_palette_gb_6            = $0560
-Gfx_palette_gb_7            = $0570
-Gfx_palette_gb_8            = $0580
-Gfx_palette_gb_9            = $0590
-Gfx_palette_gb_10           = $05A0
-Gfx_palette_gb_11           = $05B0
-Gfx_palette_gb_12           = $05C0
-Gfx_palette_gb_13           = $05D0
-Gfx_palette_gb_14           = $05E0
-Gfx_palette_gb_15           = $05F0
-Gfx_palette_r              = $0600
-Gfx_palette_r_0            = $0600
-Gfx_palette_r_1            = $0610
-Gfx_palette_r_2            = $0620
-Gfx_palette_r_3            = $0630
-Gfx_palette_r_4            = $0640
-Gfx_palette_r_5            = $0650
-Gfx_palette_r_6            = $0660
-Gfx_palette_r_7            = $0670
-Gfx_palette_r_8            = $0680
-Gfx_palette_r_9            = $0690
-Gfx_palette_r_10           = $06A0
-Gfx_palette_r_11           = $06B0
-Gfx_palette_r_12           = $06C0
-Gfx_palette_r_13           = $06D0
-Gfx_palette_r_14           = $06E0
-Gfx_palette_r_15           = $06F0
-
 Gfx_all_palettes_at_full:
 Gfx_all_palettes_cleared: .byte $00
 Gfx_fade_palette_addr: .word $0000
@@ -57,12 +51,39 @@ Gfx_fade_palette_count: .byte $00
 .define GRAPHICS_TABLES_NAME "GRAPHICS_TABLES.SEQ"
 GRAPHICS_TABLES_STR: .asciiz GRAPHICS_TABLES_NAME
 
+;=================================================
+;=================================================
+;
+;   General-purpose graphics routines
+;
+;-------------------------------------------------
+
 .code
+;=================================================
+; graphics_init
+;   Initialize the graphics subsystem, loading tables
+;   and initializing values.
+;
+;-------------------------------------------------
+; INPUTS:   A   Lhs
+;           Y   Rhs
+;
+;-------------------------------------------------
+; OUTPUTS:  X   Low-byte
+;           A   High-byte
+;
+;-------------------------------------------------
+; MODIFIES: A, X, Y, 
+;           PTR_SOF_SUM_LOW, 
+;           PTR_SOF_SUM_HIGH,
+;           PTR_SOF_DIFF_LOW, 
+;           PTR_SOF_DIFF_HIGH,
 .proc graphics_init
     ; Load tables into himem
+    SYS_SET_BANK GRAPHICS_TABLES_BANK
     KERNAL_SETLFS 1, 8, 0
     KERNAL_SETNAM .strlen(GRAPHICS_TABLES_NAME), GRAPHICS_TABLES_STR
-    KERNAL_LOAD 0, $0400
+    KERNAL_LOAD 0, $A000
     rts
 .endproc
 
@@ -333,6 +354,7 @@ stream_byte:
 ; 
 .proc graphics_fade_out
     DEBUG_LABEL graphics_fade_out
+    SYS_SET_BANK GRAPHICS_TABLES_BANK
     jsr graphics_decrement_palette
     jsr graphics_apply_palette
     jsr sys_wait_one_frame
@@ -355,6 +377,8 @@ stream_byte:
 ; MODIFIES: A, X, Y, $FE-$FF
 ; 
 .proc graphics_fade_in
+    DEBUG_LABEL graphics_fade_in
+    SYS_SET_BANK GRAPHICS_TABLES_BANK
     jsr graphics_increment_palette
     jsr graphics_apply_palette
     jsr sys_wait_one_frame
