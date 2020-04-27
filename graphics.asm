@@ -45,8 +45,6 @@ Gfx_palette_r_15           = $A2F0
 .data
 Gfx_all_palettes_at_full:
 Gfx_all_palettes_cleared: .byte $00
-Gfx_fade_palette_addr: .word $0000
-Gfx_fade_palette_count: .byte $00
 
 .define GRAPHICS_TABLES_NAME "GRAPHICS_TABLES.SEQ"
 GRAPHICS_TABLES_STR: .asciiz GRAPHICS_TABLES_NAME
@@ -73,11 +71,7 @@ GRAPHICS_TABLES_STR: .asciiz GRAPHICS_TABLES_NAME
 ;           A   High-byte
 ;
 ;-------------------------------------------------
-; MODIFIES: A, X, Y, 
-;           PTR_SOF_SUM_LOW, 
-;           PTR_SOF_SUM_HIGH,
-;           PTR_SOF_DIFF_LOW, 
-;           PTR_SOF_DIFF_HIGH,
+; MODIFIES: A, X, Y
 .proc graphics_init
     ; Load tables into himem
     SYS_SET_BANK GRAPHICS_TABLES_BANK
