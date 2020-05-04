@@ -181,23 +181,25 @@ next_entry:
 ; graphics_increment_palette
 ;   Fade the palette one step towards a set of desired values
 ;-------------------------------------------------
-; INPUTS:   $FB-$FC Address of intended palette
-;           $FD     Number of colors in palette (0 for all 256)
+; INPUTS:   $FA-$FB Address of intended palette
+;           $FC     First color in palette
+;           $FD     Last color of palette
 ;
 ;-------------------------------------------------
 ; MODIFIES: A, X, Y, $FE-$FF, Gfx_all_palettes_at_full
 ; 
 .proc graphics_increment_palette
-    lda $FB
+    lda $FA
     sta $FE
-    lda $FC
+    lda $FB
     sta $FF
+    inc $FD
     ; This is an optimistic flag: have we cleared the entire palette? 
     ; We'll falsify if not.
     lda #1
     sta Gfx_all_palettes_at_full
 
-    ldy #0 ; 256 colors in palette
+    ldy $FC ; 256 colors in palette
 check_palette_entry:
     lda Gfx_palette_gb,y
     ; Don't need to increment if already at target value
@@ -218,6 +220,7 @@ check_palette_entry:
     cpy $FD
     bne check_palette_entry
 
+    dec $FD
     rts
 
 
@@ -307,6 +310,7 @@ next_palette_entry:
     cpy $FD
     bne increment_palette_entry
 
+    dec $FD
     rts
 .endproc
 
@@ -367,8 +371,9 @@ stream_byte:
 ; graphics_fade_in
 ;   Use palette incmenting to fade in the screen from black.
 ;-------------------------------------------------
-; INPUTS:   $FB-$FC Address of intended palette
-;           $FD     Number of colors in the intended palette (0 for all 256)
+; INPUTS:   $FA-$FB Address of intended palette
+;           $FC     First color in the palette
+;           $FD     Last color in the palette
 ;
 ;-------------------------------------------------
 ; MODIFIES: A, X, Y, $FE-$FF

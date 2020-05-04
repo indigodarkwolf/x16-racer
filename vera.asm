@@ -1,6 +1,7 @@
 .ifndef VERA_ASM
 VERA_ASM=1
 
+.code
 .ifdef USING_VERA_STREAM_OUT_RLE
 ;==============================================
 ; vera_stream_out_data

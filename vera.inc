@@ -25,7 +25,7 @@ VERA_data2      = VERA_base+4
 VERA_ctrl       = VERA_base+5
 VERA_ien   		= VERA_base+6
 VERA_isr        = VERA_base+7
-VERA_isrline_l	= VERA_base+8
+VERA_irqline_l	= VERA_base+8
 
 VERA_dc_video	= VERA_base+9
 VERA_dc_hscale	= VERA_base+10
@@ -200,7 +200,11 @@ TILE_VFLIP=(1 << 11)
 ; 
 .macro VERA_ENABLE_LAYER layer
 	lda VERA_dc_video
-	ora #($04 << layer)
+	.if layer = 0
+		ora #$10
+	.else
+		ora #$20
+	.endif
 	sta VERA_dc_video
 .endmacro
 
@@ -215,8 +219,30 @@ TILE_VFLIP=(1 << 11)
 ; 
 .macro VERA_DISABLE_LAYER layer
 	lda VERA_dc_video
-	and #(~($04 << layer))
+	.if layer = 0
+		and #($ff - $10)
+	.else
+		and #($ff - $20)
+	.endif
 	sta VERA_dc_video
+.endmacro
+
+;=================================================
+; VERA_SWAP_LAYERS
+;   Swap the settings of the two layers
+;-------------------------------------------------
+; INPUTS:   (None)
+;
+;-------------------------------------------------
+; MODIFIES: X, Y
+; 
+.macro VERA_SWAP_LAYERS
+	.repeat (VERA_l1_base - VERA_l0_base), i
+		ldx VERA_l0_base+i
+		ldy VERA_l1_base+i
+		stx VERA_l1_base+i
+		sty VERA_l0_base+i
+	.endrep
 .endmacro
 
 ;=================================================
@@ -601,8 +627,159 @@ DATA_ADDR=data_addr>>5
 	sta VERA_ctrl
 .endmacro
 
+
 ;=================================================
-; VERA_END_IRQ
+;=================================================
+;
+;   IRQs
+;
+;-------------------------------------------------
+
+;=================================================
+; VERA_ENABLE_LINE_IRQ
+;   Enable the Vera Line IRQ flag so that it generates interrupts.
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_ENABLE_LINE_IRQ
+	lda VERA_ien
+	ora #$02
+	sta VERA_ien
+.endmacro
+
+;=================================================
+; VERA_DISABLE_LINE_IRQ
+;   Enable the Vera Line IRQ flag so that it generates interrupts.
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_DISABLE_LINE_IRQ
+	lda VERA_ien
+	and #($ff - $02)
+	sta VERA_ien
+.endmacro
+
+; ;=================================================
+; ; VERA_CONFIGURE_LINE_IRQ
+; ;   Configure the line irq settings
+; ;-------------------------------------------------
+; ; INPUTS:   line	line number to generate the next interrupt
+; ;
+; ;-------------------------------------------------
+; ; MODIFIES: A
+; ; 
+; .macro VERA_CONFIGURE_LINE_IRQ line
+; 	lda #<line
+; 	sta VERA_irqline_l
+; 	lda VERA_ien
+; 	.if line > $ff
+; 		ora #$80
+; 	.else
+; 		and #($ff - $80)
+; 	.endif
+; 	sta VERA_ien
+; .endmacro
+
+;=================================================
+; VERA_CONFIGURE_LINE_IRQ
+;   Configure the line irq settings
+;-------------------------------------------------
+; INPUTS:   source		address containing the line number
+;
+;-------------------------------------------------
+; MODIFIES: A, X
+; 
+.macro VERA_CONFIGURE_LINE_IRQ source
+	lda source
+	sta VERA_irqline_l
+
+	; My lame method:
+
+	; lda VERA_ien
+	; and #($ff - $80)
+	; sta VERA_ien
+	; lda source+1
+	; ror
+	; ror
+	; and #$80
+	; ora VERA_ien
+	; sta VERA_ien
+
+	; Matt Heffernan's better method (saves 3 cycles):
+
+	; lda VERA_ien
+	; asl
+	; pha
+	; lda source+1
+	; lsr
+	; pla
+	; ror
+	; sta VERA_ien
+
+	; Jesper Balman Gravgaard offered this improvement (saves 2 cycles):
+
+	lda VERA_ien
+	asl
+	tax
+	lda source+1
+	lsr
+	txa
+	ror
+	sta VERA_ien
+.endmacro
+
+;=================================================
+; VERA_END_LINE_IRQ
+;   Reset the Vera line IRQ flag so that it generates interrupts.
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_END_LINE_IRQ
+	lda #$2
+	sta VERA_isr
+.endmacro
+
+;=================================================
+; VERA_ENABLE_VBLANK_IRQ
+;   Enable the Vera Line IRQ flag so that it generates interrupts.
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_ENABLE_VBLANK_IRQ
+	lda VERA_ien
+	ora #$02
+	sta VERA_ien
+.endmacro
+
+;=================================================
+; VERA_DISABLE_VBLANK_IRQ
+;   Enable the Vera Line IRQ flag so that it generates interrupts.
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_DISABLE_VBLANK_IRQ
+	lda VERA_ien
+	and #($ff - $02)
+	sta VERA_ien
+.endmacro
+
+;=================================================
+; VERA_END_VBLANK_IRQ
 ;   Reset the Vera IRQ flag so that it generates interrupts.
 ;-------------------------------------------------
 ; INPUTS:   (none)
@@ -610,10 +787,18 @@ DATA_ADDR=data_addr>>5
 ;-------------------------------------------------
 ; MODIFIES: A
 ; 
-.macro VERA_END_IRQ
+.macro VERA_END_VBLANK_IRQ
 	lda #$1
 	sta VERA_isr
 .endmacro
+
+
+;=================================================
+;=================================================
+;
+;   Alignment
+;
+;-------------------------------------------------
 
 ;=================================================
 ; VERA_MAP_DATA_ALIGN

@@ -73,10 +73,23 @@ ZP_COPY_SIZE = $7A
 ; 
 .macro SYS_END_IRQ
     jmp (Sys_irq_redirect)
-    ; ply
-    ; plx
-    ; pla
-    ; rti
+.endmacro
+
+;=================================================
+; SYS_ABORT_IRQ
+;   Restore registers and return control to 
+;   interrupted process.
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A, X, Y
+; 
+.macro SYS_ABORT_IRQ
+    ply
+    plx
+    pla
+    rti
 .endmacro
 
 ;=================================================
@@ -365,6 +378,10 @@ ZP_COPY_SIZE = $7A
 ;   Kernal calls
 ;
 ;-------------------------------------------------
+
+.macro SYS_POLLJOY
+    jsr KERNAL_joystick_scan
+.endmacro
 
 .macro SYS_GETJOY id
     lda #id

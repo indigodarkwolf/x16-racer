@@ -280,7 +280,7 @@ __race__cleanup:
 ;
 ; Overthinking? Whatever, low-hanging fruit at this point.
 
-race_irq_first:
+race_irq_first: DEBUG_LABEL race_irq_first
     ; I'm not sure what I'm blowing up with this macro just yet. It's supposed to be a faster
     ; way of toggling layers and sprites on, by taking advantage of the fact that the "enabled"
     ; bit is the most significant bit of byte 0 on both layers and the sprite info, and that
@@ -295,17 +295,66 @@ race_irq_first:
     VERA_ENABLE_ALL
     SYS_SET_IRQ race_irq
 
-race_irq:
+    lda #<do_cloud0_irq
+    sta Line_irq
+    lda #>do_cloud0_irq
+    sta Line_irq+1
+
+    VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
+    VERA_ENABLE_LINE_IRQ
+
+race_irq: DEBUG_LABEL race_irq
+    lda VERA_isr
+    and #2
+    bne do_line_irq
+
     lda VERA_isr
     and #1 ; Check for vsync bit
-    bne @do_irq
-    jmp irq_done
+    beq :+
+    jmp do_vblank_irq
+:   jmp irq_done
 
-@do_irq:
+do_line_irq: DEBUG_LABEL do_line_irq
+    jmp (Line_irq)
+
+do_cloud0_irq: DEBUG_LABEL do_cloud0_irq
+    VERA_SET_LAYER_SCROLL_X 0, Cloud1_pos+1
+    VERA_CONFIGURE_LINE_IRQ Cloud1_stop_y
+    lda #<do_cloud1_irq
+    sta Line_irq
+    lda #>do_cloud1_irq
+    sta Line_irq+1
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_cloud1_irq: DEBUG_LABEL do_cloud1_irq
+    VERA_SET_LAYER_SCROLL_X 0, Mountains_pos+1
+    VERA_CONFIGURE_LINE_IRQ Swap_test_y
+    lda #<do_swap_test_irq
+    sta Line_irq
+    lda #>do_swap_test_irq
+    sta Line_irq+1
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_swap_test_irq: DEBUG_LABEL do_swap_test_irq
+    VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
+    lda #<do_cloud0_irq
+    sta Line_irq
+    lda #>do_cloud0_irq
+    sta Line_irq+1
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+
+do_vblank_irq: DEBUG_LABEL do_vblank_irq
     ;
     ; Start with draw updates
     ;
     VERA_SET_CTRL 0
+
+    VERA_SET_LAYER_SCROLL_X 0, Cloud0_pos+1
+    VERA_SET_LAYER_SCROLL_X 1, Forest_pos+1
 
     ; Update the car and tires' sprite positions
     VERA_SET_SPRITE_POS_X 0, Tire0_pos_x+1
@@ -325,6 +374,7 @@ race_irq:
     ; Now do everything else.
     ;
 
+    SYS_POLLJOY
     SYS_GETJOY 0
 
     ; Update car position
@@ -392,6 +442,8 @@ race_irq:
     ADD_24 Tire1_pos_y, Car_pos_y, Tire1_offset_y
 
     ; Scroll the background layers
+    ADD_24 Cloud0_pos, Cloud0_pos, Cloud0_speed
+    ADD_24 Cloud1_pos, Cloud1_pos, Cloud1_speed
     ADD_24 Mountains_pos, Mountains_pos, Mountains_speed
     ADD_24 Forest_pos, Forest_pos, Forest_speed
 
@@ -404,9 +456,6 @@ race_irq:
     .repeat 13, i
     WRAP_X_TO_SCREEN_24 Road0_pos+(3*i)
     .endrep
-
-    VERA_SET_LAYER_SCROLL_X 0, Mountains_pos+1
-    VERA_SET_LAYER_SCROLL_X 1, Forest_pos+1
 
     ; Update the wheel sprite to suggest spinning, using a bit to select between
     ; two sprite graphics
@@ -461,9 +510,9 @@ race_irq:
 @credits_fade_in_end:
 
 @frame_done:
-    VERA_END_IRQ
+    VERA_END_VBLANK_IRQ
 irq_done:
-    SYS_END_IRQ
+    SYS_ABORT_IRQ
 
 ;=================================================
 ;=================================================
@@ -472,13 +521,28 @@ irq_done:
 ;
 ;-------------------------------------------------
 
+.data
+
+Cloud0_pos: .byte $00, $00, $00
+Cloud1_pos: .byte $00, $00, $00
 Mountains_pos: .byte $00, $00, $00
 Forest_pos: .byte $00, $00, $00
 
+Cloud0_speed: .word $0033
+    .byte 0
+Cloud1_speed: .word $002B
+    .byte 0
 Mountains_speed: .word $0088
     .byte 0
 Forest_speed: .word $0233
     .byte 0
+
+Cloud0_stop_y: .word 16+24
+Cloud1_stop_y: .word 16+24+24+24
+Swap_test_y: .word 16+24+24+24+24
+Moutains_stop_y: .word $ffff
+
+Line_irq: .word 0
 
 Road0_pos: .byte $00, $00, $00
 Road1_pos: .byte $00, $40, $00

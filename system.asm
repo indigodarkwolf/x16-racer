@@ -96,11 +96,11 @@ sys_wait_for_frame:
 ; INPUTS:   (none)
 ;
 ;-------------------------------------------------
-; MODIFIES: New_frame
+; MODIFIES: Sys_frame
 ; 
 sys_inc_frame:
     inc Sys_frame
-    VERA_END_IRQ
+    VERA_END_VBLANK_IRQ
     SYS_END_IRQ
 
 .endif ; SYSTEM_ASM

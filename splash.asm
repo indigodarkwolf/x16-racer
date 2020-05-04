@@ -39,7 +39,7 @@ __splash__setup_sprite:
 .else
     VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-16), (240-16), 0, 0, 1, 0, 2, 2
 .endif
-    GRAPHICS_FADE_IN Splash_palette, 2
+    GRAPHICS_FADE_IN Splash_palette, 0, 1
 
     lda #60
     jsr sys_wait_for_frame

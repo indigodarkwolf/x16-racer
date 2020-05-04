@@ -18,18 +18,21 @@ GRAPHICS_INC=1
 ; GRAPHICS_FADE_IN
 ;   Fade in graphics to a set of palette colors
 ;-------------------------------------------------
-; INPUTS:   .palette_data   Final desired color data
-;           .num_colors     Number of colors in the above
+; INPUTS:   palette_data   Final desired color data
+;           first_color    First color index in the above
+;           last_color     Last color index in the above
 ;
 ;-------------------------------------------------
 ; MODIFIES: A, X, Y, $FB-$FF
 ; 
-.macro GRAPHICS_FADE_IN palette_data, num_colors
+.macro GRAPHICS_FADE_IN palette_data, first_color, last_color
     lda #<palette_data
-    sta $FB
+    sta $FA
     lda #>palette_data
+    sta $FB
+    lda #first_color
     sta $FC
-    lda #num_colors
+    lda #last_color
     sta $FD
 
     jsr graphics_fade_in
