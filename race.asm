@@ -293,12 +293,7 @@ race_irq_first: DEBUG_LABEL race_irq_first
     ; VERA_ENABLE_ALL
 
     VERA_ENABLE_ALL
-    SYS_SET_IRQ race_irq
-
-    lda #<do_cloud0_irq
-    sta Line_irq
-    lda #>do_cloud0_irq
-    sta Line_irq+1
+    SYS_SET_IRQ do_cloud0_irq
 
     VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
     VERA_ENABLE_LINE_IRQ
@@ -320,34 +315,48 @@ do_line_irq: DEBUG_LABEL do_line_irq
 do_cloud0_irq: DEBUG_LABEL do_cloud0_irq
     VERA_SET_LAYER_SCROLL_X 0, Cloud1_pos+1
     VERA_CONFIGURE_LINE_IRQ Cloud1_stop_y
-    lda #<do_cloud1_irq
-    sta Line_irq
-    lda #>do_cloud1_irq
-    sta Line_irq+1
+    SYS_SET_IRQ do_cloud1_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
 do_cloud1_irq: DEBUG_LABEL do_cloud1_irq
     VERA_SET_LAYER_SCROLL_X 0, Mountains_pos+1
     VERA_CONFIGURE_LINE_IRQ Swap_test_y
-    lda #<do_swap_test_irq
-    sta Line_irq
-    lda #>do_swap_test_irq
-    sta Line_irq+1
+    SYS_SET_IRQ do_swap_test_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
 do_swap_test_irq: DEBUG_LABEL do_swap_test_irq
+    VERA_CONFIGURE_LINE_IRQ Swap_test2_y
+    VERA_SWAP_LAYERS
+    SYS_SET_IRQ do_swap_test2_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_swap_test2_irq: DEBUG_LABEL do_swap_test_irq
+    VERA_CONFIGURE_LINE_IRQ Swap_test3_y
+    VERA_SWAP_LAYERS
+    SYS_SET_IRQ do_swap_test3_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_swap_test3_irq: DEBUG_LABEL do_swap_test_irq
+    VERA_CONFIGURE_LINE_IRQ Swap_test4_y
+    VERA_SWAP_LAYERS
+    SYS_SET_IRQ do_swap_test4_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_swap_test4_irq: DEBUG_LABEL do_swap_test_irq
     VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
-    lda #<do_cloud0_irq
-    sta Line_irq
-    lda #>do_cloud0_irq
-    sta Line_irq+1
+    VERA_SWAP_LAYERS
+    SYS_SET_IRQ do_vblank_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
 
 do_vblank_irq: DEBUG_LABEL do_vblank_irq
+    SYS_SET_IRQ do_cloud0_irq
     ;
     ; Start with draw updates
     ;
@@ -540,6 +549,9 @@ Forest_speed: .word $0233
 Cloud0_stop_y: .word 16+24
 Cloud1_stop_y: .word 16+24+24+24
 Swap_test_y: .word 16+24+24+24+24
+Swap_test2_y: .word 16+24+24+24+24+1
+Swap_test3_y: .word 16+24+24+24+24+24
+Swap_test4_y: .word 16+24+24+24+24+24+1
 Moutains_stop_y: .word $ffff
 
 Line_irq: .word 0
