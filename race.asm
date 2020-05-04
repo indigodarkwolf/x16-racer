@@ -281,17 +281,6 @@ __race__cleanup:
 ; Overthinking? Whatever, low-hanging fruit at this point.
 
 race_irq_first: DEBUG_LABEL race_irq_first
-    ; I'm not sure what I'm blowing up with this macro just yet. It's supposed to be a faster
-    ; way of toggling layers and sprites on, by taking advantage of the fact that the "enabled"
-    ; bit is the most significant bit of byte 0 on both layers and the sprite info, and that
-    ; there are all mapped $1000 bytes apart from each other. Until I solve that, I have to
-    ; go the "slow" way. 
-    ;
-    ; Listen to that, it's the world's smallest fiddle, playing "my heart cries out for you."
-    ; It's playing for me.
-    ;
-    ; VERA_ENABLE_ALL
-
     VERA_ENABLE_ALL
     SYS_SET_IRQ do_cloud0_irq
 
