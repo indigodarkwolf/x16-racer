@@ -1,9 +1,9 @@
 .ifndef SPLASH_ASM
 SPLASH_ASM=1
 
-.include "vera.inc"
-.include "system.inc"
-.include "graphics.inc"
+.include "lib/x16/x16.inc"
+.include "lib/graphics.inc"
+.include "lib/system.inc"
 
 .ifndef SPLASH_ADDR 
     SPLASH_ADDR=0
@@ -23,11 +23,11 @@ GIANT_SPLASH=1
 ; Do a splash screen with my logo.
 ; Return to caller when done.
 ;
-splash_do:
+splash_do: DEBUG_LABEL splash_do
     ; Copy the logo into video memory
     VERA_SET_CTRL 0
 
-    VERA_STREAM_OUT_RLE Splash_logo, SPLASH_ADDR, (Splash_logo_end - Splash_logo)
+    GRAPHICS_STREAM_OUT_RLE Splash_logo, SPLASH_ADDR, (Splash_logo_end - Splash_logo)
 
     VERA_DISABLE_ALL
     VERA_ENABLE_SPRITES

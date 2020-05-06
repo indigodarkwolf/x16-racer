@@ -13,12 +13,9 @@ start_data:
 ;
 ;-------------------------------------------------
 
-.include "vera.inc"
-.include "system.inc"
-.include "math.inc"
-.include "ym2151.inc"
-.include "math.inc"
-.include "kernal.inc"
+.include "lib/x16/x16.inc"
+.include "lib/math.inc"
+.include "lib/system.inc"
 
 ;=================================================
 ; Macros
@@ -71,9 +68,9 @@ start:
 ;   Libs
 ;
 ;-------------------------------------------------
-.include "system.asm"
-.include "graphics.asm"
+.include "lib/graphics.asm"
+.include "lib/math.asm"
+.include "lib/system.asm"
+
 .include "splash.asm"
 .include "race.asm"
-.include "vera.asm"
-.include "math.asm"

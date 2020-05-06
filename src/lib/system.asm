@@ -2,13 +2,10 @@
 SYSTEM_ASM=1
 
 .include "system.inc"
-.include "vera.inc"
 
 .data
-Sys_irq_redirect: .byte $00, $00
-
+Sys_kernal_irq: .byte $00, $00
 Sys_rand_mem: .byte $00, $00, $00
-
 Sys_frame: .byte $00
 .code
 

@@ -1,10 +1,10 @@
 .ifndef RACE_ASM
 RACE_ASM=1
 
-.include "debug.inc"
-.include "vera.inc"
-.include "system.inc"
-.include "graphics.inc"
+.include "lib/x16/x16.inc"
+.include "lib/debug.inc"
+.include "lib/system.inc"
+.include "lib/graphics.inc"
 
 .include "assets/mountains.inc"
 .include "assets/font_courier_new.inc"
@@ -216,25 +216,25 @@ race_do:
     .endrep
 
     ; Tile data
-    VERA_STREAM_OUT_DATA mountain, RACE_MOUNTAINS_TILES_ADDR, RACE_MOUNTAINS_TILES_SIZE
-    VERA_STREAM_OUT_DATA font_courier_new, RACE_FONT_TILES_ADDR, RACE_FONT_TILES_SIZE
-    VERA_STREAM_OUT_DATA forest, RACE_FOREST_TILES_ADDR, RACE_FOREST_TILES_SIZE
-    VERA_STREAM_OUT_DATA forest_inner, RACE_FOREST_INNER_TILES_ADDR, RACE_FOREST_INNER_TILES_SIZE
-    VERA_STREAM_OUT_DATA car, RACE_CAR_ADDR, RACE_CAR_SIZE
-    VERA_STREAM_OUT_DATA road, ROAD_ADDR, ROAD_SIZE
-    VERA_STREAM_OUT_DATA pillar, PILLAR_ADDR, PILLAR_SIZE
-    VERA_STREAM_OUT_DATA wheel_00_00, WHEEL0_ADDR, WHEEL0_SIZE
-    VERA_STREAM_OUT_DATA wheel_01_00, WHEEL1_ADDR, WHEEL1_SIZE
+    GRAPHICS_STREAM_OUT_DATA mountain, RACE_MOUNTAINS_TILES_ADDR, RACE_MOUNTAINS_TILES_SIZE
+    GRAPHICS_STREAM_OUT_DATA font_courier_new, RACE_FONT_TILES_ADDR, RACE_FONT_TILES_SIZE
+    GRAPHICS_STREAM_OUT_DATA forest, RACE_FOREST_TILES_ADDR, RACE_FOREST_TILES_SIZE
+    GRAPHICS_STREAM_OUT_DATA forest_inner, RACE_FOREST_INNER_TILES_ADDR, RACE_FOREST_INNER_TILES_SIZE
+    GRAPHICS_STREAM_OUT_DATA car, RACE_CAR_ADDR, RACE_CAR_SIZE
+    GRAPHICS_STREAM_OUT_DATA road, ROAD_ADDR, ROAD_SIZE
+    GRAPHICS_STREAM_OUT_DATA pillar, PILLAR_ADDR, PILLAR_SIZE
+    GRAPHICS_STREAM_OUT_DATA wheel_00_00, WHEEL0_ADDR, WHEEL0_SIZE
+    GRAPHICS_STREAM_OUT_DATA wheel_01_00, WHEEL1_ADDR, WHEEL1_SIZE
 
     ; Palette data
-    VERA_STREAM_OUT_DATA mountain_palette, VRAM_palette0, 16*2
-    VERA_STREAM_OUT_DATA forest_palette, VRAM_palette1, 16*2
-    VERA_STREAM_OUT_DATA car_palette, VRAM_palette2, 16*2
-    VERA_STREAM_OUT_DATA road_palette, VRAM_palette3, 6*2
-    VERA_STREAM_OUT_DATA pillar_palette, VRAM_palette4, 16*2
-    VERA_STREAM_OUT_DATA wheel_palette, VRAM_palette5, 16*2
-    VERA_STREAM_OUT_DATA Race_credits_palette_start, VRAM_palette6, 3*2
-    ; VERA_STREAM_OUT_DATA font_courier_new_palette, VRAM_palette6, 3*2  ; It's a secret to everyone!
+    GRAPHICS_STREAM_OUT_DATA mountain_palette, VRAM_palette0, 16*2
+    GRAPHICS_STREAM_OUT_DATA forest_palette, VRAM_palette1, 16*2
+    GRAPHICS_STREAM_OUT_DATA car_palette, VRAM_palette2, 16*2
+    GRAPHICS_STREAM_OUT_DATA road_palette, VRAM_palette3, 6*2
+    GRAPHICS_STREAM_OUT_DATA pillar_palette, VRAM_palette4, 16*2
+    GRAPHICS_STREAM_OUT_DATA wheel_palette, VRAM_palette5, 16*2
+    GRAPHICS_STREAM_OUT_DATA Race_credits_palette_start, VRAM_palette6, 3*2
+    ; GRAPHICS_STREAM_OUT_DATA font_courier_new_palette, VRAM_palette6, 3*2  ; It's a secret to everyone!
 
 __race__setup_scene:
     VERA_CONFIGURE_TILE_LAYER 0, 2, 0, 0, 0, 2, 1, RACE_MOUNTAINS_MAP_ADDR, RACE_MOUNTAINS_TILES_ADDR
@@ -618,5 +618,6 @@ Race_forest_inner_map:
         .endrep
     .endrep
 
-.include "system.asm"
+.include "lib/system.asm"
+
 .endif ; RACE_ASM

@@ -1,5 +1,5 @@
 .include "math.inc"
-.include "kernal.inc"
+.include "x16/kernal.inc"
 
 MATH_TABLES_BANK = $00
 SQUARES_OVER_FOUR_TABLE = $A000
