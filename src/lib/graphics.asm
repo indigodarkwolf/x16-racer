@@ -45,6 +45,7 @@ Gfx_palette_r_15           = $A2F0
 .data
 Gfx_all_palettes_at_full:
 Gfx_all_palettes_cleared: .byte $00
+Gfx_do_line_irqs_work: .word 639
 
 .define GRAPHICS_TABLES_NAME "GRAPHICS_TABLES.SEQ"
 GRAPHICS_TABLES_STR: .asciiz GRAPHICS_TABLES_NAME
@@ -78,6 +79,39 @@ GRAPHICS_TABLES_STR: .asciiz GRAPHICS_TABLES_NAME
     KERNAL_SETLFS 1, 8, 0
     KERNAL_SETNAM .strlen(GRAPHICS_TABLES_NAME), GRAPHICS_TABLES_STR
     KERNAL_LOAD 0, $A000
+
+    jsr graphics_check_for_r37_vsync_bug
+    rts
+.endproc
+
+;=================================================
+; graphics_check_for_r37_vsync_bug
+;   Check for the r37 line IRQ bug
+;
+;-------------------------------------------------
+; INPUTS:   (None)
+;
+;-------------------------------------------------
+; OUTPUTS:  (None)
+;
+;-------------------------------------------------
+; MODIFIES: A
+;
+.proc graphics_check_for_r37_vsync_bug
+    VERA_CONFIGURE_LINE_IRQ Gfx_do_line_irqs_work
+    lda VERA_irqline_l
+    cmp Gfx_do_line_irqs_work
+    beq check_irq_bit_8
+    stz Gfx_do_line_irqs_work
+    rts
+
+check_irq_bit_8:
+    lda VERA_ien
+    and #$80
+    beq check_complete
+    stz Gfx_do_line_irqs_work
+
+check_complete:
     rts
 .endproc
 

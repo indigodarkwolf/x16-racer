@@ -295,6 +295,10 @@ race_irq_first: DEBUG_LABEL race_irq_first
     VERA_ENABLE_ALL
     SYS_SET_IRQ race_irq
 
+    lda Gfx_do_line_irqs_work
+    cmp #0
+    beq no_line_irqs
+    
     lda #<do_cloud0_irq
     sta Line_irq
     lda #>do_cloud0_irq
@@ -302,7 +306,7 @@ race_irq_first: DEBUG_LABEL race_irq_first
 
     VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
     VERA_ENABLE_LINE_IRQ
-
+no_line_irqs:
 race_irq: DEBUG_LABEL race_irq
     lda VERA_isr
     and #2
