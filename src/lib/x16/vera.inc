@@ -152,15 +152,15 @@ TILE_VFLIP=(1 << 11)
 ;=================================================
 ; VERA_WRITE (multiple)
 ;   Write values to VERA_data.
-;	If more than 8 values are needed, consider 
-;	the SYS_STREAM_* family.
+;	If more than 16 values are needed, strongly 
+;	consider writing a procedure or a loop.
 ;-------------------------------------------------
-; INPUTS:   v0 - v7	Values to write
+; INPUTS:   v0 - v9, va - vf		Values to write
 ;
 ;-------------------------------------------------
 ; MODIFIES: A
 ; 
-.macro VERA_WRITE v0, v1, v2, v3, v4, v5, v6, v7
+.macro VERA_WRITE v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, va, vb, vc, vd, ve, vf
 	.ifblank v0
 		.exitmacro
 	.else
@@ -169,7 +169,7 @@ TILE_VFLIP=(1 << 11)
 	.endif
 
 	.if .paramcount > 1
-		VERA_WRITE v1, v2, v3, v4, v5, v6, v7
+		VERA_WRITE v1, v2, v3, v4, v5, v6, v7, v8, v9, va, vb, vc, vd, ve, vf
 	.endif
 .endmacro
 
@@ -180,11 +180,66 @@ TILE_VFLIP=(1 << 11)
 ; INPUTS:   addr	VRAM address to read from.
 ;
 ;-------------------------------------------------
+; OUTPUTS:  A		Data at VRAM address.
+;
+;-------------------------------------------------
 ; MODIFIES: A
 ; 
 .macro VPEEK addr
 	VERA_SET_ADDR addr
 	lda VERA_data
+.endmacro
+
+;=================================================
+; VERA_SET_HSCALE
+;   Set the DC HScale parameter
+;-------------------------------------------------
+; INPUTS:   addr	VRAM address to read from.
+;
+;-------------------------------------------------
+; OUTPUTS:  value	New scale value
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_SET_HSCALE value
+	lda #value
+	sta VERA_dc_hscale
+.endmacro
+
+;=================================================
+; VERA_SET_VSCALE
+;   Set the DC HScale parameter
+;-------------------------------------------------
+; INPUTS:   value	New scale value
+;
+;-------------------------------------------------
+; OUTPUTS:  (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_SET_VSCALE value
+	lda #value
+	sta VERA_dc_vscale
+.endmacro
+
+;=================================================
+; VERA_SET_SCALE
+;   Set both the DC's H and V scales
+;-------------------------------------------------
+; INPUTS:   h_value		New H-scale value
+;			v_value		New V-scale value
+;
+;-------------------------------------------------
+; OUTPUTS:  (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_SET_SCALE h_value, v_value
+	VERA_SET_HSCALE h_value
+	VERA_SET_VSCALE v_value
 .endmacro
 
 ;=================================================
@@ -241,6 +296,29 @@ TILE_VFLIP=(1 << 11)
 		stx VERA_l1_base+i
 		sty VERA_l0_base+i
 	.endrep
+.endmacro
+
+;=================================================
+; VERA_COPY_LAYER
+;   Copy the settings of one layer onto another
+;-------------------------------------------------
+; INPUTS:   layer		Which layer to copy from
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_COPY_LAYER layer
+	.if layer = 0
+		.repeat (VERA_l1_base - VERA_l0_base), i
+			lda VERA_l0_base+i
+			sta VERA_l1_base+i
+		.endrep
+	.else
+		.repeat (VERA_l1_base - VERA_l0_base), i
+			lda VERA_l1_base+i
+			sta VERA_l0_base+i
+		.endrep
+	.endif
 .endmacro
 
 ;=================================================
@@ -407,6 +485,7 @@ TILE_VFLIP=(1 << 11)
     sta VERA_dc_video
 .endmacro
 
+
 ;=================================================
 ; VERA_DISABLE_SPRITES
 ;   Disables sprites layer
@@ -422,6 +501,7 @@ TILE_VFLIP=(1 << 11)
     sta VERA_dc_video
 .endmacro
 
+
 ;=================================================
 ; VERA_SET_SPRITE
 ;   Set the current address channel to target
@@ -435,6 +515,7 @@ TILE_VFLIP=(1 << 11)
 .macro VERA_SET_SPRITE sprite_index
 	VERA_SET_ADDR (VRAM_spr_attrib + (sprite_index << 3))
 .endmacro
+
 
 ;=================================================
 ; VERA_CONFIGURE_SPRITE
@@ -490,6 +571,7 @@ DATA_ADDR=data_addr>>5
     and #$03
     sta VERA_data
 .endmacro
+
 
 ;=================================================
 ; VERA_SET_SPRITE_POS_Y

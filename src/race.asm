@@ -184,7 +184,7 @@ race_do:
     SYS_STREAM_OUT license_3, VERA_data, LICENSE_3_SIZE
     SYS_STREAM Race_mountains_map, VERA_data, (256 - 48 - LICENSE_3_SIZE)
 
-    SYS_STREAM Race_mountains_map, VERA_data, (256*3+128)
+    SYS_STREAM Race_mountains_map, VERA_data, (256*2+128)
 
     SYS_STREAM_OUT license_4, VERA_data, LICENSE_4_SIZE
     SYS_STREAM Race_mountains_map, VERA_data, (256 - 128 - LICENSE_4_SIZE + 130)
@@ -193,7 +193,25 @@ race_do:
     SYS_STREAM_OUT license_6, VERA_data, LICENSE_6_SIZE
     SYS_STREAM Race_mountains_map, VERA_data, (256 - 132 - LICENSE_6_SIZE)
 
-    SYS_STREAM Race_mountains_map, VERA_data, (256*11)
+    SYS_STREAM Race_mountains_map, VERA_data, (256*2)
+
+    SYS_STREAM_OUT hflip_license_1, VERA_data, LICENSE_1_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 128 - LICENSE_1_SIZE + 130)
+    SYS_STREAM_OUT hflip_license_2, VERA_data, LICENSE_2_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 130 - LICENSE_2_SIZE + 132)
+    SYS_STREAM_OUT hflip_license_3, VERA_data, LICENSE_3_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 132 - LICENSE_3_SIZE)
+
+    SYS_STREAM Race_mountains_map, VERA_data, (256*2)
+
+    SYS_STREAM_OUT vflip_license_4, VERA_data, LICENSE_4_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 128 - LICENSE_4_SIZE + 130)
+    SYS_STREAM_OUT vflip_license_5, VERA_data, LICENSE_5_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 130 - LICENSE_5_SIZE + 132)
+    SYS_STREAM_OUT vflip_license_6, VERA_data, LICENSE_6_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 132 - LICENSE_6_SIZE)
+
+    SYS_STREAM Race_mountains_map, VERA_data, (256*3)
     .repeat 8, i
         RACE_STREAM_ROW Race_mountains_map, i
     .endrep
