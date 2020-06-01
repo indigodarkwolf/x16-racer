@@ -13,6 +13,7 @@ start_data:
 ;
 ;-------------------------------------------------
 
+.include "debug.inc"
 .include "vera.inc"
 .include "system.inc"
 .include "math.inc"
@@ -35,18 +36,18 @@ DEFAULT_SCREEN_SIZE = (128*64)*2
 ;
 ;-------------------------------------------------
 .data
-Test_lhs: .byte $00, $04, $00
-Test_rhs: .byte $01, $02, $03
-Test_dst: .byte $00, $00, $00
+Test_lhs: .byte $03, $00, $00, $00
+Test_rhs: .byte $01, $02, $03, $00
+Test_dst: .byte $00, $00, $00, $00
 
 .code
 start:
     SYS_INIT_IRQ
     SYS_RAND_SEED $34, $56, $fe
     SYS_CONFIGURE_MOUSE 0
-    jsr graphics_init
-    ; jsr math_init
 
+    jsr graphics_init
+    jsr math_init
     ; MUL_BEGIN
     ; MUL_24_24 Test_dst, Test_lhs, Test_rhs
 
@@ -59,6 +60,7 @@ start:
     ; YM2151_WRITE $08, $00 ; release previous note
     ; YM2151_WRITE $08, $40 ; play note
 
+    jsr bitmap_do
     jsr graphics_fade_out
     jsr splash_do
     jsr race_do
@@ -77,3 +79,4 @@ start:
 .include "race.asm"
 .include "vera.asm"
 .include "math.asm"
+.include "bitmap.asm"

@@ -253,7 +253,9 @@ __race__setup_scene:
     VERA_CONFIGURE_SPRITE PILLAR_ADDR, 0, (64), (352), 0, 0, 3, 4, 3, 3
     VERA_CONFIGURE_SPRITE PILLAR_ADDR, 0, (64), (416), 0, 0, 3, 4, 3, 3
 
-    ; These were just tests of the palettes
+    .repeat 112, i
+    VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (i*4), (i*3), (i .mod 2), ((i/2) .mod 2), 3, 2, 3, 2
+    .endrep
 
     ; VERA_SET_SPRITE 1
     ; VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320-64), (240-64), 0, 0, 1, 1, 3, 2

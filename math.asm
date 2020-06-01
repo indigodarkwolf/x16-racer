@@ -2,11 +2,20 @@
 .include "kernal.inc"
 
 MATH_TABLES_BANK = $00
+
 SQUARES_OVER_FOUR_TABLE = $A000
 LO_SQUARES_OVER_FOUR_TABLE_LO = $A000
 HI_SQUARES_OVER_FOUR_TABLE_LO = $A100
 LO_SQUARES_OVER_FOUR_TABLE_HI = $A200
 HI_SQUARES_OVER_FOUR_TABLE_HI = $A300
+
+SIN45_TABLE = $A400
+SIN45_TABLE_LO = $A400
+SIN45_TABLE_HI = $A500
+
+COS45_TABLE = $A600
+COS45_TABLE_LO = $A600
+COS45_TABLE_HI = $A700
 
 ; SOF = Square Over Four
 PTR_SOF_SUM_LOW = $7C
@@ -42,7 +51,7 @@ MATH_TABLES_STR: .asciiz MATH_TABLES_NAME
 .endproc
 
 ;=================================================
-; mul_x
+; mul_8
 ;   Multiply A and X, storing the results in A and X.
 ;   Based on xy = (x^2 + y^2 - (x-y)^2)/2
 ;
@@ -121,9 +130,7 @@ MATH_TABLES_STR: .asciiz MATH_TABLES_NAME
 ;   should be 62 cycles. Multiply-by-zero should cost
 ;   
 ;
-
 .code
-
 .proc mul_8
     TMP = PTR_SOF_SUM_LOW
     sta TMP                         ; 3
@@ -151,4 +158,281 @@ MATH_TABLES_STR: .asciiz MATH_TABLES_NAME
 @multiplying_zero:
     tax                             ; 2
     rts
+.endproc
+
+;=================================================
+; sin_8
+;   Get the sin of the value in the A register, where
+;   A is a 0.8 fixed point ratio of 2*Pi (or "Tau" if
+;   you're of that religious persuation).
+;
+;   The result is a signed 8.8 fixed point value in the
+;   range [-1, 1], with the low-byte in A and the high-
+;   byte in X.
+;   
+;   Uses a table-based lookup of 256 samples of sin
+;   where theta = [0, Pi/4). However, note that the
+;   8-bit limit can only access 32 samples.
+;
+;-------------------------------------------------
+; INPUTS:   A   Ratio of Pi/2
+;
+;-------------------------------------------------
+; OUTPUTS:  A, X
+;
+;-------------------------------------------------
+; MODIFIES: A, X, Y
+;
+;-------------------------------------------------
+.code
+.proc sin_8
+    asl
+    bcs ge_pi
+    asl
+    bcs ge_pi_over_2
+    asl
+    bcs ge_pi_over_4
+
+ge_0:       ; A is [0, PI/4)
+    tay
+    ldx SIN45_TABLE_LO, y
+    lda SIN45_TABLE_HI, y
+
+    clc
+    rts
+
+ge_pi_over_4: ; A is [PI/4, PI/2)
+    eor #$FF
+    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
+    bcs pos_1_over_sqrt2 ; if carry still set, A = PI/4
+    tay
+    ldx COS45_TABLE_LO, y
+    lda COS45_TABLE_HI, y
+    rts
+
+ge_pi_over_2:
+    asl
+    bcs ge_pi_3_over_4
+    ; A is [PI/2, PI3/4)
+    tay
+    ldx COS45_TABLE_LO, y
+    lda COS45_TABLE_HI, y
+    rts
+
+ge_pi_3_over_4: ; A is [PI3/4, PI)
+    eor #$FF
+    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
+    bcs pos_1_over_sqrt2 ; if carry still set, A = PI3/4
+    tay
+    ldx SIN45_TABLE_LO, y
+    lda SIN45_TABLE_HI, y
+    rts
+
+ge_pi:
+    asl
+    bcs ge_pi_3_over_2
+    asl
+    bcs ge_pi_5_over_4
+    ; A is [PI, PI5/4)
+    tay
+    lda SIN45_TABLE_LO, y
+    eor #$FF
+    adc #1 ; Carry will always be clear
+    tax
+    lda SIN45_TABLE_HI, y
+    eor #$FF
+    adc #0 ; Depend on carry from previous add for multi-byte addition
+    rts
+
+ge_pi_5_over_4: ; A is [PI5/4, PI3/2)
+    eor #$FF
+    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
+    bcs neg_1_over_sqrt2 ; if carry still set, A = PI5/4
+    tay
+    lda COS45_TABLE_LO, y
+    eor #$FF
+    adc #1 ; Carry will always be clear
+    tax
+    lda COS45_TABLE_HI, y
+    eor #$FF
+    adc #0 ; Depend on carry from previous add for multi-byte addition
+    rts
+
+ge_pi_3_over_2:
+    asl
+    bcs ge_pi_7_over_4
+    ; A is [PI3/2, PI7/4)
+    tay
+    lda COS45_TABLE_LO, y
+    eor #$FF
+    adc #1 ; Carry will always be clear
+    tax
+    lda COS45_TABLE_HI, y
+    eor #$FF
+    adc #0 ; Depend on carry from previous add for multi-byte addition
+    rts
+
+ge_pi_7_over_4: ; A is [PI7/4, PI2)
+    eor #$FF
+    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
+    bcs neg_1_over_sqrt2 ; if carry still set, A = PI7/4
+    tay
+    lda SIN45_TABLE_LO, y
+    eor #$FF
+    adc #1 ; Carry will always be clear
+    tax
+    lda SIN45_TABLE_HI, y
+    eor #$FF
+    adc #0 ; Depend on carry from previous add for multi-byte addition
+    rts
+
+pos_1_over_sqrt2:
+    ldx #$B5
+    lda #0
+    rts
+
+neg_1_over_sqrt2:
+    ldx #$4B
+    lda #$FF
+    rts
+
+.endproc
+
+;=================================================
+; cos_8
+;   Get the cos of the value in the A register, where
+;   A is a 0.8 fixed point ratio of 2*Pi (or "Tau" if
+;   you're of that religious persuation).
+;
+;   The result is a signed 8.8 fixed point value in the
+;   range [-1, 1], with the low-byte in A and the high-
+;   byte in X.
+;   
+;   Uses a table-based lookup of 256 samples of cos
+;   where theta = [0, Pi/4), plus special case handling
+;   of theta = {Pi/4, Pi3/4, Pi5/4, Pi7/4}. However, note that the
+;   8-bit limit can only access 32 samples.
+;
+;-------------------------------------------------
+; INPUTS:   A   Ratio of Pi/2
+;
+;-------------------------------------------------
+; OUTPUTS:  A, X
+;
+;-------------------------------------------------
+; MODIFIES: A, X, Y
+;
+;-------------------------------------------------
+.code
+.proc cos_8
+    asl
+    bcs ge_pi
+    asl
+    bcs ge_pi_over_2
+    asl
+    bcs ge_pi_over_4
+
+ge_0:       ; A is [0, PI/4)
+    tay
+    ldx COS45_TABLE_LO, y
+    lda COS45_TABLE_HI, y
+
+    clc
+    rts
+
+ge_pi_over_4: ; A is [PI/4, PI/2)
+    eor #$FF
+    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
+    bcs pos_1_over_sqrt2 ; if carry still set, A = PI/4
+    tay
+    ldx SIN45_TABLE_LO, y
+    lda SIN45_TABLE_HI, y
+    rts
+
+ge_pi_over_2:
+    asl
+    bcs ge_pi_3_over_4
+    ; A is [PI/2, PI3/4)
+    tay
+    lda SIN45_TABLE_LO, y
+    eor #$FF
+    adc #1 ; Carry will always be clear
+    tax
+    lda SIN45_TABLE_HI, y
+    eor #$FF
+    adc #0 ; Depend on carry from previous add for multi-byte addition
+    rts
+
+ge_pi_3_over_4: ; A is [PI3/4, PI)
+    eor #$FF
+    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
+    bcs neg_1_over_sqrt2 ; if carry still set, A = PI3/4
+    tay
+    lda COS45_TABLE_LO, y
+    eor #$FF
+    adc #1 ; Carry will always be clear
+    tax
+    lda COS45_TABLE_HI, y
+    eor #$FF
+    adc #0 ; Depend on carry from previous add for multi-byte addition
+    rts
+
+ge_pi:
+    asl
+    bcs ge_pi_3_over_2
+    asl
+    bcs ge_pi_5_over_4
+    ; A is [PI, PI5/4)
+    tay
+    lda COS45_TABLE_LO, y
+    eor #$FF
+    adc #1 ; Carry will always be clear
+    tax
+    lda COS45_TABLE_HI, y
+    eor #$FF
+    adc #0 ; Depend on carry from previous add for multi-byte addition
+    rts
+
+ge_pi_5_over_4: ; A is [PI5/4, PI3/2)
+    eor #$FF
+    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
+    bcs neg_1_over_sqrt2 ; if carry still set, A = PI5/4
+    tay
+    lda SIN45_TABLE_LO, y
+    eor #$FF
+    adc #1 ; Carry will always be clear
+    tax
+    lda SIN45_TABLE_HI, y
+    eor #$FF
+    adc #0 ; Depend on carry from previous add for multi-byte addition
+    rts
+
+ge_pi_3_over_2:
+    asl
+    bcs ge_pi_7_over_4
+    ; A is [PI3/2, PI7/4)
+    tay
+    ldx SIN45_TABLE_LO, y
+    lda SIN45_TABLE_HI, y
+    rts
+
+ge_pi_7_over_4: ; A is [PI7/4, PI2)
+    eor #$FF
+    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
+    bcs pos_1_over_sqrt2 ; if carry still set, A = PI7/4
+    tay
+    ldx COS45_TABLE_LO, y
+    lda COS45_TABLE_HI, y
+    rts
+
+pos_1_over_sqrt2:
+    ldx #$B5
+    lda #0
+    rts
+
+neg_1_over_sqrt2:
+    ldx #$4B
+    lda #$FF
+    rts
+
 .endproc

@@ -152,6 +152,33 @@ TILE_VFLIP=(1 << 11)
 .endmacro
 
 ;=================================================
+; VERA_SET_ADDR_BMP
+;   Set the current address channel's address to the location
+;	of a pixel on a bitmap
+;-------------------------------------------------
+; INPUTS:   width			Width of the bitmap
+;			height			Height of the bitmap
+;			bpp				Bits per pixel
+;			pixel_x				X coordinate of pixel
+;			pixel_y				Y coordinate of pixel
+;			stride			Access stride in bytes
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_SET_ADDR_BMP width, height, bpp, pixel_x, pixel_y, stride
+.if pixel_x >= width
+	.error "VERA_SET_ADDR_BMP called with x >= width"
+.endif
+.if pixel_y >= height
+	.error "VERA_SET_ADDR_BMP called with y >= height"
+.endif
+
+.local OFFSET
+OFFSET=((((width)*(pixel_y))+(height))*(bpp))/8
+.endmacro
+
+;=================================================
 ; VERA_WRITE (multiple)
 ;   Write values to VERA_data.
 ;	If more than 8 values are needed, consider 
@@ -187,6 +214,21 @@ TILE_VFLIP=(1 << 11)
 .macro VPEEK addr
 	VERA_SET_ADDR addr
 	lda VERA_data
+.endmacro
+
+;=================================================
+; VERA_SET_SCALE
+;   Set scale to a global value
+;-------------------------------------------------
+; INPUTS:   scale	New scale parameter
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_SET_SCALE scale
+	lda #scale
+	sta VERA_dc_hscale
+	sta VERA_dc_vscale
 .endmacro
 
 ;=================================================
@@ -309,12 +351,12 @@ TILE_VFLIP=(1 << 11)
 ;							3: bitmap 8bpp
 ;			w640			(0|1) enable 640p width?
 ;			palette_offset	Which 16-color palette should it use?
-;			image_base		Start address of bitmap data
+;			tile_base		Start address of bitmap data
 ;
 ;-------------------------------------------------
 ; MODIFIES: A
 ; 
-.macro VERA_CONFIGURE_BMP_LAYER layer, bpp, w640, palette_offset
+.macro VERA_CONFIGURE_BMP_LAYER layer, bpp, w640, palette_offset, tile_base
 	.local layer_base
 
 	.if layer = 0
@@ -465,12 +507,12 @@ TILE_VFLIP=(1 << 11)
 .endif
 
 .local DATA_ADDR
-DATA_ADDR=data_addr>>5
+DATA_ADDR=((data_addr)>>5)
 
-	VERA_WRITE (DATA_ADDR & $FF), ((DATA_ADDR >> 8) | (colors << 7))
-	VERA_WRITE (xpos & $0FF), ((xpos & $300) >> 8), (ypos & $0FF), ((ypos & $300) >> 8)
-	VERA_WRITE ((hflip) | (vflip << 1) | (zdepth << 2))
-	VERA_WRITE ((palette_index & $0F) | (width << 4) | (height << 6))
+	VERA_WRITE ((DATA_ADDR) & $FF), (((DATA_ADDR) >> 8) | ((colors) << 7))
+	VERA_WRITE ((xpos) & $0FF), (((xpos) & $300) >> 8), ((ypos) & $0FF), (((ypos) & $300) >> 8)
+	VERA_WRITE ((hflip) | ((vflip) << 1) | ((zdepth) << 2))
+	VERA_WRITE (((palette_index) & $0F) | ((width) << 4) | ((height) << 6))
 .endmacro
 
 
