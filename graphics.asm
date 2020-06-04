@@ -4,7 +4,7 @@ GRAPHICS_ASM=1
 .include "debug.inc"
 .include "vera.inc"
 
-GRAPHICS_TABLES_BANK = $01
+GRAPHICS_TABLES_BANK = $02
 Gfx_palette_decrement_table = $A000
 Gfx_palette                 = $A100
 Gfx_palette_gb              = $A100
