@@ -5,8 +5,20 @@ KERNAL_joystick_scan = $FF53
 KERNAL_joystick_get = $FF56
 KERNAL_MOUSE = $FF68
 
-KERNAL_JOY1 = $02BC
-KERNAL_JOY2 = $02BF
+BUTTON_SNES_A       = (1 << 7)
+BUTTON_SNES_X       = (1 << 6)
+BUTTON_SNES_L       = (1 << 5)
+BUTTON_SNES_R       = (1 << 4)
+
+BUTTON_SNES_B       = (1 << 7)
+BUTTON_SNES_Y       = (1 << 6)
+BUTTON_SNES_SELECT  = (1 << 5)
+BUTTON_SNES_START   = (1 << 4)
+
+BUTTON_NES_A       = (1 << 7)
+BUTTON_NES_B       = (1 << 6)
+BUTTON_NES_SELECT  = (1 << 5)
+BUTTON_NES_START   = (1 << 4)
 
 BUTTON_JOY_UP    = (1 << 3)
 BUTTON_JOY_DOWN  = (1 << 2)
@@ -98,6 +110,38 @@ ZP_COPY_SIZE = $7A
 ;   Bank swapping
 ;
 ;-------------------------------------------------
+
+;=================================================
+; SYS_INIT_BANK
+;   Initialize bank swapping by stowing the original
+;   ROM bank into a dedicated place in memory.
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro SYS_INIT_BANK
+    lda $9F60
+    sta Sys_rom_original
+
+    lda #0
+    sta $9F60
+.endmacro
+
+;=================================================
+; SYS_RESTORE_BANK
+;   Restore the ROM bank to where it was before clobbering it.
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro SYS_RESTORE_BANK
+    lda Sys_rom_original
+    sta $9F60
+.endmacro
 
 ;=================================================
 ; SYS_SET_BANK

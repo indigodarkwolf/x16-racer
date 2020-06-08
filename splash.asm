@@ -36,14 +36,31 @@ __splash__setup_sprite:
     VERA_SET_SPRITE 0
 .if GIANT_SPLASH = 1
     VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32), (240-32), 0, 0, 1, 0, 3, 3
+
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32-32), (240-32+16), 0, 0, 1, 1, 3, 3
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32+32), (240-32+16), 0, 0, 1, 2, 3, 3
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32), (240-32-32), 0, 0, 1, 3, 3, 3
+
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32-32), (240-32-16), 0, 0, 1, 4, 3, 3
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32+32), (240-32-16), 0, 0, 1, 5, 3, 3
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32), (240-32+32), 0, 0, 1, 6, 3, 3
 .else
     VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-16), (240-16), 0, 0, 1, 0, 2, 2
+    
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32-16), (240-32+8), 0, 0, 1, 1, 3, 3
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32+16), (240-32+8), 0, 0, 1, 2, 3, 3
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32), (240-32-16), 0, 0, 1, 3, 3, 3
+
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32-16), (240-32-8), 0, 0, 1, 4, 3, 3
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32+16), (240-32-8), 0, 0, 1, 5, 3, 3
+    VERA_CONFIGURE_SPRITE SPLASH_ADDR, 0, (320-32), (240-32+16), 0, 0, 1, 6, 3, 3
 .endif
-    GRAPHICS_FADE_IN Splash_palette, 0, 1
+    GRAPHICS_FADE_IN Splash_palette, 0, (16*7)
 
     lda #60
     jsr sys_wait_for_frame
 
+    lda #2
     jsr graphics_fade_out
 
     VERA_DISABLE_SPRITES
@@ -51,7 +68,13 @@ __splash__setup_sprite:
     rts
 
 Splash_palette:
-    .word $0000, $0FFF
+    .word $0000, $0FFF, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000
+    .word $0000, $0F00, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000
+    .word $0000, $00F0, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000
+    .word $0000, $000F, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000
+    .word $0000, $0FF0, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000
+    .word $0000, $00FF, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000
+    .word $0000, $0F0F, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000
 Splash_palette_end:
 
 ; .include "system.asm"

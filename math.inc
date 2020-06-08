@@ -54,6 +54,50 @@ MATH_INC=1
 .endmacro
 
 ;=================================================
+; MBA_ADD_16
+;   16-bit version of "dst = lhs + rhs"
+;
+;   Multi-byte array version, which assumes the bytes
+;   of dst, lhs, and rhs are stored in separate arrays
+;   each containing one byte of the variable.
+;   dstr, lstr, rstr are the "stride" of these arrays,
+;   the distance between one byte and the next.
+;
+;-------------------------------------------------
+; INPUTS:   dst                 Destination memory address
+;           dstr                Destrination stride
+;           lhs                 Left-hand-side parameter
+;           lstr                Lhs stride
+;           rhs                 Right-hand-side parameter
+;           rstr                Rhs stride
+;           (OPTIONAL) count    Number of elements in array (1 if unspecified)
+;
+;-------------------------------------------------
+; MODIFIES: A, X
+; 
+.macro MBA_ADD_16 dst, dstr, lhs, lstr, rhs, rstr, count
+.ifblank count
+    clc
+    .repeat 2, i
+    lda lhs+(i*dstr)
+    adc rhs+(i*lstr)
+    sta dst+(i*rstr)
+    .endrep
+.else
+    .local loop
+    ldx #count
+loop:
+    .repeat 2, i
+    lda lhs+(i*dstr), x
+    adc rhs+(i*lstr), x
+    sta dst+(i*rstr), x
+    .endrep
+    dex
+    bne loop
+.endif
+.endmacro
+
+;=================================================
 ; ADD_24
 ;   24-bit version of "dst = lhs + rhs"
 ;-------------------------------------------------
@@ -71,6 +115,50 @@ MATH_INC=1
     adc rhs+i
     sta dst+i
     .endrep
+.endmacro
+
+;=================================================
+; MBA_ADD_24
+;   24-bit version of "dst = lhs + rhs"
+;
+;   Multi-byte array version, which assumes the bytes
+;   of dst, lhs, and rhs are stored in separate arrays
+;   each containing one byte of the variable.
+;   dstr, lstr, rstr are the "stride" of these arrays,
+;   the distance between one byte and the next.
+;
+;-------------------------------------------------
+; INPUTS:   dst                 Destination memory address
+;           dstr                Destrination stride
+;           lhs                 Left-hand-side parameter
+;           lstr                Lhs stride
+;           rhs                 Right-hand-side parameter
+;           rstr                Rhs stride
+;           (OPTIONAL) count    Number of elements in array (1 if unspecified)
+;
+;-------------------------------------------------
+; MODIFIES: A, X
+; 
+.macro MBA_ADD_24 dst, dstr, lhs, lstr, rhs, rstr, count
+.ifblank count
+    clc
+    .repeat 3, i
+    lda lhs+(i*dstr)
+    adc rhs+(i*lstr)
+    sta dst+(i*rstr)
+    .endrep
+.else
+    .local @loop
+    ldx #count
+@loop:
+    .repeat 3, i
+    lda lhs+(i*dstr), x
+    adc rhs+(i*lstr), x
+    sta dst+(i*rstr), x
+    .endrep
+    dex
+    bne loop
+.endif
 .endmacro
 
 ;=================================================

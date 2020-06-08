@@ -42,6 +42,7 @@ Test_dst: .byte $00, $00, $00, $00
 
 .code
 start:
+    SYS_INIT_BANK
     SYS_INIT_IRQ
     SYS_RAND_SEED $34, $56, $fe
     SYS_CONFIGURE_MOUSE 0
@@ -52,7 +53,7 @@ start:
     ; MUL_24_24 Test_dst, Test_lhs, Test_rhs
 
     ; YM2151_WRITE $20, $c0 ; Master channel config: C0 = L&R volume ON, no feedback, user OP algorithm 0
-    ; YM2151_WRITE $58, $01 ; Fine detune / phase multiplier: $01 no detune and multiplier = 1
+    ; YM2151_WRITE $58, $01 ; Fine detune / phase multiplier: $01 no .\detune and multiplier = 1
     ; YM2151_WRITE $98, $1F ; Key-scale / Attack Rate: $1f = no keyscale / max attack rate
     ; YM2151_WRITE $B8, $0d ; Amplitude mod ENA / 1st decay rate: no AM, Decay = 13
     ; YM2151_WRITE $F8, $F6 ; sustain level/release rate: hi-nibble is sustain, lo-nibble is release
@@ -61,6 +62,7 @@ start:
     ; YM2151_WRITE $08, $40 ; play note
 
     jsr bitmap_do
+    lda #2
     jsr graphics_fade_out
     jsr splash_do
     jsr race_do
@@ -80,3 +82,6 @@ start:
 .include "vera.asm"
 .include "math.asm"
 .include "bitmap.asm"
+
+.code
+DEBUG_LABEL end_of_code

@@ -175,7 +175,7 @@ race_do:
     ; The mountains background tilemap, with some art credits in the sky
     VERA_SET_CTRL 0
     VERA_SET_ADDR RACE_MOUNTAINS_MAP_ADDR
-    SYS_STREAM Race_mountains_map, VERA_data, (256*2+44)
+    SYS_STREAM Race_mountains_map, VERA_data, (256 + 44)
 
     SYS_STREAM_OUT license_1, VERA_data, LICENSE_1_SIZE
     SYS_STREAM Race_mountains_map, VERA_data, (256 - 44 - LICENSE_1_SIZE + 46)
@@ -184,7 +184,7 @@ race_do:
     SYS_STREAM_OUT license_3, VERA_data, LICENSE_3_SIZE
     SYS_STREAM Race_mountains_map, VERA_data, (256 - 48 - LICENSE_3_SIZE)
 
-    SYS_STREAM Race_mountains_map, VERA_data, (256*3+128)
+    SYS_STREAM Race_mountains_map, VERA_data, (256+128)
 
     SYS_STREAM_OUT license_4, VERA_data, LICENSE_4_SIZE
     SYS_STREAM Race_mountains_map, VERA_data, (256 - 128 - LICENSE_4_SIZE + 130)
@@ -193,7 +193,34 @@ race_do:
     SYS_STREAM_OUT license_6, VERA_data, LICENSE_6_SIZE
     SYS_STREAM Race_mountains_map, VERA_data, (256 - 132 - LICENSE_6_SIZE)
 
-    SYS_STREAM Race_mountains_map, VERA_data, (256*11)
+    SYS_STREAM Race_mountains_map, VERA_data, (256 + 22)
+
+    SYS_STREAM_OUT license_1_hflip, VERA_data, LICENSE_1_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 22 - LICENSE_1_SIZE + 26)
+    SYS_STREAM_OUT license_2_hflip, VERA_data, LICENSE_2_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 26 - LICENSE_2_SIZE + 28)
+    SYS_STREAM_OUT license_3_hflip, VERA_data, LICENSE_3_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 28 - LICENSE_3_SIZE)
+
+    SYS_STREAM Race_mountains_map, VERA_data, (256 + 64)
+
+    SYS_STREAM_OUT license_4_vflip, VERA_data, LICENSE_4_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 64 - LICENSE_4_SIZE + 66)
+    SYS_STREAM_OUT license_5_vflip, VERA_data, LICENSE_5_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 66 - LICENSE_5_SIZE + 68)
+    SYS_STREAM_OUT license_6_vflip, VERA_data, LICENSE_6_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 68 - LICENSE_6_SIZE)
+    
+    SYS_STREAM Race_mountains_map, VERA_data, (256 + 12)
+
+    SYS_STREAM_OUT license_1_hvflip, VERA_data, LICENSE_1_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 12 - LICENSE_1_SIZE + 14)
+    SYS_STREAM_OUT license_2_hvflip, VERA_data, LICENSE_2_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 14 - LICENSE_2_SIZE + 16)
+    SYS_STREAM_OUT license_3_hvflip, VERA_data, LICENSE_3_SIZE
+    SYS_STREAM Race_mountains_map, VERA_data, (256 - 16 - LICENSE_3_SIZE)
+
+    SYS_STREAM Race_mountains_map, VERA_data, (256*3)
     .repeat 8, i
         RACE_STREAM_ROW Race_mountains_map, i
     .endrep
@@ -286,6 +313,7 @@ race_irq_first: DEBUG_LABEL race_irq_first
     VERA_ENABLE_ALL
     SYS_SET_IRQ do_cloud0_irq
 
+    VERA_DISABLE_VBLANK_IRQ
     VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
     VERA_ENABLE_LINE_IRQ
 
@@ -311,6 +339,27 @@ do_cloud0_irq: DEBUG_LABEL do_cloud0_irq
     SYS_ABORT_IRQ
 
 do_cloud1_irq: DEBUG_LABEL do_cloud1_irq
+    VERA_SET_LAYER_SCROLL_X 0, Cloud2_pos+1
+    VERA_CONFIGURE_LINE_IRQ Cloud2_stop_y
+    SYS_SET_IRQ do_cloud2_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_cloud2_irq: DEBUG_LABEL do_cloud2_irq
+    VERA_SET_LAYER_SCROLL_X 0, Cloud3_pos+1
+    VERA_CONFIGURE_LINE_IRQ Cloud3_stop_y
+    SYS_SET_IRQ do_cloud3_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_cloud3_irq: DEBUG_LABEL do_cloud3_irq
+    VERA_SET_LAYER_SCROLL_X 0, Cloud4_pos+1
+    VERA_CONFIGURE_LINE_IRQ Cloud4_stop_y
+    SYS_SET_IRQ do_cloud4_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_cloud4_irq: DEBUG_LABEL do_cloud4_irq
     VERA_SET_LAYER_SCROLL_X 0, Mountains_pos+1
     VERA_CONFIGURE_LINE_IRQ Swap_test_y
     SYS_SET_IRQ do_swap_test_irq
@@ -324,27 +373,33 @@ do_swap_test_irq: DEBUG_LABEL do_swap_test_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_swap_test2_irq: DEBUG_LABEL do_swap_test_irq
+do_swap_test2_irq: DEBUG_LABEL do_swap_test2_irq
     VERA_CONFIGURE_LINE_IRQ Swap_test3_y
     VERA_SWAP_LAYERS
     SYS_SET_IRQ do_swap_test3_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_swap_test3_irq: DEBUG_LABEL do_swap_test_irq
+do_swap_test3_irq: DEBUG_LABEL do_swap_test3_irq
     VERA_CONFIGURE_LINE_IRQ Swap_test4_y
     VERA_SWAP_LAYERS
     SYS_SET_IRQ do_swap_test4_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_swap_test4_irq: DEBUG_LABEL do_swap_test_irq
-    VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
+do_swap_test4_irq: DEBUG_LABEL do_swap_test4_irq
+    VERA_CONFIGURE_LINE_IRQ Screen_stop_y
     VERA_SWAP_LAYERS
-    SYS_SET_IRQ do_vblank_irq
+    SYS_SET_IRQ do_bottom_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
+do_bottom_irq: DEBUG_LABEL do_bottom_irq
+    VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
+    VERA_END_LINE_IRQ
+    jmp do_vblank_irq
+    SYS_SET_IRQ do_vblank_irq
+    SYS_ABORT_IRQ
 
 do_vblank_irq: DEBUG_LABEL do_vblank_irq
     SYS_SET_IRQ do_cloud0_irq
@@ -398,6 +453,9 @@ do_vblank_irq: DEBUG_LABEL do_vblank_irq
     bne @button_right_end
     ADD_24 Car_pos_x, Car_pos_x, Car_move_speed
 @button_right_end:
+    txa
+    and #BUTTON_NES_A
+
 
     BGE_16 Car_pos_x+1, Car_bb_left+1, @check_car_left_end
     lda Car_bb_left
@@ -444,6 +502,9 @@ do_vblank_irq: DEBUG_LABEL do_vblank_irq
     ; Scroll the background layers
     ADD_24 Cloud0_pos, Cloud0_pos, Cloud0_speed
     ADD_24 Cloud1_pos, Cloud1_pos, Cloud1_speed
+    ADD_24 Cloud2_pos, Cloud2_pos, Cloud2_speed
+    ADD_24 Cloud3_pos, Cloud3_pos, Cloud3_speed
+    ADD_24 Cloud4_pos, Cloud4_pos, Cloud4_speed
     ADD_24 Mountains_pos, Mountains_pos, Mountains_speed
     ADD_24 Forest_pos, Forest_pos, Forest_speed
 
@@ -512,6 +573,7 @@ do_vblank_irq: DEBUG_LABEL do_vblank_irq
 @frame_done:
     VERA_END_VBLANK_IRQ
 irq_done:
+    SYS_END_IRQ
     SYS_ABORT_IRQ
 
 ;=================================================
@@ -523,8 +585,13 @@ irq_done:
 
 .data
 
+Race_in_progress: .byte $01
+
 Cloud0_pos: .byte $00, $00, $00
 Cloud1_pos: .byte $00, $00, $00
+Cloud2_pos: .byte $00, $00, $00
+Cloud3_pos: .byte $00, $00, $00
+Cloud4_pos: .byte $00, $00, $00
 Mountains_pos: .byte $00, $00, $00
 Forest_pos: .byte $00, $00, $00
 
@@ -532,17 +599,27 @@ Cloud0_speed: .word $0033
     .byte 0
 Cloud1_speed: .word $002B
     .byte 0
+Cloud2_speed: .word $0020
+    .byte 0
+Cloud3_speed: .word $0010
+    .byte 0
+Cloud4_speed: .word $0007
+    .byte 0
 Mountains_speed: .word $0088
     .byte 0
 Forest_speed: .word $0233
     .byte 0
 
-Cloud0_stop_y: .word 16+24
-Cloud1_stop_y: .word 16+24+24+24
-Swap_test_y: .word 16+24+24+24+24
-Swap_test2_y: .word 16+24+24+24+24+1
-Swap_test3_y: .word 16+24+24+24+24+24
-Swap_test4_y: .word 16+24+24+24+24+24+1
+Cloud0_stop_y:  .word 8+24
+Cloud1_stop_y:  .word 8+24+8+24
+Cloud2_stop_y:  .word 8+24+8+24+8+24
+Cloud3_stop_y:  .word 8+24+8+24+8+24+8+24
+Cloud4_stop_y:  .word 8+24+8+24+8+24+8+24+8+24
+Swap_test_y:    .word 8+24+8+24+8+24+8+24+8+24+24
+Swap_test2_y:   .word 8+24+8+24+8+24+8+24+8+24+24+1
+Swap_test3_y:   .word 8+24+8+24+8+24+8+24+8+24+24+24
+Swap_test4_y:   .word 8+24+8+24+8+24+8+24+8+24+24+24+1
+Screen_stop_y:  .word 479
 Moutains_stop_y: .word $ffff
 
 Line_irq: .word 0

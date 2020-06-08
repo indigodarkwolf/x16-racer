@@ -801,7 +801,7 @@ DATA_ADDR=((data_addr)>>5)
 ; 
 .macro VERA_ENABLE_VBLANK_IRQ
 	lda VERA_ien
-	ora #$02
+	ora #$01
 	sta VERA_ien
 .endmacro
 
@@ -816,7 +816,7 @@ DATA_ADDR=((data_addr)>>5)
 ; 
 .macro VERA_DISABLE_VBLANK_IRQ
 	lda VERA_ien
-	and #($ff - $02)
+	and #($ff - $01)
 	sta VERA_ien
 .endmacro
 

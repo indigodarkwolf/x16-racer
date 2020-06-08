@@ -126,7 +126,8 @@ MATH_TABLES_STR: .asciiz MATH_TABLES_NAME
 ;
 ;   A best-case cost should be 51 cycles, a worst-case 
 ;   should be 62 cycles. Multiply-by-zero should cost
-;   
+;   19-20 cycles, depending on branches crossing page
+;   boundaries.
 ;
 .code
 .proc mul_8

@@ -11,6 +11,7 @@ GRAPHICS_INC=1
 ; MODIFIES: A, X, Y, $FB-$FF
 ; 
 .macro GRAPHICS_FADE_OUT
+    lda #2
     jsr graphics_fade_out
 .endmacro
 
@@ -35,6 +36,7 @@ GRAPHICS_INC=1
     lda #last_color
     sta $FD
 
+    lda #2
     jsr graphics_fade_in
 .endmacro
 

@@ -189,6 +189,7 @@ next_entry:
 ; MODIFIES: A, X, Y, $FE-$FF, Gfx_all_palettes_at_full
 ; 
 .proc graphics_increment_palette
+    DEBUG_LABEL graphics_increment_palette
     lda $FA
     sta $FE
     lda $FB
@@ -276,6 +277,7 @@ continue_gb:
     adc #$10
     tax
 low_nibble:
+    txa
     eor ($FE),y
     and #$0F
     beq :+
@@ -348,22 +350,29 @@ stream_byte:
 ; graphics_fade_out
 ;   Use palette decrementing to fade out the screen to black.
 ;-------------------------------------------------
-; INPUTS:   (none)
+; INPUTS:   A   Number of frames to wait between fade out steps
 ;
 ;-------------------------------------------------
 ; MODIFIES: A, X, Y
 ; 
 .proc graphics_fade_out
     DEBUG_LABEL graphics_fade_out
+    pha
+
     SYS_SET_BANK GRAPHICS_TABLES_BANK
+loop:
     jsr graphics_decrement_palette
     jsr graphics_apply_palette
-    jsr sys_wait_one_frame
+
+    pla
+    pha
+    jsr sys_wait_for_frame
 
     lda Gfx_all_palettes_cleared
     cmp #0
-    beq graphics_fade_out
 
+    beq loop
+    pla
     rts
 .endproc
 
@@ -374,21 +383,28 @@ stream_byte:
 ; INPUTS:   $FA-$FB Address of intended palette
 ;           $FC     First color in the palette
 ;           $FD     Last color in the palette
+;           A       Number of frames to wait between fade in steps
 ;
 ;-------------------------------------------------
 ; MODIFIES: A, X, Y, $FE-$FF
 ; 
 .proc graphics_fade_in
     DEBUG_LABEL graphics_fade_in
+    pha
+
     SYS_SET_BANK GRAPHICS_TABLES_BANK
+loop:
     jsr graphics_increment_palette
     jsr graphics_apply_palette
-    jsr sys_wait_one_frame
+
+    pla
+    pha
+    jsr sys_wait_for_frame
 
     lda Gfx_all_palettes_at_full
     cmp #0
-    beq graphics_fade_in
-
+    beq loop
+    pla
     rts
 .endproc
 
