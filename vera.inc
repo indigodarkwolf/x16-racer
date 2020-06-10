@@ -517,6 +517,24 @@ DATA_ADDR=((data_addr)>>5)
 
 
 ;=================================================
+; VERA_SET_SPRITE_ZDEPTH
+;   Set the X coordinate of the sprite from some location in memory
+;-------------------------------------------------
+; INPUTS:   sprite		Sprite index
+;			zdepth		Z-depth
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro VERA_SET_SPRITE_ZDEPTH sprite, zdepth
+    VERA_SET_ADDR (VRAM_spr_attrib + (8 * sprite) + 6), 0
+	lda VERA_data
+	and #($ff - $0C)
+	ora #((zdepth) << 2)
+	sta VERA_data
+.endmacro
+
+;=================================================
 ; VERA_SET_SPRITE_POS_X
 ;   Set the X coordinate of the sprite from some location in memory
 ;-------------------------------------------------

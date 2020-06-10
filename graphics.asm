@@ -43,8 +43,7 @@ Gfx_palette_r_14           = $A2E0
 Gfx_palette_r_15           = $A2F0
 
 .data
-Gfx_all_palettes_at_full:
-Gfx_all_palettes_cleared: .byte $00
+Gfx_idle_flag: .byte $00
 
 .define GRAPHICS_TABLES_NAME "GRAPHICS_TABLES.SEQ"
 GRAPHICS_TABLES_STR: .asciiz GRAPHICS_TABLES_NAME
@@ -88,13 +87,13 @@ GRAPHICS_TABLES_STR: .asciiz GRAPHICS_TABLES_NAME
 ; INPUTS:   (none)
 ;
 ;-------------------------------------------------
-; MODIFIES: A, X, Y, Gfx_all_palettes_cleared
+; MODIFIES: A, X, Y, Gfx_idle_flag
 ;
 .proc graphics_decrement_palette
     ; This is an optimistic flag: have we cleared the entire palette? 
     ; We'll falsify if not.
     lda #1
-    sta Gfx_all_palettes_cleared
+    sta Gfx_idle_flag
 
     ; The first thing I'm doing is trying to spin through the palette until there's work to be done.
     ; If we can quickly determine the whole palette is done, then bonus, we didn't have to do a lot
@@ -133,13 +132,13 @@ check_for_work:
 has_work_gb:
     tax
     lda #0
-    sta Gfx_all_palettes_cleared
+    sta Gfx_idle_flag
     bra continue_with_work_gb
 
 has_work_r:
     tax
     lda #0
-    sta Gfx_all_palettes_cleared
+    sta Gfx_idle_flag
     bra continue_with_work_r
 
 decrement_entry:
@@ -186,7 +185,7 @@ next_entry:
 ;           $FD     Last color of palette
 ;
 ;-------------------------------------------------
-; MODIFIES: A, X, Y, $FE-$FF, Gfx_all_palettes_at_full
+; MODIFIES: A, X, Y, $FE-$FF, Gfx_idle_flag
 ; 
 .proc graphics_increment_palette
     DEBUG_LABEL graphics_increment_palette
@@ -198,7 +197,7 @@ next_entry:
     ; This is an optimistic flag: have we cleared the entire palette? 
     ; We'll falsify if not.
     lda #1
-    sta Gfx_all_palettes_at_full
+    sta Gfx_idle_flag
 
     ldy $FC ; 256 colors in palette
 check_palette_entry:
@@ -228,13 +227,13 @@ check_palette_entry:
 has_work_gb:
     tax
     lda #0
-    sta Gfx_all_palettes_at_full
+    sta Gfx_idle_flag
     bra continue_gb
 
 has_work_r:
     tax
     lda #0
-    sta Gfx_all_palettes_at_full
+    sta Gfx_idle_flag
     txa
     bra continue_r
 
@@ -368,7 +367,7 @@ loop:
     pha
     jsr sys_wait_for_frame
 
-    lda Gfx_all_palettes_cleared
+    lda Gfx_idle_flag
     cmp #0
 
     beq loop
@@ -401,7 +400,7 @@ loop:
     pha
     jsr sys_wait_for_frame
 
-    lda Gfx_all_palettes_at_full
+    lda Gfx_idle_flag
     cmp #0
     beq loop
     pla
