@@ -38,7 +38,7 @@ MATH_INC=1
 ;   8-bit version of "dst = -src"
 ;-------------------------------------------------
 ; INPUTS:   dst     Destination memory address
-;           src     Source parameter
+;           src     (Optional) Source parameter, distination if omitted
 ;
 ;-------------------------------------------------
 ; MODIFIES: A
@@ -64,7 +64,7 @@ MATH_INC=1
 ;   16-bit version of "dst = -src"
 ;-------------------------------------------------
 ; INPUTS:   dst     Destination memory address
-;           src     Source parameter
+;           src     (Optional) Source parameter, distination if omitted
 ;
 ;-------------------------------------------------
 ; MODIFIES: A
@@ -102,7 +102,7 @@ MATH_INC=1
 ;   24-bit version of "dst = -src"
 ;-------------------------------------------------
 ; INPUTS:   dst     Destination memory address
-;           src     Source parameter
+;           src     (Optional) Source parameter, distination if omitted
 ;
 ;-------------------------------------------------
 ; MODIFIES: A
@@ -134,6 +134,14 @@ MATH_INC=1
         .endrep
     .endif
 .endmacro
+
+;=================================================
+;=================================================
+;
+; Addition and subtraction macros
+;
+;=================================================
+
 
 ;=================================================
 ; ADD_16
@@ -213,6 +221,63 @@ MATH_INC=1
     sbc rhs+i
     sta dst+i
     .endrep
+.endmacro
+
+;=================================================
+;=================================================
+;
+; Comparison macros
+;
+;=================================================
+
+
+;=================================================
+; BNE_16
+;   16-bit version of "IF lhs != rhs GOTO label"
+;
+;-------------------------------------------------
+; INPUTS:   lhs     The "left-hand-side" of the comparison
+;           rhs     The "right-hand-side" of the comparison
+;           label   The branch destination
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro BNE_16 lhs, rhs, label
+.local @no_branch
+    lda lhs
+    cmp rhs
+    bne label
+    lda lhs+1
+    cmp rhs+1
+    bne label
+@no_branch:
+.endmacro
+
+;=================================================
+; BNE_24
+;   24-bit version of "IF lhs != rhs GOTO label"
+;
+;-------------------------------------------------
+; INPUTS:   lhs     The "left-hand-side" of the comparison
+;           rhs     The "right-hand-side" of the comparison
+;           label   The branch destination
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro BNE_24 lhs, rhs, label
+.local @no_branch
+    lda lhs
+    cmp rhs
+    bne label
+    lda lhs+1
+    cmp rhs+1
+    bne label
+    lda lhs+2
+    cmp rhs+2
+    bne label
+@no_branch:
 .endmacro
 
 ;=================================================
@@ -306,6 +371,14 @@ MATH_INC=1
     bcc label
 @no_branch:
 .endmacro
+
+;=================================================
+;=================================================
+;
+; Multiplication macros
+;
+;=================================================
+
 
 ;=================================================
 ; MUL_BEGIN
@@ -665,7 +738,7 @@ MATH_INC=1
 ;=================================================
 ;=================================================
 ;
-; Multi-byte array macros
+; Interleaved array macros
 ;
 ;=================================================
 ; These functions are similar to the above, except
@@ -687,7 +760,7 @@ MATH_INC=1
 
 
 ;=================================================
-; MBA_ADD_16
+; ILA_ADD_16
 ;   16-bit version of "dst = lhs + rhs"
 ;
 ;   Multi-byte array version, which assumes the bytes
@@ -708,7 +781,7 @@ MATH_INC=1
 ;-------------------------------------------------
 ; MODIFIES: A, X
 ; 
-.macro MBA_ADD_16 dst, dstr, lhs, lstr, rhs, rstr, count
+.macro ILA_ADD_16 dst, dstr, lhs, lstr, rhs, rstr, count
 .ifblank count
     clc
     .repeat 2, i
