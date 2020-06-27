@@ -16,10 +16,10 @@ COS45_TABLE_LO = $A600
 COS45_TABLE_HI = $A700
 
 ; SOF = Square Over Four
-PTR_SOF_SUM_LOW = $7C
-PTR_SOF_SUM_HIGH = $7E
-PTR_SOF_DIFF_LOW = $78
-PTR_SOF_DIFF_HIGH = $7A
+SOF_SUM_LOW = SQUARES_OVER_FOUR_TABLE_LO
+SOF_SUM_HIGH = SQUARES_OVER_FOUR_TABLE_HI
+SOF_DIFF_LOW = SQUARES_OVER_FOUR_TABLE_LO - $0100
+SOF_DIFF_HIGH = SQUARES_OVER_FOUR_TABLE_HI - $0100
 
 .define MATH_TABLES_NAME "math_tables.seq"
 
@@ -35,16 +35,6 @@ MATH_TABLES_STR: .asciiz MATH_TABLES_NAME
     KERNAL_SETNAM .strlen(MATH_TABLES_NAME), MATH_TABLES_STR
     KERNAL_LOAD 0, $A000
 
-    ; Setup ZP pointers
-    lda #>SQUARES_OVER_FOUR_TABLE_LO
-    sta PTR_SOF_SUM_LOW+1
-    lda #(>SQUARES_OVER_FOUR_TABLE_LO)-1
-    sta PTR_SOF_DIFF_LOW+1
-
-    lda #>SQUARES_OVER_FOUR_TABLE_HI
-    sta PTR_SOF_SUM_HIGH+1
-    lda #(>SQUARES_OVER_FOUR_TABLE_HI)-1
-    sta PTR_SOF_DIFF_HIGH+1
     rts
 .endproc
 
@@ -129,32 +119,51 @@ MATH_TABLES_STR: .asciiz MATH_TABLES_NAME
 ;   19-20 cycles, depending on branches crossing page
 ;   boundaries.
 ;
+;   2020-06-26: 
+;   Adding a new optimization - self-modifying code.
+;   This comes from the "seriously fast multiplication"
+;   described at:
+;   https://codebase64.org/doku.php?id=base%3Aseriously_fast_multiplication
+;
+;   Instead of keeping external pointers that need to be
+;   dereferenced, let's put them in code. What do you mean,
+;   "we need to modify them"? Of course we do, and we will.
+;   And the CPU will never know the difference. It's not
+;   like we're running with protected memory, after all!
+;   <maniacal laughing ensues>
+;
+;   The technique doesn't actually save us any runtime, 
+;   unfortunately. In fact, it's going to be 2 or 4 clocks 
+;   slower. Phooey. But we free up ZP variables that had
+;   been permanently in use, so there's that.
+;
 .code
 .proc mul_8
-    TMP = PTR_SOF_SUM_LOW
-    sta TMP                         ; 3
-    cpy TMP                         ; 3
-    bcs @sorted                     ; 2/3/4
+    DEBUG_LABEL mul_8
+    TMP = s0+1
+    sta TMP                         ; 4
+    cpy TMP                         ; 4
+    bcs sorted                     ; 2/3/4
     tya                             ; 2
-    ldy TMP                         ; 3
+    ldy TMP                         ; 4
     ; We now know Y >= A.
     sec                             ; 2
-    sta PTR_SOF_SUM_LOW             ; 3     = 9/10 or 18
-@sorted:                            
-    sta PTR_SOF_SUM_HIGH            ; 3
+    sta s0+1                        ; 4     = 11/12 or 22
+sorted:                            
+    sta s1+1                        ; 4
     lda #0                          ; 2
-    sbc PTR_SOF_SUM_LOW             ; 3
-    bcs @multiplying_zero           ; 2/3/4
-    sta PTR_SOF_DIFF_LOW            ; 3
-    sta PTR_SOF_DIFF_HIGH           ; 3
+    sbc s0+1                        ; 4
+    bcs multiplying_zero           ; 2/3/4
+    sta d0+1                        ; 4
+    sta d1+1                        ; 4
     sec                             ; 2
-    lda (PTR_SOF_SUM_LOW),y         ; 5/6
-    sbc (PTR_SOF_DIFF_LOW),y        ; 6     (will always cross a page boundary)
+s0: lda SOF_SUM_LOW,y               ; 4/5
+d0: sbc SOF_DIFF_LOW,y              ; 5     (will always cross a page boundary)
     tax                             ; 2
-    lda (PTR_SOF_SUM_HIGH),y        ; 5/6
-    sbc (PTR_SOF_DIFF_HIGH),y       ; 6     (will always cross a page boundary)
-    rts                             ;       = 11-12 or 42-44
-@multiplying_zero:
+s1: lda SOF_SUM_HIGH,y              ; 4/5
+d1: sbc SOF_DIFF_HIGH,y             ; 5     (will always cross a page boundary)
+    rts                             ;       = 13-14 or 42-44
+multiplying_zero:
     tax                             ; 2
     rts
 .endproc
