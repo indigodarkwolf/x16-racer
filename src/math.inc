@@ -1,6 +1,7 @@
 .ifndef MATH_INC
 MATH_INC=1
 
+.include "util.inc"
 .include "system.inc"
 
 .global math_init
@@ -149,6 +150,92 @@ MATH_TABLES_BANK = $01
 ;
 ;=================================================
 
+;=================================================
+; ADD_BYTES
+;   n-byte version of "dst = lhs + rhs"
+;-------------------------------------------------
+; INPUTS:   dst     Destination memory address
+;           lhs     Left-hand-side parameter
+;           rhs     Right-hand-side parameter
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro ADD_BYTES dst, lhs, rhs, bytes
+.ifblank dst
+    .error "ADD_8 missing parameter: dst"
+.endif
+.ifblank lhs
+    .error "ADD_8 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "ADD_8 missing parameter: rhs"
+.endif
+.ifblank bytes
+    .error "ADD_BYTES missing parameter: bytes"
+.endif
+.if IMM(dst)
+    .error "destination of ADD_8 cannot be immediate"
+.endif
+
+    clc
+    .if IMM(rhs)
+        .if IMM(lhs)
+            .repeat bytes, i
+            lda #(((DECAY(lhs) + DECAY(rhs)) >> (8 * i)) & $FF)
+            sta dst+i
+            .endrep
+        .else
+            .repeat bytes, i
+            lda lhs+i
+            adc #((DECAY(rhs) >> (8 * i)) & $FF)
+            sta dst+i
+            .endrep
+        .endif
+    .elseif IMM(lhs)
+        .repeat bytes, i
+        lda rhs+i
+        adc #((DECAY(lhs) >> (8 * i)) & $FF)
+        sta dst+i
+        .endrep
+    .else
+        .repeat bytes, i
+        lda lhs+i
+        adc rhs+i
+        sta dst+i
+        .endrep
+    .endif
+.endmacro
+
+;=================================================
+; ADD_8
+;   8-bit version of "dst = lhs + rhs"
+;-------------------------------------------------
+; INPUTS:   dst     Destination memory address
+;           lhs     Left-hand-side parameter
+;           rhs     Right-hand-side parameter
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro ADD_8 dst, lhs, rhs
+.ifblank dst
+    .error "ADD_8 missing parameter: dst"
+.endif
+.ifblank lhs
+    .error "ADD_8 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "ADD_8 missing parameter: rhs"
+.endif
+.if IMM(dst)
+    .error "destination of ADD_8 cannot be immediate"
+.endif
+.scope
+add_8:
+    ADD_BYTES dst, lhs, rhs, 1
+.endscope
+.endmacro
 
 ;=================================================
 ; ADD_16
@@ -162,12 +249,22 @@ MATH_TABLES_BANK = $01
 ; MODIFIES: A
 ; 
 .macro ADD_16 dst, lhs, rhs
-    clc
-    .repeat 2, i
-    lda lhs+i
-    adc rhs+i
-    sta dst+i
-    .endrep
+.ifblank dst
+    .error "ADD_16 missing parameter: dst"
+.endif
+.ifblank lhs
+    .error "ADD_16 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "ADD_16 missing parameter: rhs"
+.endif
+.if IMM(dst)
+    .error "destination of ADD_16 cannot be immediate"
+.endif
+.scope
+add_16:
+    ADD_BYTES dst, lhs, rhs, 2
+.endscope
 .endmacro
 
 ;=================================================
@@ -182,12 +279,109 @@ MATH_TABLES_BANK = $01
 ; MODIFIES: A
 ; 
 .macro ADD_24 dst, lhs, rhs
-    clc
-    .repeat 3, i
-    lda lhs+i
-    adc rhs+i
-    sta dst+i
-    .endrep
+.ifblank dst
+    .error "ADD_24 missing parameter: dst"
+.endif
+.ifblank lhs
+    .error "ADD_24 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "ADD_24 missing parameter: rhs"
+.endif
+.if IMM(dst)
+    .error "destination of ADD_24 cannot be immediate"
+.endif
+.scope
+add_24:
+    ADD_BYTES dst, lhs, rhs, 3
+.endscope
+.endmacro
+
+;=================================================
+; SUB_BYTES
+;   n-byte version of "dst = lhs - rhs"
+;-------------------------------------------------
+; INPUTS:   dst     Destination memory address
+;           lhs     Left-hand-side parameter
+;           rhs     Right-hand-side parameter
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro SUB_BYTES dst, lhs, rhs, bytes
+.ifblank dst
+    .error "SUB_BYTES missing parameter: dst"
+.endif
+.ifblank lhs
+    .error "SUB_BYTES missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "SUB_BYTES missing parameter: rhs"
+.endif
+.ifblank bytes
+    .error "SUB_BYTES missing parameter: bytes"
+.endif
+.if IMM(dst)
+    .error "destination of SUB_BYTES cannot be immediate"
+.endif
+
+    sec
+    .if IMM(rhs)
+        .if IMM(lhs)
+            .repeat bytes, i
+            lda #(((DECAY(lhs) - DECAY(rhs)) >> (8 * i)) & $FF)
+            sta dst+i
+            .endrep
+        .else
+            .repeat bytes, i
+            lda lhs+i
+            sbc #((DECAY(rhs) >> (8 * i)) & $FF)
+            sta dst+i
+            .endrep
+        .endif
+    .elseif IMM(lhs)
+        .repeat bytes, i
+        lda #((DECAY(lhs) >> (8 * i)) & $FF)
+        sbc rhs+i
+        sta dst+i
+        .endrep
+    .else
+        .repeat bytes, i
+        lda lhs+i
+        sbc rhs+i
+        sta dst+i
+        .endrep
+    .endif
+.endmacro
+
+;=================================================
+; SUB_8
+;   8-bit version of "dst = lhs - rhs"
+;-------------------------------------------------
+; INPUTS:   dst     Destination memory address
+;           lhs     Left-hand-side parameter
+;           rhs     Right-hand-side parameter
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro SUB_8 dst, lhs, rhs
+.ifblank dst
+    .error "SUB_8 missing parameter: dst"
+.endif
+.ifblank lhs
+    .error "SUB_8 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "SUB_8 missing parameter: rhs"
+.endif
+.if IMM(dst)
+    .error "destination of SUB_8 cannot be immediate"
+.endif
+.scope
+sub_8:
+    SUB_BYTES dst, lhs, rhs, 1
+.endscope
 .endmacro
 
 ;=================================================
@@ -202,12 +396,22 @@ MATH_TABLES_BANK = $01
 ; MODIFIES: A
 ; 
 .macro SUB_16 dst, lhs, rhs
-    sec
-    .repeat 2, i
-    lda lhs+i
-    sbc rhs+i
-    sta dst+i
-    .endrep
+.ifblank dst
+    .error "SUB_16 missing parameter: dst"
+.endif
+.ifblank lhs
+    .error "SUB_16 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "SUB_16 missing parameter: rhs"
+.endif
+.if IMM(dst)
+    .error "destination of SUB_16 cannot be immediate"
+.endif
+.scope
+sub_16:
+    SUB_BYTES dst, lhs, rhs, 2
+.endscope
 .endmacro
 
 ;=================================================
@@ -222,13 +426,24 @@ MATH_TABLES_BANK = $01
 ; MODIFIES: A
 ; 
 .macro SUB_24 dst, lhs, rhs
-    sec
-    .repeat 3, i
-    lda lhs+i
-    sbc rhs+i
-    sta dst+i
-    .endrep
+.ifblank dst
+    .error "SUB_24 missing parameter: dst"
+.endif
+.ifblank lhs
+    .error "SUB_24 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "SUB_24 missing parameter: rhs"
+.endif
+.if IMM(dst)
+    .error "destination of SUB_24 cannot be immediate"
+.endif
+.scope
+sub_24:
+    SUB_BYTES dst, lhs, rhs, 3
+.endscope
 .endmacro
+
 
 ;=================================================
 ;=================================================

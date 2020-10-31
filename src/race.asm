@@ -437,62 +437,62 @@ do_vblank_irq:
     ; Update car position
     tax
     and #BUTTON_JOY_UP
-    bne @button_up_end
+    bne button_up_end
     ADD_24 Car_pos_y, Car_pos_y, Car_move_speed_neg
-@button_up_end:
+button_up_end:
     txa
     and #BUTTON_JOY_DOWN
-    bne @button_down_end
+    bne button_down_end
     ADD_24 Car_pos_y, Car_pos_y, Car_move_speed
-@button_down_end:
+button_down_end:
     txa
     and #BUTTON_JOY_LEFT
-    bne @button_left_end
+    bne button_left_end
     ADD_24 Car_pos_x, Car_pos_x, Car_move_speed_neg
-@button_left_end:
+button_left_end:
     txa
     and #BUTTON_JOY_RIGHT
-    bne @button_right_end
+    bne button_right_end
     ADD_24 Car_pos_x, Car_pos_x, Car_move_speed
-@button_right_end:
+button_right_end:
     txa
     and #BUTTON_NES_A
 
 
-    BGE_16 Car_pos_x+1, Car_bb_left+1, @check_car_left_end
+    BGE_16 Car_pos_x+1, Car_bb_left+1, check_car_left_end
     lda Car_bb_left
     sta Car_pos_x
     lda Car_bb_left+1
     sta Car_pos_x+1
     lda Car_bb_left+2
     sta Car_pos_x+2
-    jmp @check_car_right_end
-@check_car_left_end:
-    BLT_16 Car_pos_x+1, Car_bb_right+1, @check_car_right_end
+    jmp check_car_right_end
+check_car_left_end:
+    BLT_16 Car_pos_x+1, Car_bb_right+1, check_car_right_end
     lda Car_bb_right
     sta Car_pos_x
     lda Car_bb_right+1
     sta Car_pos_x+1
     lda Car_bb_right+2
     sta Car_pos_x+2
-@check_car_right_end:
-    BGE_16 Car_pos_y+1, Car_bb_top+1, @check_car_top_end
+check_car_right_end:
+    BGE_16 Car_pos_y+1, Car_bb_top+1, check_car_top_end
     lda Car_bb_top
     sta Car_pos_y
     lda Car_bb_top+1
     sta Car_pos_y+1
     lda Car_bb_top+2
     sta Car_pos_y+2
-    jmp @check_car_bottom_end
-@check_car_top_end:
-    BLT_16 Car_pos_y+1, Car_bb_bottom+1, @check_car_bottom_end
+    jmp check_car_bottom_end
+check_car_top_end:
+    BLT_16 Car_pos_y+1, Car_bb_bottom+1, check_car_bottom_end
     lda Car_bb_bottom
     sta Car_pos_y
     lda Car_bb_bottom+1
     sta Car_pos_y+1
     lda Car_bb_bottom+2
     sta Car_pos_y+2
-@check_car_bottom_end:
+check_car_bottom_end:
 
     ; Update tire positions
     ADD_24 Tire0_pos_x, Car_pos_x, Tire0_offset_x
@@ -526,7 +526,7 @@ do_vblank_irq:
 
     lda Wheel_state+1
     and #$01
-    beq @set_wheel0
+    beq set_wheel0
 
     VERA_SET_ADDR (VRAM_spr_attrib)
     lda #((WHEEL1_ADDR >> 5) & $FF)
@@ -539,9 +539,9 @@ do_vblank_irq:
     sta VERA_data
     lda #(WHEEL1_ADDR >> 13)
     sta VERA_data
-    jmp @wheels_end
+    jmp wheels_end
 
-@set_wheel0:
+set_wheel0:
     VERA_SET_ADDR (VRAM_spr_attrib)
     lda #((WHEEL0_ADDR >> 5) & $FF)
     sta VERA_data
@@ -554,25 +554,25 @@ do_vblank_irq:
     lda #(WHEEL0_ADDR >> 13)
     sta VERA_data
 
-@wheels_end:
+wheels_end:
     dec Ticks_until_fade_in
     lda #0
     cmp Ticks_until_fade_in
-    bne @credits_fade_in_end
+    bne credits_fade_in_end
 
-@credits_fade_in:
+credits_fade_in:
     VERA_SET_ADDR (VRAM_palette6+5), 0
     lda VERA_data
     cmp font_courier_new_palette+5
-    beq @credits_fade_in_end
+    beq credits_fade_in_end
     clc
     adc #1
     sta VERA_data
     lda #$20
     sta Ticks_until_fade_in
-@credits_fade_in_end:
+credits_fade_in_end:
 
-@frame_done:
+frame_done:
     VERA_END_VBLANK_IRQ
 irq_done:
     SYS_END_IRQ

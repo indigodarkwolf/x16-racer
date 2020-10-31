@@ -3,14 +3,16 @@
 .include "vera.inc"
 
 .data
-View_x: .byte $00
-View_y: .byte $00
+View_x: .word $00
+View_y: .word $00
 TL_bank: .byte $00
 
 .code
 .proc map_incr_view_x
-    ; Each bank contains a 128x32 subset of the map, in the same pattern as VRAM.
-    ; 
+    ; Each bank contains a 128x32 square of the map, 
+    ;   ordered left-to-right, top-to-bottom.
+    ; The tilemap in VRAM is 128x64.
+    
 
 
     ; Banks 0-7, then, contain the left half of the map, while 8-15 contain the
