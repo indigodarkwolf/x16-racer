@@ -44,11 +44,6 @@ Test_dst: .byte $00, $00, $00, $00
 
 .segment "STARTUP"
 start:
-    SUB_8 Test_dst, Test_lhs, Test_rhs
-    SUB_8 Test_dst, Test_lhs, #3
-    SUB_8 Test_dst, #2, Test_rhs
-    SUB_8 Test_dst, #2, #3
-
     SYS_INIT_BANK
     SYS_INIT_IRQ
     SYS_RAND_SEED $34, $56, $fe
