@@ -1,8 +1,6 @@
 .include "math.inc"
 .include "kernal.inc"
 
-MATH_TABLES_BANK = $01
-
 SQUARES_OVER_FOUR_TABLE = $A000
 SQUARES_OVER_FOUR_TABLE_LO = $A000
 SQUARES_OVER_FOUR_TABLE_HI = $A200
@@ -139,7 +137,6 @@ MATH_TABLES_STR: .asciiz MATH_TABLES_NAME
 ;
 .code
 .proc mul_8
-    DEBUG_LABEL mul_8
     TMP = s0+1
     sta TMP                         ; 4
     cpy TMP                         ; 4

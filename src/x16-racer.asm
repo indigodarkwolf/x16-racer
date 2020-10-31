@@ -1,5 +1,4 @@
 .segment "INIT"
-.segment "STARTUP"
 .segment "ONCE"
 .segment "CODE"
 .data
@@ -13,13 +12,16 @@ start_data:
 ;
 ;-------------------------------------------------
 
-.include "debug.inc"
-.include "vera.inc"
-.include "system.inc"
-.include "math.inc"
-.include "ym2151.inc"
-.include "math.inc"
+.include "graphics.inc"
 .include "kernal.inc"
+.include "math.inc"
+.include "system.inc"
+.include "vera.inc"
+.include "ym2151.inc"
+
+.include "bitmap.inc"
+.include "race.inc"
+.include "splash.inc"
 
 ;=================================================
 ; Macros
@@ -40,7 +42,7 @@ Test_lhs: .byte $03, $00, $00, $00
 Test_rhs: .byte $01, $02, $03, $00
 Test_dst: .byte $00, $00, $00, $00
 
-.code
+.segment "STARTUP"
 start:
     SYS_INIT_BANK
     SYS_INIT_IRQ
@@ -68,20 +70,3 @@ start:
     jsr race_do
 
     jmp *
-
-;=================================================
-;=================================================
-; 
-;   Libs
-;
-;-------------------------------------------------
-.include "system.asm"
-.include "graphics.asm"
-.include "splash.asm"
-.include "race.asm"
-.include "vera.asm"
-.include "math.asm"
-.include "bitmap.asm"
-
-.code
-DEBUG_LABEL end_of_code

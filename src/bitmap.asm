@@ -1,7 +1,8 @@
 .ifndef BITMAP_ASM
 BITMAP_ASM=1
 
-.include "debug.inc"
+.include "bitmap.inc"
+
 .include "vera.inc"
 .include "system.inc"
 .include "graphics.inc"
@@ -9,7 +10,6 @@ BITMAP_ASM=1
 
 .code
 .proc bitmap_do
-    DEBUG_LABEL bitmap_do
     VERA_SET_SCALE 64
     VERA_CONFIGURE_BMP_LAYER 0, 3, 0, 0, 0
     VERA_DISABLE_LAYER 1
@@ -36,7 +36,6 @@ BITMAP_ASM=1
 .endproc
 
 .proc generate_sin_curve
-    DEBUG_LABEL generate_sin_curve
     lda #0
     ldx #0
     ldy #0
@@ -93,7 +92,6 @@ loop:
 .endproc
 
 .proc scale_data
-DEBUG_LABEL scale_data
     ldx #0
 loop:
     lda Sin_test_hi, x
@@ -115,7 +113,6 @@ loop:
 .endproc
 
 .proc offset_data
-DEBUG_LABEL offset_data
     ldx #0
 loop:
     lda #160
@@ -155,14 +152,12 @@ loop_240:
     lda $05
     adc #0
     sta $05
-    DEBUG_LABEL loop_320_check
     BLT_16 $04, $02, loop_320
 
     rts
 .endproc
 
 .proc draw_curve
-    DEBUG_LABEL draw_curve
     ldy #0
 
     VERA_SET_CTRL 0

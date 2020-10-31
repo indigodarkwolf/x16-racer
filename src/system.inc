@@ -1,6 +1,9 @@
 .ifndef SYSTEM_INC
 SYSTEM_INC=1
 
+SYS_BANK_ROM = $9F60
+SYS_BANK_RAM = $9F61
+
 KERNAL_joystick_scan = $FF53
 KERNAL_joystick_get = $FF56
 KERNAL_MOUSE = $FF68
@@ -30,6 +33,11 @@ ZP_COPY_DST = $7C
 ZP_COPY_SIZE = $7A
 
 .global Sys_frame
+.global Sys_irq_redirect
+.global Sys_rand_mem
+.global Sys_rom_original
+
+.global sys_wait_for_frame
 
 ;=================================================
 ;=================================================

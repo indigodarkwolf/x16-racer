@@ -27,23 +27,23 @@ YM2151_ASM=1
 ; 
 ym2151_stream_out_large:
     ldy #0
-.byte_loop:
+@byte_loop:
     lda (ZP_COPY_SRC),Y
     sta YM2151_addr
     iny
     lda (ZP_COPY_SRC),Y
     sta YM2151_data
     iny
-    bne .byte_loop
+    bne @byte_loop
     inc ZP_COPY_SRC+1
     dex
-    bne .byte_loop
+    bne @byte_loop
     ldx ZP_COPY_SIZE
     bne ym2151_stream_out_small
     rts
 ym2151_stream_out_small:
     ldy #0
-.byte_loop:
+@byte_loop:
     lda (ZP_COPY_SRC),Y
     sta YM2151_addr
     iny
@@ -52,7 +52,7 @@ ym2151_stream_out_small:
     iny
     dex
     dex
-    bne .byte_loop
+    bne @byte_loop
     rts
 
 .endif ; .ifndef YM2151_ASM

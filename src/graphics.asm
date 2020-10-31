@@ -1,10 +1,11 @@
 .ifndef GRAPHICS_ASM
 GRAPHICS_ASM=1
 
-.include "debug.inc"
+.include "graphics.inc"
+
+.include "kernal.inc"
 .include "vera.inc"
 
-GRAPHICS_TABLES_BANK = $02
 Gfx_palette_decrement_table = $A000
 Gfx_palette                 = $A100
 Gfx_palette_gb              = $A100
@@ -188,7 +189,6 @@ next_entry:
 ; MODIFIES: A, X, Y, $FE-$FF, Gfx_idle_flag
 ; 
 .proc graphics_increment_palette
-    DEBUG_LABEL graphics_increment_palette
     lda $FA
     sta $FE
     lda $FB
@@ -355,7 +355,6 @@ stream_byte:
 ; MODIFIES: A, X, Y
 ; 
 .proc graphics_fade_out
-    DEBUG_LABEL graphics_fade_out
     pha
 
     SYS_SET_BANK GRAPHICS_TABLES_BANK
@@ -388,7 +387,6 @@ loop:
 ; MODIFIES: A, X, Y, $FE-$FF
 ; 
 .proc graphics_fade_in
-    DEBUG_LABEL graphics_fade_in
     pha
 
     SYS_SET_BANK GRAPHICS_TABLES_BANK

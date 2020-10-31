@@ -95,6 +95,9 @@ VRAM_palette15 = VRAM_palette + (2*16)*15
 TILE_HFLIP=(1 << 10)
 TILE_VFLIP=(1 << 11)
 
+.global vera_stream_out_rle
+.global vera_stream_out_data
+
 ;=================================================
 ;=================================================
 ;
@@ -604,9 +607,6 @@ DATA_ADDR=((data_addr)>>5)
 ; MODIFIES: A, X, Y, $FB, $FC
 ; 
 .macro VERA_STREAM_OUT_DATA src, dst, size
-.ifndef USING_VERA_STREAM_OUT_DATA
-	USING_VERA_STREAM_OUT_DATA=1
-.endif
     VERA_SET_ADDR dst
     ldy #<(size)
     ldx #>(size)
@@ -629,9 +629,6 @@ DATA_ADDR=((data_addr)>>5)
 ; MODIFIES: A, X, Y, $FB, $FC
 ;
 .macro VERA_STREAM_OUT_RLE src, dst, size
-.ifndef USING_VERA_STREAM_OUT_RLE
-	USING_VERA_STREAM_OUT_RLE=1
-.endif
     VERA_SET_ADDR dst
     ldy #<(size)
     ldx #>(size)

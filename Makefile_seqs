@@ -1,0 +1,33 @@
+PROJECT	:= x16-racer
+MKDIR   := mkdir -p
+RMDIR   := rmdir -p
+CC      := ca65
+LD      := cl65
+BIN     := ./build
+OBJ     := ./obj/tables
+SRC     := ./src/tables
+SRCS    := $(wildcard $(SRC)/*.asm)
+OBJS    := $(patsubst $(SRC)/%.asm,$(OBJ)/%.o,$(SRCS))
+SEQS    := $(patsubst $(SRC)/%.asm,$(BIN)/%.seq,$(SRCS))
+CFLAGS  := --cpu 65C02
+LDFLAGS := --target none
+
+.PHONY: all run clean
+
+all: $(SEQS) $(OBJS)
+
+$(BIN)/%.seq: $(OBJ)/%.o | $(BIN)
+	$(LD) $(LDFLAGS) $^ -o $@
+
+$(OBJ)/%.o: $(SRC)/%.asm | $(OBJ)
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BIN) $(OBJ):
+	$(MKDIR) $@
+
+run: $(EXE)
+	$<
+
+clean:
+	rm -f $(OBJS)
+	rm -f $(SEQS)

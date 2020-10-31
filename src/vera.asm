@@ -1,8 +1,9 @@
 .ifndef VERA_ASM
 VERA_ASM=1
 
+.include "vera.inc"
+
 .code
-.ifdef USING_VERA_STREAM_OUT_RLE
 ;==============================================
 ; vera_stream_out_data
 ; Stream out a block of memory to VERA_data
@@ -14,7 +15,7 @@ VERA_ASM=1
 ;----------------------------------------------
 ; Modifies: A, X, Y, $FC
 ;
-vera_stream_out_data:
+.proc vera_stream_out_data
     tya
     pha
     ; If no pages to copy, skip to bytes
@@ -46,9 +47,8 @@ vera_stream_out_data:
     dex
     bne @loop2
     rts
-.endif ; USING_VERA_STREAM_OUT_DATA
+.endproc
 
-.ifdef USING_VERA_STREAM_OUT_RLE
 ;==============================================
 ; vera_stream_out_rle
 ; Stream out a block of rle-compressed memory to VERA_data
@@ -60,7 +60,7 @@ vera_stream_out_data:
 ;----------------------------------------------
 ; Modifies: A, X, Y, $FC
 ;
-vera_stream_out_rle:
+.proc vera_stream_out_rle
     tya
     pha
     ; If no pages to copy, skip to bytes
@@ -124,7 +124,6 @@ vera_stream_out_rle:
     pla
     
     rts
-
-.endif ; USING_VERA_STREAM_OUT_RLE
+.endproc
 
 .endif ; VERA_ASM

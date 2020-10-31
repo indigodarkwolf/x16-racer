@@ -3,6 +3,13 @@ MATH_INC=1
 
 .include "system.inc"
 
+.global math_init
+.global cos_8
+.global sin_8
+.global mul_8
+
+MATH_TABLES_BANK = $01
+
 ;=================================================
 ; MATH_INIT
 ;   Initialize the math lib.

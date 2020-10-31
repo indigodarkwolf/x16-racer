@@ -1,9 +1,12 @@
 .ifndef SPLASH_ASM
 SPLASH_ASM=1
 
-.include "vera.inc"
-.include "system.inc"
+.include "splash.inc"
+
 .include "graphics.inc"
+.include "math.inc"
+.include "system.inc"
+.include "vera.inc"
 
 .ifndef SPLASH_ADDR 
     SPLASH_ADDR=0
@@ -86,7 +89,6 @@ __splash__setup_sprite:
     rts
 
 .proc splash_spin
-    DEBUG_LABEL splash_update_vera
     VERA_SET_SPRITE_POS_X 1, Box_positions_xy
     VERA_SET_SPRITE_POS_Y 1, Box_positions_xy+2
     VERA_SET_SPRITE_POS_X 2, Box_positions_xy+4
@@ -107,7 +109,6 @@ __splash__setup_sprite:
 
     ; Fade in state
     .scope 
-        DEBUG_LABEL splash_fade_in
         lda #0
         cmp Splash_state
         bne fade_in_done
@@ -126,7 +127,6 @@ __splash__setup_sprite:
 
     ; Fade out state
     .scope 
-        DEBUG_LABEL splash_fade_out
         lda #2
         cmp Splash_state
         bne palette_done
@@ -146,7 +146,6 @@ __splash__setup_sprite:
     .endscope
 
 palette_done:
-    DEBUG_LABEL splash_spin
     SUB_24 Box_radial_distance, Box_radial_distance, Box_radial_velocity
 
     ; Spiraling in/out state
@@ -170,7 +169,6 @@ palette_done:
         VERA_SET_SPRITE_ZDEPTH 0, 1
 
     check_state:
-        DEBUG_LABEL check_state
         BLT_24 Box_radial_distance, Box_radial_distance_max, start_rotate
         inc Splash_state
     start_rotate:
@@ -192,7 +190,7 @@ rotate_box:
 
     ldx #0
 
-move_box: DEBUG_LABEL splash_move_box
+move_box:
     lda Box_angles, x
     phx
 

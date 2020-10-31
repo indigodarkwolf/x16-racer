@@ -1,0 +1,33 @@
+PROJECT	:= x16-racer
+MKDIR   := mkdir -p
+RMDIR   := rmdir -p
+CC      := ca65
+LD      := cl65
+BIN     := ./build
+OBJ     := ./obj
+SRC     := ./src
+SRCS    := $(wildcard $(SRC)/*.asm)
+OBJS    := $(patsubst $(SRC)/%.asm,$(OBJ)/%.o,$(SRCS))
+EXE     := $(BIN)/x16-racer.prg
+CFLAGS  := --cpu 65C02 -g
+LDFLAGS := --target cx16 -Ln $(OBJ)/$(PROJECT).lbl
+
+.PHONY: all run clean
+
+all: $(EXE) $(OBJS)
+
+$(EXE): $(OBJS) | $(BIN)
+	$(LD) $(LDFLAGS) $^ -o $@
+
+$(OBJ)/%.o: $(SRC)/%.asm | $(OBJ)
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BIN) $(OBJ):
+	$(MKDIR) $@
+
+run: $(EXE)
+	$<
+
+clean:
+	rm -f $(OBJS)
+	rm -f $(EXE)

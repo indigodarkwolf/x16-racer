@@ -3,6 +3,15 @@ GRAPHICS_INC=1
 
 .global Gfx_idle_flag
 
+.global graphics_init
+.global graphics_decrement_palette
+.global graphics_increment_palette
+.global graphics_apply_palette
+.global graphics_fade_out
+.global graphics_fade_in
+
+GRAPHICS_TABLES_BANK = $02
+
 ;=================================================
 ; GRAPHICS_FADE_OUT
 ;   Fade out graphics to black

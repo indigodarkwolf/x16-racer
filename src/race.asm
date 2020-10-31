@@ -1,10 +1,12 @@
 .ifndef RACE_ASM
 RACE_ASM=1
 
-.include "debug.inc"
+.include "race.inc"
+
 .include "vera.inc"
 .include "system.inc"
 .include "graphics.inc"
+.include "math.inc"
 
 .include "assets/mountains.inc"
 .include "assets/font_courier_new.inc"
@@ -163,7 +165,6 @@ LICENSE_6_SIZE=(license_6_end - license_6)
 ; Return to caller when done.
 ;
 race_do:
-    DEBUG_LABEL race_do
     VERA_DISABLE_ALL
 
     ; I've already spent a lot of memory on assets, and don't want to bother with file I/O just yet
@@ -310,7 +311,7 @@ __race__cleanup:
 ;
 ; Overthinking? Whatever, low-hanging fruit at this point.
 
-race_irq_first: DEBUG_LABEL race_irq_first
+race_irq_first:
     VERA_ENABLE_ALL
     SYS_SET_IRQ do_cloud0_irq
 
@@ -318,7 +319,7 @@ race_irq_first: DEBUG_LABEL race_irq_first
     VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
     VERA_ENABLE_LINE_IRQ
 
-race_irq: DEBUG_LABEL race_irq
+race_irq:
     lda VERA_isr
     and #2
     bne do_line_irq
@@ -329,80 +330,80 @@ race_irq: DEBUG_LABEL race_irq
     jmp do_vblank_irq
 :   jmp irq_done
 
-do_line_irq: DEBUG_LABEL do_line_irq
+do_line_irq:
     jmp (Line_irq)
 
-do_cloud0_irq: DEBUG_LABEL do_cloud0_irq
+do_cloud0_irq:
     VERA_SET_LAYER_SCROLL_X 0, Cloud1_pos+1
     VERA_CONFIGURE_LINE_IRQ Cloud1_stop_y
     SYS_SET_IRQ do_cloud1_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_cloud1_irq: DEBUG_LABEL do_cloud1_irq
+do_cloud1_irq:
     VERA_SET_LAYER_SCROLL_X 0, Cloud2_pos+1
     VERA_CONFIGURE_LINE_IRQ Cloud2_stop_y
     SYS_SET_IRQ do_cloud2_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_cloud2_irq: DEBUG_LABEL do_cloud2_irq
+do_cloud2_irq:
     VERA_SET_LAYER_SCROLL_X 0, Cloud3_pos+1
     VERA_CONFIGURE_LINE_IRQ Cloud3_stop_y
     SYS_SET_IRQ do_cloud3_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_cloud3_irq: DEBUG_LABEL do_cloud3_irq
+do_cloud3_irq:
     VERA_SET_LAYER_SCROLL_X 0, Cloud4_pos+1
     VERA_CONFIGURE_LINE_IRQ Cloud4_stop_y
     SYS_SET_IRQ do_cloud4_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_cloud4_irq: DEBUG_LABEL do_cloud4_irq
+do_cloud4_irq:
     VERA_SET_LAYER_SCROLL_X 0, Mountains_pos+1
     VERA_CONFIGURE_LINE_IRQ Swap_test_y
     SYS_SET_IRQ do_swap_test_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_swap_test_irq: DEBUG_LABEL do_swap_test_irq
+do_swap_test_irq:
     VERA_CONFIGURE_LINE_IRQ Swap_test2_y
     VERA_SWAP_LAYERS
     SYS_SET_IRQ do_swap_test2_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_swap_test2_irq: DEBUG_LABEL do_swap_test2_irq
+do_swap_test2_irq:
     VERA_CONFIGURE_LINE_IRQ Swap_test3_y
     VERA_SWAP_LAYERS
     SYS_SET_IRQ do_swap_test3_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_swap_test3_irq: DEBUG_LABEL do_swap_test3_irq
+do_swap_test3_irq:
     VERA_CONFIGURE_LINE_IRQ Swap_test4_y
     VERA_SWAP_LAYERS
     SYS_SET_IRQ do_swap_test4_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_swap_test4_irq: DEBUG_LABEL do_swap_test4_irq
+do_swap_test4_irq:
     VERA_CONFIGURE_LINE_IRQ Screen_stop_y
     VERA_SWAP_LAYERS
     SYS_SET_IRQ do_bottom_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_bottom_irq: DEBUG_LABEL do_bottom_irq
+do_bottom_irq:
     VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
     VERA_END_LINE_IRQ
     jmp do_vblank_irq
     SYS_SET_IRQ do_vblank_irq
     SYS_ABORT_IRQ
 
-do_vblank_irq: DEBUG_LABEL do_vblank_irq
+do_vblank_irq:
     SYS_SET_IRQ do_cloud0_irq
     ;
     ; Start with draw updates
@@ -699,5 +700,4 @@ Race_forest_inner_map:
         .endrep
     .endrep
 
-.include "system.asm"
 .endif ; RACE_ASM
