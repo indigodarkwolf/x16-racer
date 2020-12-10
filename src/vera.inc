@@ -17,15 +17,16 @@ VERA_INC=1
 	VERA_base = $9f20
 .endif
 
+VERA_addr       = VERA_base+0
 VERA_addr_low   = VERA_base+0
 VERA_addr_high  = VERA_base+1
 VERA_addr_bank  = VERA_base+2
 VERA_data       = VERA_base+3
 VERA_data2      = VERA_base+4
 VERA_ctrl       = VERA_base+5
-VERA_ien   		= VERA_base+6
+VERA_ien        = VERA_base+6
 VERA_isr        = VERA_base+7
-VERA_irqline_l	= VERA_base+8
+VERA_irqline_l  = VERA_base+8
 
 VERA_dc_video	= VERA_base+9
 VERA_dc_hscale	= VERA_base+10
@@ -116,6 +117,8 @@ TILE_VFLIP=(1 << 11)
 ; MODIFIES: A
 ; 
 .macro VERA_SET_CTRL addr
+.scope
+vera_set_ctrl:
 	lda VERA_ctrl
 	.if addr = 0
 		and #$FE
@@ -123,6 +126,7 @@ TILE_VFLIP=(1 << 11)
 		ora #$01
 	.endif
 	sta VERA_ctrl
+.endscope
 .endmacro
 
 ;=================================================
@@ -136,6 +140,8 @@ TILE_VFLIP=(1 << 11)
 ; MODIFIES: A
 ; 
 .macro VERA_SET_ADDR addr, stride
+.scope
+vera_set_addr:
 	lda #(<addr)
 	sta VERA_addr_low
 	lda #(>addr)
@@ -152,6 +158,7 @@ TILE_VFLIP=(1 << 11)
 	.endif
 
 	sta VERA_addr_bank
+.endscope
 .endmacro
 
 ;=================================================

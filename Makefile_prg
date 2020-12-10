@@ -10,7 +10,7 @@ SRCS    := $(wildcard $(SRC)/*.asm)
 OBJS    := $(patsubst $(SRC)/%.asm,$(OBJ)/%.o,$(SRCS))
 EXE     := $(BIN)/x16-racer.prg
 CFLAGS  := --cpu 65C02 -g
-LDFLAGS := --target cx16 -Ln $(OBJ)/$(PROJECT).lbl
+LDFLAGS := --target cx16 -Ln $(OBJ)/$(PROJECT).sym
 
 .PHONY: all run clean
 

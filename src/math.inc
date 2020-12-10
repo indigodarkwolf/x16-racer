@@ -177,32 +177,31 @@ MATH_TABLES_BANK = $01
 .if IMM(dst)
     .error "destination of ADD_8 cannot be immediate"
 .endif
-
     clc
     .if IMM(rhs)
         .if IMM(lhs)
             .repeat bytes, i
-            lda #(((DECAY(lhs) + DECAY(rhs)) >> (8 * i)) & $FF)
-            sta dst+i
+                lda #(((DECAY(lhs) + DECAY(rhs)) >> (8 * i)) & $FF)
+                sta dst+i
             .endrep
         .else
             .repeat bytes, i
-            lda lhs+i
-            adc #((DECAY(rhs) >> (8 * i)) & $FF)
-            sta dst+i
+                lda lhs+i
+                adc #((DECAY(rhs) >> (8 * i)) & $FF)
+                sta dst+i
             .endrep
         .endif
     .elseif IMM(lhs)
         .repeat bytes, i
-        lda rhs+i
-        adc #((DECAY(lhs) >> (8 * i)) & $FF)
-        sta dst+i
+            lda rhs+i
+            adc #((DECAY(lhs) >> (8 * i)) & $FF)
+            sta dst+i
         .endrep
     .else
         .repeat bytes, i
-        lda lhs+i
-        adc rhs+i
-        sta dst+i
+            lda lhs+i
+            adc rhs+i
+            sta dst+i
         .endrep
     .endif
 .endmacro
@@ -454,6 +453,99 @@ sub_24:
 
 
 ;=================================================
+; BNE_BYTES
+;   n-byte version of "IF lhs != rhs GOTO label"
+;-------------------------------------------------
+; INPUTS:   lhs     Left-hand-side parameter
+;           rhs     Right-hand-side parameter
+;           label   Destination label if condition is true
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro BNE_BYTES lhs, rhs, label, bytes
+.ifblank lhs
+    .error "BNE_BYTES missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BNE_BYTES missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BNE_BYTES missing parameter: label"
+.endif
+.ifblank bytes
+    .error "BNE_BYTES missing parameter: bytes"
+.endif
+.if IMM(label)
+    .error "label of BNE_BYTES cannot be immediate"
+.endif
+.local no_branch
+    .if IMM(rhs)
+        .if IMM(lhs)
+            .if DECAY(lhs) != DECAY(rhs)
+                bra label
+            .endif
+        .else
+            .repeat bytes, i
+            lda lhs+i
+            cmp #((DECAY(rhs) >> (8 * i)) & $FF)
+            bne label
+            .endrep
+        .endif
+    .elseif IMM(lhs)
+        .repeat bytes, i
+        lda #((DECAY(lhs) >> (8 * i)) & $FF)
+        cmp rhs+i
+        bne label
+        .endrep
+    .else
+        .repeat bytes, i
+        lda lhs+i
+        cmp rhs+i
+        bne label
+        .endrep
+    .endif
+no_branch:
+.endmacro
+
+
+
+;=================================================
+; BNE_8
+;   8-bit version of "IF lhs != rhs GOTO label"
+;
+;-------------------------------------------------
+; INPUTS:   lhs     The "left-hand-side" of the comparison
+;           rhs     The "right-hand-side" of the comparison
+;           label   The branch destination
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro BNE_8 lhs, rhs, label
+.ifblank lhs
+    .error "BNE_8 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BNE_8 missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BNE_8 missing parameter: label"
+.endif
+.ifblank bytes
+    .error "BNE_8 missing parameter: bytes"
+.endif
+.if IMM(label)
+    .error "label of BNE_8 cannot be immediate"
+.endif
+.scope
+bne_8:
+    BNE_BYTES lhs, rhs, label, 1
+.endscope
+.endmacro
+
+
+;=================================================
 ; BNE_16
 ;   16-bit version of "IF lhs != rhs GOTO label"
 ;
@@ -466,14 +558,25 @@ sub_24:
 ; MODIFIES: A
 ; 
 .macro BNE_16 lhs, rhs, label
-.local @no_branch
-    lda lhs
-    cmp rhs
-    bne label
-    lda lhs+1
-    cmp rhs+1
-    bne label
-@no_branch:
+.ifblank lhs
+    .error "BNE_16 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BNE_16 missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BNE_16 missing parameter: label"
+.endif
+.ifblank bytes
+    .error "BNE_16 missing parameter: bytes"
+.endif
+.if IMM(label)
+    .error "label of BNE_16 cannot be immediate"
+.endif
+.scope
+bne_16:
+    BNE_BYTES lhs, rhs, label, 2
+.endscope
 .endmacro
 
 ;=================================================
@@ -489,17 +592,287 @@ sub_24:
 ; MODIFIES: A
 ; 
 .macro BNE_24 lhs, rhs, label
-.local @no_branch
-    lda lhs
-    cmp rhs
-    bne label
-    lda lhs+1
-    cmp rhs+1
-    bne label
-    lda lhs+2
-    cmp rhs+2
-    bne label
-@no_branch:
+.ifblank lhs
+    .error "BNE_24 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BNE_24 missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BNE_24 missing parameter: label"
+.endif
+.ifblank bytes
+    .error "BNE_24 missing parameter: bytes"
+.endif
+.if IMM(label)
+    .error "label of BNE_24 cannot be immediate"
+.endif
+.scope
+bne_24:
+    BNE_BYTES lhs, rhs, label, 3
+.endscope
+.endmacro
+
+
+;=================================================
+; BEQ_BYTES
+;   n-byte version of "IF lhs == rhs GOTO label"
+;-------------------------------------------------
+; INPUTS:   lhs     Left-hand-side parameter
+;           rhs     Right-hand-side parameter
+;           label   Destination label if condition is true
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro BEQ_BYTES lhs, rhs, label, bytes
+.ifblank lhs
+    .error "BEQ_BYTES missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BEQ_BYTES missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BEQ_BYTES missing parameter: label"
+.endif
+.ifblank bytes
+    .error "BEQ_BYTES missing parameter: bytes"
+.endif
+.if IMM(label)
+    .error "label of BEQ_BYTES cannot be immediate"
+.endif
+.local no_branch
+    .if IMM(rhs)
+        .if IMM(lhs)
+            .if DECAY(rhs) = DECAY(lhs)
+                bra label
+            .endif
+        .else
+            .repeat bytes, i
+                lda lhs+i
+                cmp #((DECAY(rhs) >> (8 * i)) & $FF)
+                .if i < (bytes - 1)
+                    bne no_branch
+                .else
+                    beq label
+                .endif
+            .endrep
+        .endif
+    .elseif IMM(lhs)
+        .repeat bytes, i
+            lda #((DECAY(lhs) >> (8 * i)) & $FF)
+            cmp rhs+i
+            .if i < (bytes - 1)
+                bne no_branch
+            .else
+                beq label
+            .endrep
+        .endrep
+    .else
+        .repeat bytes, i
+            lda lhs+i
+            cmp rhs+i
+            .if i < (bytes - 1)
+                bne no_branch
+            .else
+                beq label
+            .endrep
+        .endrep
+    .endif
+no_branch:
+.endmacro
+
+
+;=================================================
+; BEQ_8
+;   8-bit version of "IF lhs == rhs GOTO label"
+;
+;-------------------------------------------------
+; INPUTS:   lhs     The "left-hand-side" of the comparison
+;           rhs     The "right-hand-side" of the comparison
+;           label   The branch destination
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro BEQ_8 lhs, rhs, label
+.ifblank lhs
+    .error "BEQ_8 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BEQ_8 missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BEQ_8 missing parameter: label"
+.endif
+.if IMM(label)
+    .error "label of BEQ_8 cannot be immediate"
+.endif
+.scope
+beq_8:
+    BEQ_BYTES lhs, rhs, label, 1
+.endscope
+.endmacro
+
+;=================================================
+; BEQ_16
+;   16-bit version of "IF lhs == rhs GOTO label"
+;
+;-------------------------------------------------
+; INPUTS:   lhs     The "left-hand-side" of the comparison
+;           rhs     The "right-hand-side" of the comparison
+;           label   The branch destination
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro BEQ_16 lhs, rhs, label
+.ifblank lhs
+    .error "BEQ_16 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BEQ_16 missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BEQ_16 missing parameter: label"
+.endif
+.if IMM(label)
+    .error "label of BEQ_16 cannot be immediate"
+.endif
+.scope
+beq_16:
+    BEQ_BYTES lhs, rhs, label, 2
+.endscope
+.endmacro
+
+;=================================================
+; BEQ_24
+;   24-bit version of "IF lhs == rhs GOTO label"
+;
+;-------------------------------------------------
+; INPUTS:   lhs     The "left-hand-side" of the comparison
+;           rhs     The "right-hand-side" of the comparison
+;           label   The branch destination
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro BEQ_24 lhs, rhs, label
+.ifblank lhs
+    .error "BEQ_24 missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BEQ_24 missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BEQ_24 missing parameter: label"
+.endif
+.if IMM(label)
+    .error "label of BEQ_24 cannot be immediate"
+.endif
+.scope
+beq_24:
+    BEQ_BYTES lhs, rhs, label, 3
+.endscope
+.endmacro
+
+
+;=================================================
+; BGE_BYTES
+;   n-byte version of "IF lhs >= rhs GOTO label"
+;-------------------------------------------------
+; INPUTS:   lhs     Left-hand-side parameter
+;           rhs     Right-hand-side parameter
+;           label   Destination label if condition is true
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro BGE_BYTES lhs, rhs, label, bytes
+.ifblank lhs
+    .error "BGE_BYTES missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BGE_BYTES missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BGE_BYTES missing parameter: label"
+.endif
+.ifblank bytes
+    .error "BGE_BYTES missing parameter: bytes"
+.endif
+.if IMM(label)
+    .error "label of BGE_BYTES cannot be immediate"
+.endif
+    .if IMM(rhs)
+        .if IMM(lhs)
+            .if DECAY(lhs) >= DECAY(rhs)
+                bra label
+            .endif
+        .else
+            .repeat bytes, i
+                lda lhs+i
+                .if i = 0
+                    cmp #((DECAY(rhs) >> (8 * i)) & $FF)
+                .else
+                    sbc #((DECAY(rhs) >> (8 * i)) & $FF)
+                .endif
+                bcs label
+            .endrep
+        .endif
+    .elseif IMM(lhs)
+        .repeat bytes, i
+            lda #((DECAY(lhs) >> (8 * i)) & $FF)
+            .if i = 0
+                cmp rhs+i
+            .else
+                sbc rhs+i
+            .endif
+            bcs label
+        .endrep
+    .else
+        .repeat bytes, i
+            lda lhs+i
+            .if i = 0
+                cmp rhs+i
+            .else
+                sbc rhs+i
+            .endif
+            bcs label
+        .endrep
+    .endif
+.endmacro
+
+
+;=================================================
+; BGE_8
+;   8-bit version of "IF lhs >= rhs GOTO label"
+;
+;-------------------------------------------------
+; INPUTS:   lhs     The "left-hand-side" of the comparison
+;           rhs     The "right-hand-side" of the comparison
+;           label   The branch destination
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro BGE_8 lhs, rhs, label
+.ifblank lhs
+    .error "BGE_BYTES missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BGE_BYTES missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BGE_BYTES missing parameter: label"
+.endif
+.if IMM(label)
+    .error "label of BGE_BYTES cannot be immediate"
+.endif
+.scope
+bge_8:
+    BGE_BYTES lhs, rhs, label, 1
+.endscope
 .endmacro
 
 ;=================================================
@@ -515,13 +888,22 @@ sub_24:
 ; MODIFIES: A
 ; 
 .macro BGE_16 lhs, rhs, label
-.local @no_branch
-    lda lhs
-    cmp rhs
-    lda lhs+1
-    sbc rhs+1
-    bcs label
-@no_branch:
+.ifblank lhs
+    .error "BGE_BYTES missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BGE_BYTES missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BGE_BYTES missing parameter: label"
+.endif
+.if IMM(label)
+    .error "label of BGE_BYTES cannot be immediate"
+.endif
+.scope
+bge_16:
+    BGE_BYTES lhs, rhs, label, 2
+.endscope
 .endmacro
 
 ;=================================================
@@ -537,15 +919,120 @@ sub_24:
 ; MODIFIES: A
 ; 
 .macro BGE_24 lhs, rhs, label
-.local @no_branch
-    lda lhs
-    cmp rhs
-    lda lhs+1
-    sbc rhs+1
-    lda lhs+2
-    sbc rhs+2
-    bcs label
-@no_branch:
+.ifblank lhs
+    .error "BGE_BYTES missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BGE_BYTES missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BGE_BYTES missing parameter: label"
+.endif
+.if IMM(label)
+    .error "label of BGE_BYTES cannot be immediate"
+.endif
+.scope
+bge_24:
+    BGE_BYTES lhs, rhs, label, 3
+.endscope
+.endmacro
+
+;=================================================
+; BLT_BYTES
+;   n-byte version of "IF lhs < rhs GOTO label"
+;-------------------------------------------------
+; INPUTS:   lhs     Left-hand-side parameter
+;           rhs     Right-hand-side parameter
+;           label   Destination label if condition is true
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro BLT_BYTES lhs, rhs, label, bytes
+.ifblank lhs
+    .error "BGE_BYTES missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BGE_BYTES missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BGE_BYTES missing parameter: label"
+.endif
+.ifblank bytes
+    .error "BGE_BYTES missing parameter: bytes"
+.endif
+.if IMM(label)
+    .error "label of BGE_BYTES cannot be immediate"
+.endif
+    .if IMM(rhs)
+        .if IMM(lhs)
+            .if DECAY(lhs) < DECAY(rhs)
+                bra label
+            .endif
+        .else
+            .repeat bytes, i
+                lda lhs+i
+                .if i = 0
+                    cmp #((DECAY(rhs) >> (8 * i)) & $FF)
+                .else
+                    sbc #((DECAY(rhs) >> (8 * i)) & $FF)
+                .endif
+                bcc label
+            .endrep
+        .endif
+    .elseif IMM(lhs)
+        .repeat bytes, i
+            lda #((DECAY(lhs) >> (8 * i)) & $FF)
+            .if i = 0
+                cmp rhs+i
+            .else
+                sbc rhs+i
+            .endif
+            bcc label
+        .endrep
+    .else
+        .repeat bytes, i
+            lda lhs+i
+            .if i = 0
+                cmp rhs+i
+            .else
+                sbc rhs+i
+            .endif
+            bcc label
+        .endrep
+    .endif
+.endmacro
+
+
+;=================================================
+; BLT_8
+;   8-bit version of "IF lhs < rhs GOTO label"
+;
+;-------------------------------------------------
+; INPUTS:   lhs     The "left-hand-side" of the comparison
+;           rhs     The "right-hand-side" of the comparison
+;           label   The branch destination
+;
+;-------------------------------------------------
+; MODIFIES: A
+; 
+.macro BLT_8 lhs, rhs, label
+.ifblank lhs
+    .error "BGE_BYTES missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BGE_BYTES missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BGE_BYTES missing parameter: label"
+.endif
+.if IMM(label)
+    .error "label of BGE_BYTES cannot be immediate"
+.endif
+.scope
+blt_8:
+    BLT_BYTES lhs, rhs, label, 1
+.endscope
 .endmacro
 
 ;=================================================
@@ -561,13 +1048,22 @@ sub_24:
 ; MODIFIES: A
 ; 
 .macro BLT_16 lhs, rhs, label
-.local @no_branch
-    lda lhs
-    cmp rhs
-    lda lhs+1
-    sbc rhs+1
-    bcc label
-@no_branch:
+.ifblank lhs
+    .error "BGE_BYTES missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BGE_BYTES missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BGE_BYTES missing parameter: label"
+.endif
+.if IMM(label)
+    .error "label of BGE_BYTES cannot be immediate"
+.endif
+.scope
+blt_16:
+    BLT_BYTES lhs, rhs, label, 2
+.endscope
 .endmacro
 
 ;=================================================
@@ -583,15 +1079,22 @@ sub_24:
 ; MODIFIES: A
 ; 
 .macro BLT_24 lhs, rhs, label
-.local @no_branch
-    lda lhs
-    cmp rhs
-    lda lhs+1
-    sbc rhs+1
-    lda lhs+2
-    sbc rhs+2
-    bcc label
-@no_branch:
+.ifblank lhs
+    .error "BGE_BYTES missing parameter: lhs"
+.endif
+.ifblank rhs
+    .error "BGE_BYTES missing parameter: rhs"
+.endif
+.ifblank label
+    .error "BGE_BYTES missing parameter: label"
+.endif
+.if IMM(label)
+    .error "label of BGE_BYTES cannot be immediate"
+.endif
+.scope
+blt_24:
+    BLT_BYTES lhs, rhs, label, 3
+.endscope
 .endmacro
 
 ;=================================================

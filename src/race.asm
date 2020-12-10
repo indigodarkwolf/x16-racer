@@ -128,12 +128,11 @@ LICENSE_6_SIZE=(license_6_end - license_6)
 ; MODIFIES: A, pos
 ; 
 .macro WRAP_X_TO_SCREEN_24 pos
-.local @onscreen
-.local @offscreen
-
+.scope
+wrap_x_to_screen_24:
     ADD_24 Temp, pos, Wrap_amount
 
-    BGE_16 Temp+1, Screen_width+1, @onscreen
+    BGE_16 Temp+1, Screen_width+1, onscreen
 ; ; TODO: This is basically a BGE_24 (branch greater-or-equal) Temp, Screen_width, @onscreen
 ; ;       with some .macro BGE lhs, rhs, branch_target
 ;     lda Temp+2
@@ -143,14 +142,15 @@ LICENSE_6_SIZE=(license_6_end - license_6)
 ;     lda Temp+1
 ;     cmp Screen_width+1
 ;     bcs @onscreen
-@offscreen:
+offscreen:
     lda Temp
     sta pos
     lda Temp+1
     sta pos+1
     lda Temp+2
     sta pos+2
-@onscreen:
+onscreen:
+.endscope
 .endmacro
 
 .code

@@ -13,11 +13,11 @@ YM2151_base = $9FE0
 YM2151_addr = YM2151_base + 0
 YM2151_data = YM2151_base + 1
 
-YM2151_key_control = $08
-YM2151_noise = $0F
-YM2151_master_config = $20
-YM2151_freq = $28
-YM2151_key_fraction = $30
+YM2151_key_control            = $08
+YM2151_noise                  = $0F
+YM2151_master_config          = $20
+YM2151_freq                   = $28
+YM2151_key_fraction           = $30
 YM2151_modulation_sensitivity = $38
 
 
