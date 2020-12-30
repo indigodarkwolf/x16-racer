@@ -12,6 +12,126 @@ MATH_INC=1
 MATH_TABLES_BANK = $01
 
 ;=================================================
+;=================================================
+;
+;   Cheatsheet / Quick Reference
+;
+;-------------------------------------------------
+;
+;   There are _8, _16, and _24 bit variants (little-endian)
+;   of the following macros:
+;
+;   Unary math ops: (DST, SRC)
+;       NEG     Negate a signed value
+;
+;   Binary math ops: (DST, LHS, RHS)
+;       ADD     Unsigned add
+;       SUB     Unsigned subtract
+;
+;   Binary comparison ops: (LHS, RHS, LABEL)
+;       BNE     Branch if not equal
+;       BEQ     Branch if equal
+;       BGE     Branch if greater or equal to
+;       BLT     Branch if less than
+;
+;   Modulo: (VALUE)
+;       MOD     Accumulator = Accumulator % VALUE
+;
+;   Multiplication ops: (DST, LHS, RHS)
+;       MUL_8_8
+;       MUL_8_16
+;       MUL_16_16
+;       MUL_16_24
+;       MUL_16_32
+;       MUL_24_24
+;       MUL_24_32
+;       MUL_24_48
+;
+;   Additive multiplication ops: (DST, LHS, RHS)
+;       ADDMUL_8_8
+;       ADDMUL_8_16
+;       ADDMUL_16_16
+;       ADDMUL_16_24
+;       ADDMUL_16_32
+;       ADDMUL_24_24
+;       ADDMUL_24_32
+;       ADDMUL_24_48
+;
+
+;=================================================
+;=================================================
+;
+;   Additional Info
+;
+;-------------------------------------------------
+;
+;   About MOD:
+;
+;   MOD is modulo operation implemented as a psuedo-op
+;   on the accumulator and requires an undecorated 
+;   immediate value. (ACC = ACC % VALUE)
+;
+;   Beware that is the slowest, most painfully naive 
+;   modulo you can imagine.
+;
+;
+;   About multiplication:
+;   
+;   MUL macros implement little-endian unsigned integer 
+;   multiplication (DST = LHS * RHS).
+;
+;   The first number in the macro is the bit-size of the 
+;   source values (LHS, RHS); the second number is the 
+;   bit-size of the destination.
+;
+;   They require calling MATH_INIT at least once before use,
+;   and use RAM bank $01. Additionally, call MUL_BEGIN before
+;   any set of multiplication, to ensure that the proper RAM bank is
+;   present. MUL macros do not support operating on values
+;   in banked memory.
+;
+;   ADDMUL macros implement little-endian unsigned integer
+;   multiplication, added to the destination
+;   (DST += LSH * RHS). These are slightly faster if you
+;   know your destination is already zeroed out, or other-
+;   wise would add a single value to the destination. They
+;   are essentially a convenient by-product of the MUL
+;   implementations.
+;
+;
+;   About trigonometry:
+;
+;   sin_8 and cos_8 implement the sine and cosine
+;   of the accumulator, which is assumed to be the 
+;   unsigned 0.8 fixed point ratio of Tau (2 * Pi).
+;   Examples: 
+;   0 = 0 degrees or radians
+;   255 = 358.59375 degrees or approx. 6.25864 radians.
+;
+;   Results are returned in the form of a signed 8.8
+;   fixed point value in the range [-1, 1], with the
+;   low byte in the accumulator and the high byte in 
+;   the X register. 
+;   Examples:
+;   $0001 = 1/256
+;   $FFFF = -1/256.
+;
+;
+;   About performance:
+;
+;   MUL macros use a table-based approach that tries to
+;   balance memory consumption with speed. The fastest
+;   MUL implementations use 2KB of memory and run in
+;   38-42 cycles, mine uses 1KB but run in 51-62 cycles.
+;
+;   sin_8 and cos_8 are written as table lookups, but the 
+;   tables were generated with the plan to write higher
+;   precision trigonometry with a 0.16 input. As a result
+;   they are "a little slow" due to extra branching,
+;   negation, or subtraction from 1.
+;
+
+;=================================================
 ; MATH_INIT
 ;   Initialize the math lib.
 ;-------------------------------------------------

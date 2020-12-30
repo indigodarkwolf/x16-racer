@@ -180,7 +180,7 @@ multiplying_zero:
 ;   8-bit limit can only access 32 samples.
 ;
 ;-------------------------------------------------
-; INPUTS:   A   Ratio of Pi/2
+; INPUTS:   A   Ratio of Tau
 ;
 ;-------------------------------------------------
 ; OUTPUTS:  A, X
@@ -319,7 +319,7 @@ neg_1_over_sqrt2:
 ;   8-bit limit can only access 32 samples.
 ;
 ;-------------------------------------------------
-; INPUTS:   A   Ratio of Pi/2
+; INPUTS:   A   Ratio of Tau
 ;
 ;-------------------------------------------------
 ; OUTPUTS:  A, X
