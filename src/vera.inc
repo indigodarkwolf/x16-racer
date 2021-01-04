@@ -119,13 +119,20 @@ TILE_VFLIP=(1 << 11)
 .macro VERA_SET_CTRL addr
 .scope
 vera_set_ctrl:
-	lda VERA_ctrl
+	; lda VERA_ctrl
+	; .if addr = 0
+	; 	and #$FE
+	; .else
+	; 	ora #$01
+	; .endif
+	; sta VERA_ctrl
 	.if addr = 0
-		and #$FE
+		lda #1
+		trb VERA_ctrl
 	.else
-		ora #$01
+		lda #1
+		tsb VERA_ctrl
 	.endif
-	sta VERA_ctrl
 .endscope
 .endmacro
 

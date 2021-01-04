@@ -283,19 +283,19 @@ MATH_TABLES_BANK = $01
 ; 
 .macro ADD_BYTES dst, lhs, rhs, bytes
 .ifblank dst
-    .error "ADD_8 missing parameter: dst"
+    .error "ADD_BYTES missing parameter: dst"
 .endif
 .ifblank lhs
-    .error "ADD_8 missing parameter: lhs"
+    .error "ADD_BYTES missing parameter: lhs"
 .endif
 .ifblank rhs
-    .error "ADD_8 missing parameter: rhs"
+    .error "ADD_BYTES missing parameter: rhs"
 .endif
 .ifblank bytes
     .error "ADD_BYTES missing parameter: bytes"
 .endif
 .if IMM(dst)
-    .error "destination of ADD_8 cannot be immediate"
+    .error "destination of ADD_BYTES cannot be immediate"
 .endif
     clc
     .if IMM(rhs)
