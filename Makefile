@@ -1,7 +1,8 @@
 PROJECT	:= x16-racer
 #EMUDIR  := ../../vs2019/x16-bin
 EMUDIR  := ../../x16emu_win-r38
-EMU     := ./x16emu_Release.exe
+#EMU     := ./x16emu_Release.exe
+EMU     := ./x16emu.exe
 MKDIR   := mkdir -p
 RMDIR   := rmdir -p
 CC      := ca65
@@ -62,4 +63,3 @@ sdcard: dosimg
 	dd if=/dev/zero of=$(SDCARD) bs=1K count=40K
 	/sbin/sfdisk $(SDCARD) < sdcard.sfdisk
 	dd if=$(DOSIMG) of=$(SDCARD) bs=1K count=39K seek=1K
-	gzip $(SDCARD)
