@@ -7,6 +7,7 @@ RACE_ASM=1
 .include "system.inc"
 .include "graphics.inc"
 .include "math.inc"
+.include "kernal.inc"
 
 .include "assets/mountains.inc"
 .include "assets/font_courier_new.inc"
@@ -153,6 +154,13 @@ onscreen:
 .endscope
 .endmacro
 
+.data
+.define MOUNTAINS_MAP_NAME "race_mountains.seq"
+.define FOREST_MAP_NAME "race_forest.seq"
+
+MOUNTAINS_MAP_STR: .asciiz MOUNTAINS_MAP_NAME
+FOREST_MAP_STR: .asciiz FOREST_MAP_NAME
+
 .code
 ;=================================================
 ;=================================================
@@ -176,57 +184,78 @@ race_do:
 
     ; The mountains background tilemap, with some art credits in the sky
     VERA_SET_CTRL 0
-    VERA_SET_ADDR RACE_MOUNTAINS_MAP_ADDR
-    SYS_STREAM Race_mountains_map, VERA_data, (256 + 44)
+    VERA_SET_ADDR RACE_MOUNTAINS_MAP_ADDR, 1
 
-    SYS_STREAM_OUT license_1, VERA_data, LICENSE_1_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 44 - LICENSE_1_SIZE + 46)
-    SYS_STREAM_OUT license_2, VERA_data, LICENSE_2_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 46 - LICENSE_2_SIZE + 48)
-    SYS_STREAM_OUT license_3, VERA_data, LICENSE_3_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 48 - LICENSE_3_SIZE)
+    KERNAL_SETLFS 1, 8, 0
+    KERNAL_SETNAM .strlen(MOUNTAINS_MAP_NAME), MOUNTAINS_MAP_STR
+    KERNAL_OPEN
+    bcc mountains_opened_ok
+    sei
+    jmp *
 
-    SYS_STREAM Race_mountains_map, VERA_data, (256+128)
+mountains_opened_ok:
+    lda #0
+read_block:
+    pha
+    KERNAL_BASIN
+    sta VERA_data  
+    pla
+    inc
+    bne read_block
+    KERNAL_READST
+    beq read_block
 
-    SYS_STREAM_OUT license_4, VERA_data, LICENSE_4_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 128 - LICENSE_4_SIZE + 130)
-    SYS_STREAM_OUT license_5, VERA_data, LICENSE_5_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 130 - LICENSE_5_SIZE + 132)
-    SYS_STREAM_OUT license_6, VERA_data, LICENSE_6_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 132 - LICENSE_6_SIZE)
 
-    SYS_STREAM Race_mountains_map, VERA_data, (256 + 22)
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 + 44)
 
-    SYS_STREAM_OUT license_1_hflip, VERA_data, LICENSE_1_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 22 - LICENSE_1_SIZE + 26)
-    SYS_STREAM_OUT license_2_hflip, VERA_data, LICENSE_2_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 26 - LICENSE_2_SIZE + 28)
-    SYS_STREAM_OUT license_3_hflip, VERA_data, LICENSE_3_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 28 - LICENSE_3_SIZE)
+    ; SYS_STREAM_OUT license_1, VERA_data, LICENSE_1_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 44 - LICENSE_1_SIZE + 46)
+    ; SYS_STREAM_OUT license_2, VERA_data, LICENSE_2_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 46 - LICENSE_2_SIZE + 48)
+    ; SYS_STREAM_OUT license_3, VERA_data, LICENSE_3_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 48 - LICENSE_3_SIZE)
 
-    SYS_STREAM Race_mountains_map, VERA_data, (256 + 64)
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256+128)
 
-    SYS_STREAM_OUT license_4_vflip, VERA_data, LICENSE_4_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 64 - LICENSE_4_SIZE + 66)
-    SYS_STREAM_OUT license_5_vflip, VERA_data, LICENSE_5_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 66 - LICENSE_5_SIZE + 68)
-    SYS_STREAM_OUT license_6_vflip, VERA_data, LICENSE_6_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 68 - LICENSE_6_SIZE)
+    ; SYS_STREAM_OUT license_4, VERA_data, LICENSE_4_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 128 - LICENSE_4_SIZE + 130)
+    ; SYS_STREAM_OUT license_5, VERA_data, LICENSE_5_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 130 - LICENSE_5_SIZE + 132)
+    ; SYS_STREAM_OUT license_6, VERA_data, LICENSE_6_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 132 - LICENSE_6_SIZE)
+
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 + 22)
+
+    ; SYS_STREAM_OUT license_1_hflip, VERA_data, LICENSE_1_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 22 - LICENSE_1_SIZE + 26)
+    ; SYS_STREAM_OUT license_2_hflip, VERA_data, LICENSE_2_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 26 - LICENSE_2_SIZE + 28)
+    ; SYS_STREAM_OUT license_3_hflip, VERA_data, LICENSE_3_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 28 - LICENSE_3_SIZE)
+
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 + 64)
+
+    ; SYS_STREAM_OUT license_4_vflip, VERA_data, LICENSE_4_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 64 - LICENSE_4_SIZE + 66)
+    ; SYS_STREAM_OUT license_5_vflip, VERA_data, LICENSE_5_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 66 - LICENSE_5_SIZE + 68)
+    ; SYS_STREAM_OUT license_6_vflip, VERA_data, LICENSE_6_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 68 - LICENSE_6_SIZE)
     
-    SYS_STREAM Race_mountains_map, VERA_data, (256 + 12)
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 + 12)
 
-    SYS_STREAM_OUT license_1_hvflip, VERA_data, LICENSE_1_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 12 - LICENSE_1_SIZE + 14)
-    SYS_STREAM_OUT license_2_hvflip, VERA_data, LICENSE_2_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 14 - LICENSE_2_SIZE + 16)
-    SYS_STREAM_OUT license_3_hvflip, VERA_data, LICENSE_3_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 16 - LICENSE_3_SIZE)
+    ; SYS_STREAM_OUT license_1_hvflip, VERA_data, LICENSE_1_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 12 - LICENSE_1_SIZE + 14)
+    ; SYS_STREAM_OUT license_2_hvflip, VERA_data, LICENSE_2_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 14 - LICENSE_2_SIZE + 16)
+    ; SYS_STREAM_OUT license_3_hvflip, VERA_data, LICENSE_3_SIZE
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 16 - LICENSE_3_SIZE)
 
-    SYS_STREAM Race_mountains_map, VERA_data, (256*3)
-    .repeat 8, i
-        RACE_STREAM_ROW Race_mountains_map, i
-    .endrep
-    SYS_STREAM Race_mountains_map, VERA_data, 256*30
+    ; SYS_STREAM Race_mountains_map, VERA_data, (256*3)
+    ; .repeat 8, i
+    ;     RACE_STREAM_ROW Race_mountains_map, i
+    ; .endrep
+    ; SYS_STREAM Race_mountains_map, VERA_data, 256*30
     
     ; The forest background tilemap
     VERA_SET_ADDR RACE_FOREST_MAP_ADDR

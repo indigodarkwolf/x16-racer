@@ -171,32 +171,32 @@ KERNAL_INC=1
 
 ;=================================================
 ; KERNAL_BASIN
-;   ???
+;   AKA CHRIN
+;   Read byte from default input (for keyboard, read a line from the screen). (If not keyboard, must call OPEN and CHKIN beforehands.)
 ;-------------------------------------------------
 ; INPUTS:   (none)
 ;-------------------------------------------------
-; OUTPUTS:  (none)
+; OUTPUTS:  A
 ;-------------------------------------------------
 ; MODIFIES: (none)
 ; 
 .macro KERNAL_BASIN
-    .error "KERNAL_BASIN in not implemented"
-    brk
+    jsr $FFCF
 .endmacro
 
 ;=================================================
 ; KERNAL_BSOUT
-;   ???
+;   AKA CHROUT
+;   Write byte to default output. (If not screen, must call OPEN and CHKOUT beforehands.)
 ;-------------------------------------------------
-; INPUTS:   (none)
+; INPUTS:   A
 ;-------------------------------------------------
 ; OUTPUTS:  (none)
 ;-------------------------------------------------
-; MODIFIES: (none)
+; MODIFIES: A, Y
 ; 
 .macro KERNAL_BSOUT
-    .error "KERNAL_BSOUT in not implemented"
-    brk
+    jsr $FFD2
 .endmacro
 
 ;=================================================

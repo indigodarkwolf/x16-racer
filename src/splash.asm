@@ -116,7 +116,7 @@ __splash__setup_sprite:
         lda Sys_frame
         and #1
         beq fade_in_done
-        GRAPHICS_INCREMENT_PALETTE Splash_palette, 0, (16*7)
+        GRAPHICS_INCREMENT_PALETTE Splash_palette, 0, (16*7-1)
 
         lda Gfx_idle_flag
         cmp #1
@@ -173,7 +173,6 @@ palette_done:
         inc Splash_state
     start_rotate:
     .endscope
-
 
     ldx #0
 
