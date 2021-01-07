@@ -1,4 +1,7 @@
 bin
+build
+img
+obj
 .vs
 *.o
 *.log
