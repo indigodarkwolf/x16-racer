@@ -155,8 +155,8 @@ onscreen:
 .endmacro
 
 .data
-.define MOUNTAINS_MAP_NAME "race_mountains.seq"
-.define FOREST_MAP_NAME "race_forest.seq"
+.define MOUNTAINS_MAP_NAME "race_mtn.seq"
+.define FOREST_MAP_NAME "race_for.seq"
 
 MOUNTAINS_MAP_STR: .asciiz MOUNTAINS_MAP_NAME
 FOREST_MAP_STR: .asciiz FOREST_MAP_NAME

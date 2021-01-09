@@ -46,7 +46,7 @@ Gfx_palette_r_15           = $A2F0
 .data
 Gfx_idle_flag: .byte $00
 
-.define GRAPHICS_TABLES_NAME "graphics_tables.seq"
+.define GRAPHICS_TABLES_NAME "gfx.seq"
 GRAPHICS_TABLES_STR: .asciiz GRAPHICS_TABLES_NAME
 
 ;=================================================

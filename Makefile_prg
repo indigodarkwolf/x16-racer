@@ -1,4 +1,4 @@
-PROJECT	:= x16-racer
+PROJECT	:= x16-race
 MKDIR   := mkdir -p
 RMDIR   := rmdir -p
 CC      := ca65
@@ -12,12 +12,14 @@ EXE     := $(BIN)/$(PROJECT).prg
 CFLAGS  := --cpu 65C02 -g
 LDFLAGS := --target cx16 -Ln $(OBJ)/$(PROJECT).sym
 
+UC = $(shell echo '$1' | tr '[:lower:]' '[:upper:]')
+
 .PHONY: all run clean
 
 all: $(EXE) $(OBJS)
 
 $(EXE): $(OBJS) | $(BIN)
-	$(LD) $(LDFLAGS) $^ -o $@
+	$(LD) $(LDFLAGS) $^ -o $(call UC,$@)
 
 $(OBJ)/%.o: $(SRC)/%.asm | $(OBJ)
 	$(CC) $(CFLAGS) $< -o $@

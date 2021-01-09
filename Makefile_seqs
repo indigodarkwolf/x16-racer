@@ -12,12 +12,14 @@ SEQS    := $(patsubst $(SRC)/%.asm,$(BIN)/%.seq,$(SRCS))
 CFLAGS  := --cpu 65C02
 LDFLAGS := --target none
 
+UC = $(shell echo '$1' | tr '[:lower:]' '[:upper:]')
+
 .PHONY: all run clean
 
 all: $(SEQS) $(OBJS)
 
 $(BIN)/%.seq: $(OBJ)/%.o | $(BIN)
-	$(LD) $(LDFLAGS) $^ -o $@
+	$(LD) $(LDFLAGS) $^ -o $(call UC,$@)
 
 $(OBJ)/%.o: $(SRC)/%.asm | $(OBJ)
 	$(CC) $(CFLAGS) $< -o $@

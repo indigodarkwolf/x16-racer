@@ -20,7 +20,6 @@ CFLAGS  := --cpu 65C02
 LDFLAGS := --target cx16
 MKFILE	:= $(abspath $(lastword $(MAKEFILE_LIST)))
 MKPATH  := $(notdir $(patsubst %/,%,$(dir $(MKFILE))))
-DOSIMG  := $(IMG)/$(PROJECT).dos
 SDCARD  := $(IMG)/$(PROJECT).img
 
 .PHONY: all run clean release
@@ -39,6 +38,11 @@ runsd:
 	cp $(SDCARD) $(EMUDIR)/
 	cd $(EMUDIR) && $(EMU) -debug -scale 2 -quality nearest -sdcard $(PROJECT).img
 
+runhybrid:
+	cp $(SDCARD) $(EMUDIR)/
+	cp $(BIN)/* $(EMUDIR)/
+	cd $(EMUDIR) && $(EMU) -debug -scale 2 -quality nearest -sdcard $(PROJECT).img -prg $(PROJECT).prg
+
 clean:
 	$(MAKE) clean -f Makefile_prg
 	$(MAKE) clean -f Makefile_seqs
@@ -53,13 +57,6 @@ release:
 	cd $(RELEASE) && 7z a -tgzip $(PROJECT).tar.gz $(PROJECT).tar
 	cd $(RELEASE) && 7z a -tbzip2 $(PROJECT).tar.bz2 $(PROJECT).tar
 
-dosimg:
+sdcard:
 	$(MKDIR) $(IMG)
-	dd if=/dev/zero of=$(DOSIMG) bs=1K count=39K
-	/sbin/mkfs.fat -F32 $(DOSIMG)
-	mcopy -i $(DOSIMG) $(BIN)/* ::
-
-sdcard: dosimg
-	dd if=/dev/zero of=$(SDCARD) bs=1K count=40K
-	/sbin/sfdisk $(SDCARD) < sdcard.sfdisk
-	dd if=$(DOSIMG) of=$(SDCARD) bs=1K count=39K seek=1K
+	./mkcard.sh -f $(SDCARD) -s 40 -d $(BIN)
