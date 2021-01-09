@@ -48,13 +48,18 @@ clean:
 	$(MAKE) clean -f Makefile_seqs
 	rm -r $(OBJ)
 	rm -r $(BIN)
-	rm -r $(IMG)
+
+clean_release:
+	rm -r $(RELEASE)
+
+clean_all: clean clean_release
 
 sdcard: all
 	$(MKDIR) $(IMG)
 	./mkcard.sh -f $(SDCARD) -s 40 -d $(BIN)
 
 zips: all
+	if [ ! -d $(RELEASE) ]; then $(MKDIR) $(RELEASE); fi
 	cd $(BIN) && tar -cvf ../$(RELEASE)/$(PROJECT).tar *
 	cd $(BIN) && 7z a -t7z ../$(RELEASE)/$(PROJECT).7z *
 	cd $(BIN) && 7z a -tzip ../$(RELEASE)/$(PROJECT).zip *
@@ -62,6 +67,7 @@ zips: all
 	cd $(RELEASE) && 7z a -tbzip2 $(PROJECT).tar.bz2 $(PROJECT).tar
 
 sdzips: sdcard
+	if [ ! -d $(RELEASE) ]; then $(MKDIR) $(RELEASE); fi
 	cd $(IMG) && tar -cvf ../$(RELEASE)/$(PROJECT)_sdcard.tar *
 	cd $(IMG) && 7z a -t7z ../$(RELEASE)/$(PROJECT)_sdcard.7z *
 	cd $(IMG) && 7z a -tzip ../$(RELEASE)/$(PROJECT)_sdcard.zip *
