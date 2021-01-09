@@ -1,6 +1,8 @@
 .ifndef SYSTEM_INC
 SYSTEM_INC=1
 
+.include "kernal.inc"
+
 SYS_BANK_ROM = $9F60
 SYS_BANK_RAM = $9F61
 
@@ -42,6 +44,54 @@ ZP_COPY_SIZE = $7A
 ;=================================================
 ;=================================================
 ; 
+;   Kernal API wrappers
+;
+;-------------------------------------------------
+
+;=================================================
+; SYS_FILE_LOAD
+;   Load a file into memory.
+;-------------------------------------------------
+; INPUTS:   fname_addr  Memory address containing the filename string
+;           fname_len   Length of the filename string
+;           load_addr   (Optional) Address to load into
+;
+;-------------------------------------------------
+; MODIFIES: A, X, Y
+; 
+.macro SYS_FILE_LOAD fname_addr, fname_len, load_addr
+    .ifblank load_addr
+        KERNAL_SETLFS 1, 8, 1
+        KERNAL_SETNAM fname_len, fname_addr
+        KERNAL_LOAD 0, 0
+    .else
+        KERNAL_SETLFS 1, 8, 0
+        KERNAL_SETNAM fname_len, fname_addr
+        KERNAL_LOAD 0, load_addr
+    .endif
+.endmacro
+
+
+;=================================================
+; SYS_FILE_VLOAD
+;   Load a file into VRAM.
+;-------------------------------------------------
+; INPUTS:   fname_addr  Memory address containing the filename string
+;           fname_len   Length of the filename string
+;           load_addr   VRAM address to load into
+;
+;-------------------------------------------------
+; MODIFIES: A, X, Y
+; 
+.macro SYS_FILE_VLOAD fname_addr, fname_len, load_addr
+    KERNAL_SETLFS 1, 8, 0
+    KERNAL_SETNAM fname_len, fname_addr
+    KERNAL_LOAD ((^load_addr)+2), (load_addr & $ffff)
+.endmacro
+
+;=================================================
+;=================================================
+; 
 ;   IRQ Handling
 ;
 ;-------------------------------------------------
@@ -54,7 +104,7 @@ ZP_COPY_SIZE = $7A
 ;   is necessary for various kernel functions like
 ;   GETJOY.
 ;-------------------------------------------------
-; INPUTS:   .address    Label or address of IRQ handler
+; INPUTS:   (none)
 ;
 ;-------------------------------------------------
 ; MODIFIES: A
@@ -71,7 +121,7 @@ ZP_COPY_SIZE = $7A
 ;   Set where the kernal should jump to after
 ;   its own interrupt handling.
 ;-------------------------------------------------
-; INPUTS:   .address    Label or address of IRQ handler
+; INPUTS:   address    Label or address of IRQ handler
 ;
 ;-------------------------------------------------
 ; MODIFIES: A

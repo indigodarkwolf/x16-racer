@@ -1,8 +1,8 @@
 PROJECT	:= x16-race
-#EMUDIR  := ../../vs2019/x16-bin
-EMUDIR  := ../../x16emu_win-r38
-#EMU     := ./x16emu_Release.exe
-EMU     := ./x16emu.exe
+EMUDIR  := ../../vs2019/x16-bin
+#EMUDIR  := ../../x16emu_win-r38
+EMU     := ./x16emu_Release.exe
+#EMU     := ./x16emu.exe
 MKDIR   := mkdir -p
 RMDIR   := rmdir -p
 CC      := ca65

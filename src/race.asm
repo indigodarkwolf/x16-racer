@@ -155,8 +155,8 @@ onscreen:
 .endmacro
 
 .data
-.define MOUNTAINS_MAP_NAME "race_mtn.seq"
-.define FOREST_MAP_NAME "race_for.seq"
+.define MOUNTAINS_MAP_NAME "race-mtn.seq"
+.define FOREST_MAP_NAME "race-for.seq"
 
 MOUNTAINS_MAP_STR: .asciiz MOUNTAINS_MAP_NAME
 FOREST_MAP_STR: .asciiz FOREST_MAP_NAME
@@ -173,105 +173,13 @@ FOREST_MAP_STR: .asciiz FOREST_MAP_NAME
 ; Return to caller when done.
 ;
 race_do:
-    VERA_DISABLE_ALL
-
-    ; I've already spent a lot of memory on assets, and don't want to bother with file I/O just yet
-    ; or image compression (though the splash logo could *majorly* benefit from RLE encoding, let me
-    ; tell you).
-    ;
-    ; So instead of doing a nice, clean, block copy of pre-calculated tilemap data into VRAM, I'm
-    ; breaking it up into chunks of assembly because that's smaller.
-
-    ; The mountains background tilemap, with some art credits in the sky
-    VERA_SET_CTRL 0
-    VERA_SET_ADDR RACE_MOUNTAINS_MAP_ADDR, 1
-
-    KERNAL_SETLFS 1, 8, 0
-    KERNAL_SETNAM .strlen(MOUNTAINS_MAP_NAME), MOUNTAINS_MAP_STR
-    KERNAL_OPEN
-    bcc mountains_opened_ok
     sei
-    jmp *
-
-mountains_opened_ok:
-    lda #0
-read_block:
-    pha
-    KERNAL_BASIN
-    sta VERA_data  
-    pla
-    inc
-    bne read_block
-    KERNAL_READST
-    beq read_block
-
-
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 + 44)
-
-    ; SYS_STREAM_OUT license_1, VERA_data, LICENSE_1_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 44 - LICENSE_1_SIZE + 46)
-    ; SYS_STREAM_OUT license_2, VERA_data, LICENSE_2_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 46 - LICENSE_2_SIZE + 48)
-    ; SYS_STREAM_OUT license_3, VERA_data, LICENSE_3_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 48 - LICENSE_3_SIZE)
-
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256+128)
-
-    ; SYS_STREAM_OUT license_4, VERA_data, LICENSE_4_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 128 - LICENSE_4_SIZE + 130)
-    ; SYS_STREAM_OUT license_5, VERA_data, LICENSE_5_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 130 - LICENSE_5_SIZE + 132)
-    ; SYS_STREAM_OUT license_6, VERA_data, LICENSE_6_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 132 - LICENSE_6_SIZE)
-
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 + 22)
-
-    ; SYS_STREAM_OUT license_1_hflip, VERA_data, LICENSE_1_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 22 - LICENSE_1_SIZE + 26)
-    ; SYS_STREAM_OUT license_2_hflip, VERA_data, LICENSE_2_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 26 - LICENSE_2_SIZE + 28)
-    ; SYS_STREAM_OUT license_3_hflip, VERA_data, LICENSE_3_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 28 - LICENSE_3_SIZE)
-
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 + 64)
-
-    ; SYS_STREAM_OUT license_4_vflip, VERA_data, LICENSE_4_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 64 - LICENSE_4_SIZE + 66)
-    ; SYS_STREAM_OUT license_5_vflip, VERA_data, LICENSE_5_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 66 - LICENSE_5_SIZE + 68)
-    ; SYS_STREAM_OUT license_6_vflip, VERA_data, LICENSE_6_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 68 - LICENSE_6_SIZE)
+    VERA_DISABLE_ALL
+    SYS_FILE_VLOAD MOUNTAINS_MAP_STR, .strlen(MOUNTAINS_MAP_NAME), RACE_MOUNTAINS_MAP_ADDR
+    SYS_FILE_VLOAD FOREST_MAP_STR, .strlen(FOREST_MAP_NAME), RACE_FOREST_MAP_ADDR
     
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 + 12)
-
-    ; SYS_STREAM_OUT license_1_hvflip, VERA_data, LICENSE_1_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 12 - LICENSE_1_SIZE + 14)
-    ; SYS_STREAM_OUT license_2_hvflip, VERA_data, LICENSE_2_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 14 - LICENSE_2_SIZE + 16)
-    ; SYS_STREAM_OUT license_3_hvflip, VERA_data, LICENSE_3_SIZE
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256 - 16 - LICENSE_3_SIZE)
-
-    ; SYS_STREAM Race_mountains_map, VERA_data, (256*3)
-    ; .repeat 8, i
-    ;     RACE_STREAM_ROW Race_mountains_map, i
-    ; .endrep
-    ; SYS_STREAM Race_mountains_map, VERA_data, 256*30
-    
-    ; The forest background tilemap
-    VERA_SET_ADDR RACE_FOREST_MAP_ADDR
-    SYS_STREAM Race_mountains_map, VERA_data, 256*28
-    .repeat 8, i
-        RACE_STREAM_ROW Race_forest_map, i
-    .endrep
-    .repeat 8, i
-        RACE_STREAM_ROW Race_forest_inner_map, i
-    .endrep
-    .repeat 8, i
-        RACE_STREAM_ROW Race_forest_inner_map, i
-    .endrep
-    .repeat 8, i
-        RACE_STREAM_ROW Race_forest_inner_map, i
-    .endrep
+__race__stream_tiles:
+    VERA_SET_CTRL 0
 
     ; Tile data
     VERA_STREAM_OUT_DATA mountain, RACE_MOUNTAINS_TILES_ADDR, RACE_MOUNTAINS_TILES_SIZE
@@ -324,6 +232,7 @@ __race__begin:
     lda #1
     jsr sys_wait_for_frame
 
+    sei
     SYS_SET_IRQ race_irq_first
     cli
 

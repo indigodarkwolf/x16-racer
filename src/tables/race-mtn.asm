@@ -1,4 +1,5 @@
 .org 0
+.byte $00, $00
 
 .repeat (256+44)
     .byte $00
