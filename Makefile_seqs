@@ -1,25 +1,26 @@
-PROJECT	:= x16-racer
+UC = $(shell echo '$1' | tr '[:lower:]' '[:upper:]')
+
+PROJECT	:= x16-race
 MKDIR   := mkdir -p
 RMDIR   := rmdir -p
 CC      := ca65
 LD      := cl65
-BIN     := ./build
-OBJ     := ./obj/tables
-SRC     := ./src/tables
+BIN     := build
+OBJ     := obj/tables
+SRC     := src/tables
+UCBIN   := $(call UC,$(BIN))
 SRCS    := $(wildcard $(SRC)/*.asm)
 OBJS    := $(patsubst $(SRC)/%.asm,$(OBJ)/%.o,$(SRCS))
 SEQS    := $(patsubst $(SRC)/%.asm,$(BIN)/%.seq,$(SRCS))
 CFLAGS  := --cpu 65C02
 LDFLAGS := --target none
 
-UC = $(shell echo '$1' | tr '[:lower:]' '[:upper:]')
-
 .PHONY: all run clean
 
 all: $(SEQS) $(OBJS)
 
 $(BIN)/%.seq: $(OBJ)/%.o | $(BIN)
-	$(LD) $(LDFLAGS) $^ -o $(call UC,$@)
+	$(LD) $(LDFLAGS) $^ -o $(subst $(UCBIN),$(BIN),$(call UC,$@))
 
 $(OBJ)/%.o: $(SRC)/%.asm | $(OBJ)
 	$(CC) $(CFLAGS) $< -o $@

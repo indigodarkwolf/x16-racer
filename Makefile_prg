@@ -1,3 +1,5 @@
+UC = $(shell echo '$1' | tr '[:lower:]' '[:upper:]')
+
 PROJECT	:= x16-race
 MKDIR   := mkdir -p
 RMDIR   := rmdir -p
@@ -8,18 +10,16 @@ OBJ     := ./obj
 SRC     := ./src
 SRCS    := $(wildcard $(SRC)/*.asm)
 OBJS    := $(patsubst $(SRC)/%.asm,$(OBJ)/%.o,$(SRCS))
-EXE     := $(BIN)/$(PROJECT).prg
+EXE     := $(BIN)/$(call UC,$(PROJECT).prg)
 CFLAGS  := --cpu 65C02 -g
 LDFLAGS := --target cx16 -Ln $(OBJ)/$(PROJECT).sym
-
-UC = $(shell echo '$1' | tr '[:lower:]' '[:upper:]')
 
 .PHONY: all run clean
 
 all: $(EXE) $(OBJS)
 
 $(EXE): $(OBJS) | $(BIN)
-	$(LD) $(LDFLAGS) $^ -o $(call UC,$@)
+	$(LD) $(LDFLAGS) $^ -o $@
 
 $(OBJ)/%.o: $(SRC)/%.asm | $(OBJ)
 	$(CC) $(CFLAGS) $< -o $@

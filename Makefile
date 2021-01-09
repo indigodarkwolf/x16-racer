@@ -1,4 +1,4 @@
-PROJECT	:= x16-racer
+PROJECT	:= x16-race
 #EMUDIR  := ../../vs2019/x16-bin
 EMUDIR  := ../../x16emu_win-r38
 #EMU     := ./x16emu_Release.exe
@@ -50,13 +50,22 @@ clean:
 	rm -r $(BIN)
 	rm -r $(IMG)
 
-release:
+sdcard: all
+	$(MKDIR) $(IMG)
+	./mkcard.sh -f $(SDCARD) -s 40 -d $(BIN)
+
+zips: all
 	cd $(BIN) && tar -cvf ../$(RELEASE)/$(PROJECT).tar *
 	cd $(BIN) && 7z a -t7z ../$(RELEASE)/$(PROJECT).7z *
 	cd $(BIN) && 7z a -tzip ../$(RELEASE)/$(PROJECT).zip *
 	cd $(RELEASE) && 7z a -tgzip $(PROJECT).tar.gz $(PROJECT).tar
 	cd $(RELEASE) && 7z a -tbzip2 $(PROJECT).tar.bz2 $(PROJECT).tar
 
-sdcard:
-	$(MKDIR) $(IMG)
-	./mkcard.sh -f $(SDCARD) -s 40 -d $(BIN)
+sdzips: sdcard
+	cd $(IMG) && tar -cvf ../$(RELEASE)/$(PROJECT)_sdcard.tar *
+	cd $(IMG) && 7z a -t7z ../$(RELEASE)/$(PROJECT)_sdcard.7z *
+	cd $(IMG) && 7z a -tzip ../$(RELEASE)/$(PROJECT)_sdcard.zip *
+	cd $(RELEASE) && 7z a -tgzip $(PROJECT)_sdcard.tar.gz $(PROJECT)_sdcard.tar
+	cd $(RELEASE) && 7z a -tbzip2 $(PROJECT)_sdcard.tar.bz2 $(PROJECT)_sdcard.tar
+
+release: zips sdzips
