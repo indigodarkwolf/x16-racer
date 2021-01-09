@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Creates, partitions, formats, and optionally copies files from a directory
+# into a FAT32-partitioned SD card image of a specified size.
+
+# Original by Michael Parson:
+# https://www.commanderx16.com/forum/index.php?/topic/859-new-community-dev-tool-uploaded-mkcard/
+
+# Modifications:
+#   I needed to explicitly specify /sbin/ for some commands, as the default path 
+#   for my profile didn't include it. Not sure what the "correct", most portable
+#   solution for this is.
+#   I also added a "-v" flag that controls whether to supress most command output.
+#   And finally, added a "-d" flag that takes a path to a directory, and the script
+#   will copy all the contents of that directory to the SD card image.
+
 printusage() {
 cat - <<EOF
 $0 [-f filename] [-s size-in-megabytes] [-d copy-source-directory] [-v]
