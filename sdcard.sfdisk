@@ -1,6 +1,0 @@
-label: dos
-label-id: 0x00000000
-device: sdcard.img
-unit: sectors
-
-type=7
