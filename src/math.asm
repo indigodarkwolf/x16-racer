@@ -5,6 +5,10 @@ SQUARES_OVER_FOUR_TABLE = $A000
 SQUARES_OVER_FOUR_TABLE_LO = $A000
 SQUARES_OVER_FOUR_TABLE_HI = $A200
 
+SIN360_TABLE = $A400
+SIN360_TABLE_LO = $A400
+SIN360_TABLE_HI = $A500
+
 SIN45_TABLE = $A400
 SIN45_TABLE_LO = $A400
 SIN45_TABLE_HI = $A500
@@ -191,116 +195,10 @@ multiplying_zero:
 ;-------------------------------------------------
 .code
 .proc sin_8
-    asl
-    bcs ge_pi
-    asl
-    bcs ge_pi_over_2
-    asl
-    bcs ge_pi_over_4
-
-ge_0:       ; A is [0, PI/4)
     tay
-    ldx SIN45_TABLE_LO, y
-    lda SIN45_TABLE_HI, y
-
-    clc
+    ldx SIN360_TABLE_LO, y
+    lda SIN360_TABLE_HI, y
     rts
-
-ge_pi_over_4: ; A is [PI/4, PI/2)
-    eor #$FF
-    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
-    bcs pos_1_over_sqrt2 ; if carry still set, A = PI/4
-    tay
-    ldx COS45_TABLE_LO, y
-    lda COS45_TABLE_HI, y
-    rts
-
-ge_pi_over_2:
-    asl
-    bcs ge_pi_3_over_4
-    ; A is [PI/2, PI3/4)
-    tay
-    ldx COS45_TABLE_LO, y
-    lda COS45_TABLE_HI, y
-    rts
-
-ge_pi_3_over_4: ; A is [PI3/4, PI)
-    eor #$FF
-    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
-    bcs pos_1_over_sqrt2 ; if carry still set, A = PI3/4
-    tay
-    ldx SIN45_TABLE_LO, y
-    lda SIN45_TABLE_HI, y
-    rts
-
-ge_pi:
-    asl
-    bcs ge_pi_3_over_2
-    asl
-    bcs ge_pi_5_over_4
-    ; A is [PI, PI5/4)
-    tay
-    lda SIN45_TABLE_LO, y
-    eor #$FF
-    adc #1 ; Carry will always be clear
-    tax
-    lda SIN45_TABLE_HI, y
-    eor #$FF
-    adc #0 ; Depend on carry from previous add for multi-byte addition
-    rts
-
-ge_pi_5_over_4: ; A is [PI5/4, PI3/2)
-    eor #$FF
-    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
-    bcs neg_1_over_sqrt2 ; if carry still set, A = PI5/4
-    tay
-    lda COS45_TABLE_LO, y
-    eor #$FF
-    adc #1 ; Carry will always be clear
-    tax
-    lda COS45_TABLE_HI, y
-    eor #$FF
-    adc #0 ; Depend on carry from previous add for multi-byte addition
-    rts
-
-ge_pi_3_over_2:
-    asl
-    bcs ge_pi_7_over_4
-    ; A is [PI3/2, PI7/4)
-    tay
-    lda COS45_TABLE_LO, y
-    eor #$FF
-    adc #1 ; Carry will always be clear
-    tax
-    lda COS45_TABLE_HI, y
-    eor #$FF
-    adc #0 ; Depend on carry from previous add for multi-byte addition
-    rts
-
-ge_pi_7_over_4: ; A is [PI7/4, PI2)
-    eor #$FF
-    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
-    bcs neg_1_over_sqrt2 ; if carry still set, A = PI7/4
-    tay
-    lda SIN45_TABLE_LO, y
-    eor #$FF
-    adc #1 ; Carry will always be clear
-    tax
-    lda SIN45_TABLE_HI, y
-    eor #$FF
-    adc #0 ; Depend on carry from previous add for multi-byte addition
-    rts
-
-pos_1_over_sqrt2:
-    ldx #$B5
-    lda #0
-    rts
-
-neg_1_over_sqrt2:
-    ldx #$4B
-    lda #$FF
-    rts
-
 .endproc
 
 ;=================================================
@@ -314,8 +212,7 @@ neg_1_over_sqrt2:
 ;   byte in X.
 ;   
 ;   Uses a table-based lookup of 256 samples of cos
-;   where theta = [0, Pi/4), plus special case handling
-;   of theta = {Pi/4, Pi3/4, Pi5/4, Pi7/4}. However, note that the
+;   where theta = [0, Pi/4). However, note that the
 ;   8-bit limit can only access 32 samples.
 ;
 ;-------------------------------------------------
@@ -328,116 +225,11 @@ neg_1_over_sqrt2:
 ; MODIFIES: A, X, Y
 ;
 ;-------------------------------------------------
-.code
 .proc cos_8
-    asl
-    bcs ge_pi
-    asl
-    bcs ge_pi_over_2
-    asl
-    bcs ge_pi_over_4
-
-ge_0:       ; A is [0, PI/4)
-    tay
-    ldx COS45_TABLE_LO, y
-    lda COS45_TABLE_HI, y
-
     clc
-    rts
-
-ge_pi_over_4: ; A is [PI/4, PI/2)
-    eor #$FF
-    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
-    bcs pos_1_over_sqrt2 ; if carry still set, A = PI/4
+    adc #64
     tay
-    ldx SIN45_TABLE_LO, y
-    lda SIN45_TABLE_HI, y
+    ldx SIN360_TABLE_LO, y
+    lda SIN360_TABLE_HI, y
     rts
-
-ge_pi_over_2:
-    asl
-    bcs ge_pi_3_over_4
-    ; A is [PI/2, PI3/4)
-    tay
-    lda SIN45_TABLE_LO, y
-    eor #$FF
-    adc #1 ; Carry will always be clear
-    tax
-    lda SIN45_TABLE_HI, y
-    eor #$FF
-    adc #0 ; Depend on carry from previous add for multi-byte addition
-    rts
-
-ge_pi_3_over_4: ; A is [PI3/4, PI)
-    eor #$FF
-    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
-    bcs neg_1_over_sqrt2 ; if carry still set, A = PI3/4
-    tay
-    lda COS45_TABLE_LO, y
-    eor #$FF
-    adc #1 ; Carry will always be clear
-    tax
-    lda COS45_TABLE_HI, y
-    eor #$FF
-    adc #0 ; Depend on carry from previous add for multi-byte addition
-    rts
-
-ge_pi:
-    asl
-    bcs ge_pi_3_over_2
-    asl
-    bcs ge_pi_5_over_4
-    ; A is [PI, PI5/4)
-    tay
-    lda COS45_TABLE_LO, y
-    eor #$FF
-    adc #1 ; Carry will always be clear
-    tax
-    lda COS45_TABLE_HI, y
-    eor #$FF
-    adc #0 ; Depend on carry from previous add for multi-byte addition
-    rts
-
-ge_pi_5_over_4: ; A is [PI5/4, PI3/2)
-    eor #$FF
-    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
-    bcs neg_1_over_sqrt2 ; if carry still set, A = PI5/4
-    tay
-    lda SIN45_TABLE_LO, y
-    eor #$FF
-    adc #1 ; Carry will always be clear
-    tax
-    lda SIN45_TABLE_HI, y
-    eor #$FF
-    adc #0 ; Depend on carry from previous add for multi-byte addition
-    rts
-
-ge_pi_3_over_2:
-    asl
-    bcs ge_pi_7_over_4
-    ; A is [PI3/2, PI7/4)
-    tay
-    ldx SIN45_TABLE_LO, y
-    lda SIN45_TABLE_HI, y
-    rts
-
-ge_pi_7_over_4: ; A is [PI7/4, PI2)
-    eor #$FF
-    adc #0 ; effectively adds 1, we wouldn't be here if carry wasn't set
-    bcs pos_1_over_sqrt2 ; if carry still set, A = PI7/4
-    tay
-    ldx COS45_TABLE_LO, y
-    lda COS45_TABLE_HI, y
-    rts
-
-pos_1_over_sqrt2:
-    ldx #$B5
-    lda #0
-    rts
-
-neg_1_over_sqrt2:
-    ldx #$4B
-    lda #$FF
-    rts
-
 .endproc
