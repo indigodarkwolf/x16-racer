@@ -6,6 +6,9 @@
 # Original by Michael Parson:
 # https://www.commanderx16.com/forum/index.php?/topic/859-new-community-dev-tool-uploaded-mkcard/
 
+# Michael's script is CC-SA-3.0
+# https://github.com/mparson/mkcard
+
 # Modifications:
 #   I needed to explicitly specify /sbin/ for some commands, as the default path 
 #   for my profile didn't include it. Not sure what the "correct", most portable

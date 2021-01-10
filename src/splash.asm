@@ -14,7 +14,7 @@ SPLASH_ASM=1
 
 GIANT_SPLASH=1
 
-.include "assets/splash-rle.inc"
+; .include "assets/splash-rle.inc"
 
 .if GIANT_SPLASH = 1
 CENTER_X=(320-32)
@@ -23,6 +23,10 @@ CENTER_Y=(240-32)
 CENTER_X=(320-16)
 CENTER_Y=(240-16)
 .endif
+
+.data
+.define SPLASH_NAME "gsplash.seq"
+SPLASH_STR: .asciiz SPLASH_NAME
 
 ;=================================================
 ;=================================================
@@ -39,7 +43,8 @@ splash_do:
     ; Copy the logo into video memory
     VERA_SET_CTRL 0
 
-    VERA_STREAM_OUT_RLE Splash_logo, SPLASH_ADDR, (Splash_logo_end - Splash_logo)
+    SYS_FILE_VLOAD SPLASH_STR, .strlen(SPLASH_NAME), SPLASH_ADDR
+    ; VERA_STREAM_OUT_RLE Splash_logo, SPLASH_ADDR, (Splash_logo_end - Splash_logo)
 
     VERA_DISABLE_ALL
     VERA_ENABLE_SPRITES

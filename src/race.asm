@@ -9,16 +9,17 @@ RACE_ASM=1
 .include "math.inc"
 .include "kernal.inc"
 
-.include "assets/mountains.inc"
-.include "assets/font_courier_new.inc"
-.include "assets/forest.inc"
-.include "assets/forest-inner.inc"
-.include "assets/car.inc"
-.include "assets/road.inc"
-.include "assets/pillar.inc"
-.include "assets/wheel.inc"
+.include "assets/mountains-palette.inc"
+.include "assets/font_courier_new-palette.inc"
+.include "assets/forest-palette.inc"
+.include "assets/forest-inner-palette.inc"
 
-.include "assets/licenses.inc"
+.include "assets/car-palette.inc"
+.include "assets/road-palette.inc"
+.include "assets/pillar-palette.inc"
+.include "assets/wheel-palette.inc"
+
+; .include "assets/licenses.inc"
 
 ;===========================
 ;
@@ -37,54 +38,83 @@ RACE_FOREST_MAP_SIZE=$04000 ; 128*64*2 bytes
 ;
 
 RACE_MOUNTAINS_TILES_ADDR=$08000 ; VERA_TILE_DATA_ALIGN(RACE_FOREST_MAP_ADDR + RACE_FOREST_MAP_SIZE)
-RACE_MOUNTAINS_TILES_SIZE=(mountain_end - mountain)
-
-RACE_FONT_TILES_ADDR=(RACE_MOUNTAINS_TILES_ADDR + RACE_MOUNTAINS_TILES_SIZE)
-RACE_FONT_TILES_SIZE=(font_courier_new_end - font_courier_new)
+; .out .concat("RACE_MOUNTAINS_TILES_ADDR    ", .string((RACE_MOUNTAINS_TILES_ADDR)))
+; RACE_MOUNTAINS_TILES_SIZE=(mountain_end - mountain)
+; .out .concat("RACE_MOUNTAINS_TILES_SIZE    ", .string((RACE_MOUNTAINS_TILES_SIZE)))
+; RACE_FONT_TILES_ADDR=(RACE_MOUNTAINS_TILES_ADDR + RACE_MOUNTAINS_TILES_SIZE)
+; .out .concat("RACE_FONT_TILES_ADDR         ", .string((RACE_FONT_TILES_ADDR)))
+; RACE_FONT_TILES_SIZE=(font_courier_new_end - font_courier_new)
+; .out .concat("RACE_FONT_TILES_SIZE         ", .string((RACE_FONT_TILES_SIZE)))
 
 ;===========================
 ;
 ; Tiles for forest map
 ;
+RACE_FOREST_TILES_ADDR=$9800
 
-RACE_FOREST_TILES_ADDR=VERA_TILE_DATA_ALIGN(RACE_FONT_TILES_ADDR + RACE_FONT_TILES_SIZE)
-RACE_FOREST_TILES_SIZE=(forest_end - forest)
+; RACE_FOREST_TILES_ADDR=VERA_TILE_DATA_ALIGN(RACE_FONT_TILES_ADDR + RACE_FONT_TILES_SIZE)
+; .out .concat("RACE_FOREST_TILES_ADDR       ", .string((RACE_FOREST_TILES_ADDR)))
+; RACE_FOREST_TILES_SIZE=(forest_end - forest)
+; .out .concat("RACE_FOREST_TILES_SIZE       ", .string((RACE_FOREST_TILES_SIZE)))
 
-RACE_FOREST_INNER_TILES_ADDR=(RACE_FOREST_TILES_ADDR + RACE_FOREST_TILES_SIZE)
-RACE_FOREST_INNER_TILES_SIZE=(forest_inner_end - forest_inner)
+; RACE_FOREST_INNER_TILES_ADDR=(RACE_FOREST_TILES_ADDR + RACE_FOREST_TILES_SIZE)
+; .out .concat("RACE_FOREST_INNER_TILES_ADDR ", .string((RACE_FOREST_INNER_TILES_ADDR)))
+; RACE_FOREST_INNER_TILES_SIZE=(forest_inner_end - forest_inner)
+; .out .concat("RACE_FOREST_INNER_TILES_SIZE ", .string((RACE_FOREST_INNER_TILES_SIZE)))
 
 ;===========================
 ;
 ; Sprite data
 ;
+RACE_SPRITES_ADDR=$A820
+RACE_CAR_ADDR=$A820
+RACE_CAR_SIZE=$400
+ROAD_ADDR=$AC20
+ROAD_SIZE=$800
+PILLAR_ADDR=$B420
+PILLAR_SIZE=$800
+WHEEL0_ADDR=$BC20
+WHEEL0_SIZE=$80
+WHEEL1_ADDR=$BCA0
+WHEEL1_SIZE=$80
 
-RACE_CAR_ADDR=VERA_SPRITE_DATA_ALIGN((RACE_FOREST_INNER_TILES_ADDR + RACE_FOREST_INNER_TILES_SIZE))
-RACE_CAR_SIZE=(car_end - car)
+; RACE_CAR_ADDR=VERA_SPRITE_DATA_ALIGN((RACE_FOREST_INNER_TILES_ADDR + RACE_FOREST_INNER_TILES_SIZE))
+; .out .concat("RACE_CAR_ADDR                ", .string((RACE_CAR_ADDR)))
+; RACE_CAR_SIZE=(car_end - car)
+; .out .concat("RACE_CAR_SIZE                ", .string((RACE_CAR_SIZE)))
 
-ROAD_ADDR=VERA_SPRITE_DATA_ALIGN((RACE_CAR_ADDR + RACE_CAR_SIZE))
-ROAD_SIZE=(road_end - road)
+; ROAD_ADDR=VERA_SPRITE_DATA_ALIGN((RACE_CAR_ADDR + RACE_CAR_SIZE))
+; .out .concat("ROAD_ADDR                    ", .string((ROAD_ADDR)))
+; ROAD_SIZE=(road_end - road)
+; .out .concat("ROAD_SIZE                    ", .string((ROAD_SIZE)))
 
-PILLAR_ADDR=VERA_SPRITE_DATA_ALIGN((ROAD_ADDR + ROAD_SIZE))
-PILLAR_SIZE=(pillar_end - pillar)
+; PILLAR_ADDR=VERA_SPRITE_DATA_ALIGN((ROAD_ADDR + ROAD_SIZE))
+; .out .concat("PILLAR_ADDR                  ", .string((PILLAR_ADDR)))
+; PILLAR_SIZE=(pillar_end - pillar)
+; .out .concat("PILLAR_SIZE                  ", .string((PILLAR_SIZE)))
 
-WHEEL0_ADDR=VERA_SPRITE_DATA_ALIGN((PILLAR_ADDR + PILLAR_SIZE))
-WHEEL0_SIZE=(wheel_01_00 - wheel_00_00)
+; WHEEL0_ADDR=VERA_SPRITE_DATA_ALIGN((PILLAR_ADDR + PILLAR_SIZE))
+; .out .concat("WHEEL0_ADDR                  ", .string((WHEEL0_ADDR)))
+; WHEEL0_SIZE=(wheel_01_00 - wheel_00_00)
+; .out .concat("WHEEL0_SIZE                  ", .string((WHEEL0_SIZE)))
 
-WHEEL1_ADDR=VERA_SPRITE_DATA_ALIGN((WHEEL0_ADDR + WHEEL0_SIZE))
-WHEEL1_SIZE=(wheel_end - wheel_01_00)
+; WHEEL1_ADDR=VERA_SPRITE_DATA_ALIGN((WHEEL0_ADDR + WHEEL0_SIZE))
+; .out .concat("WHEEL1_ADDR                  ", .string((WHEEL1_ADDR)))
+; WHEEL1_SIZE=(wheel_end - wheel_01_00)
+; .out .concat("WHEEL1_SIZE                  ", .string((WHEEL1_SIZE)))
 
 ;===========================
 ;
 ; String lengths
 ;
 
-LICENSE_0_SIZE=(license_0_end - license_0)
-LICENSE_1_SIZE=(license_1_end - license_1)
-LICENSE_2_SIZE=(license_2_end - license_2)
-LICENSE_3_SIZE=(license_3_end - license_3)
-LICENSE_4_SIZE=(license_4_end - license_4)
-LICENSE_5_SIZE=(license_5_end - license_5)
-LICENSE_6_SIZE=(license_6_end - license_6)
+; LICENSE_0_SIZE=(license_0_end - license_0)
+; LICENSE_1_SIZE=(license_1_end - license_1)
+; LICENSE_2_SIZE=(license_2_end - license_2)
+; LICENSE_3_SIZE=(license_3_end - license_3)
+; LICENSE_4_SIZE=(license_4_end - license_4)
+; LICENSE_5_SIZE=(license_5_end - license_5)
+; LICENSE_6_SIZE=(license_6_end - license_6)
 
 ;=================================================
 ; RACE_STREAM_ROW
@@ -157,9 +187,15 @@ onscreen:
 .data
 .define MOUNTAINS_MAP_NAME "race-mtn.seq"
 .define FOREST_MAP_NAME "race-for.seq"
+.define MOUNTAINS_TILES_NAME "race-ts1.seq"
+.define FOREST_TILES_NAME "race-ts2.seq"
+.define RACE_SPRITES_NAME "race-ss.seq"
 
 MOUNTAINS_MAP_STR: .asciiz MOUNTAINS_MAP_NAME
 FOREST_MAP_STR: .asciiz FOREST_MAP_NAME
+MOUNTAINS_TILE_STR: .asciiz MOUNTAINS_TILES_NAME
+FOREST_TILE_STR: .asciiz FOREST_TILES_NAME
+RACE_SPRITES_STR: .asciiz RACE_SPRITES_NAME
 
 .code
 ;=================================================
@@ -179,18 +215,22 @@ race_do:
     SYS_FILE_VLOAD FOREST_MAP_STR, .strlen(FOREST_MAP_NAME), RACE_FOREST_MAP_ADDR
     
 __race__stream_tiles:
-    VERA_SET_CTRL 0
+    SYS_FILE_VLOAD MOUNTAINS_TILE_STR, .strlen(MOUNTAINS_TILES_NAME), RACE_MOUNTAINS_TILES_ADDR
+    SYS_FILE_VLOAD FOREST_TILE_STR, .strlen(FOREST_TILES_NAME), RACE_FOREST_TILES_ADDR
+    SYS_FILE_VLOAD RACE_SPRITES_STR, .strlen(RACE_SPRITES_NAME), RACE_SPRITES_ADDR
 
-    ; Tile data
-    VERA_STREAM_OUT_DATA mountain, RACE_MOUNTAINS_TILES_ADDR, RACE_MOUNTAINS_TILES_SIZE
-    VERA_STREAM_OUT_DATA font_courier_new, RACE_FONT_TILES_ADDR, RACE_FONT_TILES_SIZE
-    VERA_STREAM_OUT_DATA forest, RACE_FOREST_TILES_ADDR, RACE_FOREST_TILES_SIZE
-    VERA_STREAM_OUT_DATA forest_inner, RACE_FOREST_INNER_TILES_ADDR, RACE_FOREST_INNER_TILES_SIZE
-    VERA_STREAM_OUT_DATA car, RACE_CAR_ADDR, RACE_CAR_SIZE
-    VERA_STREAM_OUT_DATA road, ROAD_ADDR, ROAD_SIZE
-    VERA_STREAM_OUT_DATA pillar, PILLAR_ADDR, PILLAR_SIZE
-    VERA_STREAM_OUT_DATA wheel_00_00, WHEEL0_ADDR, WHEEL0_SIZE
-    VERA_STREAM_OUT_DATA wheel_01_00, WHEEL1_ADDR, WHEEL1_SIZE
+    ; VERA_SET_CTRL 0
+
+    ; ; Tile data
+    ; VERA_STREAM_OUT_DATA mountain, RACE_MOUNTAINS_TILES_ADDR, RACE_MOUNTAINS_TILES_SIZE
+    ; VERA_STREAM_OUT_DATA font_courier_new, RACE_FONT_TILES_ADDR, RACE_FONT_TILES_SIZE
+    ; VERA_STREAM_OUT_DATA forest, RACE_FOREST_TILES_ADDR, RACE_FOREST_TILES_SIZE
+    ; VERA_STREAM_OUT_DATA forest_inner, RACE_FOREST_INNER_TILES_ADDR, RACE_FOREST_INNER_TILES_SIZE
+    ; VERA_STREAM_OUT_DATA car, RACE_CAR_ADDR, RACE_CAR_SIZE
+    ; VERA_STREAM_OUT_DATA road, ROAD_ADDR, ROAD_SIZE
+    ; VERA_STREAM_OUT_DATA pillar, PILLAR_ADDR, PILLAR_SIZE
+    ; VERA_STREAM_OUT_DATA wheel_00_00, WHEEL0_ADDR, WHEEL0_SIZE
+    ; VERA_STREAM_OUT_DATA wheel_01_00, WHEEL1_ADDR, WHEEL1_SIZE
 
     ; Palette data
     VERA_STREAM_OUT_DATA mountain_palette, VRAM_palette0, 16*2
@@ -614,28 +654,28 @@ Roads_speed: .word $F776
 Race_credits_palette_start:
 	.word $0000, $00ff, $00ff
 
-Race_mountains_map:
-    .word $0000, $0000, $0000, $0001, $0002, $0000, $0000, $0000
-    .word $0000, $0003, $0004, $0005, $0006, $0007, $0008, $0000
-    .word $0009, $000a, $000b, $000c, $000d, $000e, $000f, $0010
-    .word $0011, $0012, $0013, $0014, $0015, $0016, $0017, $0018
-    .word $0019, $001a, $001b, $001c, $001d, $001e, $001f, $0020
-    .word $0021, $0022, $0023, $0024, $0025, $0026, $0027, $0028
-    .word $0029, $002a, $002b, $002c, $002d, $002e, $002f, $0030
-    .word $0031, $0032, $0033, $0034, $0035, $0036, $0037, $0038
+; Race_mountains_map:
+;     .word $0000, $0000, $0000, $0001, $0002, $0000, $0000, $0000
+;     .word $0000, $0003, $0004, $0005, $0006, $0007, $0008, $0000
+;     .word $0009, $000a, $000b, $000c, $000d, $000e, $000f, $0010
+;     .word $0011, $0012, $0013, $0014, $0015, $0016, $0017, $0018
+;     .word $0019, $001a, $001b, $001c, $001d, $001e, $001f, $0020
+;     .word $0021, $0022, $0023, $0024, $0025, $0026, $0027, $0028
+;     .word $0029, $002a, $002b, $002c, $002d, $002e, $002f, $0030
+;     .word $0031, $0032, $0033, $0034, $0035, $0036, $0037, $0038
 
-Race_forest_map:
-    .repeat 8, yi
-        .repeat 8, xi
-            .word ($1000 | (yi*8 + xi + 1))
-        .endrep
-    .endrep
+; Race_forest_map:
+;     .repeat 8, yi
+;         .repeat 8, xi
+;             .word ($1000 | (yi*8 + xi + 1))
+;         .endrep
+;     .endrep
 
-Race_forest_inner_map:
-    .repeat 8, yi
-        .repeat 8, xi
-            .word ($1000 | (yi*8 + xi + 65))
-        .endrep
-    .endrep
+; Race_forest_inner_map:
+;     .repeat 8, yi
+;         .repeat 8, xi
+;             .word ($1000 | (yi*8 + xi + 65))
+;         .endrep
+;     .endrep
 
 .endif ; RACE_ASM
