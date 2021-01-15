@@ -182,11 +182,11 @@ ZP_COPY_SIZE = $7A
 ; MODIFIES: A
 ; 
 .macro SYS_INIT_BANK
-    lda $9F60
+    lda SYS_BANK_ROM
     sta Sys_rom_original
 
     lda #0
-    sta $9F60
+    sta SYS_BANK_ROM
 .endmacro
 
 ;=================================================
@@ -200,7 +200,7 @@ ZP_COPY_SIZE = $7A
 ; 
 .macro SYS_RESTORE_BANK
     lda Sys_rom_original
-    sta $9F60
+    sta SYS_BANK_ROM
 .endmacro
 
 ;=================================================
@@ -214,7 +214,7 @@ ZP_COPY_SIZE = $7A
 ; 
 .macro SYS_SET_BANK bank
     lda #bank
-    sta $9F61
+    sta SYS_BANK_RAM
 .endmacro
 
 ;=================================================
