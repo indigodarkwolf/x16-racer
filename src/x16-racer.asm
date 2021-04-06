@@ -64,8 +64,6 @@ start:
     ; YM2151_WRITE $08, $40 ; play note
 
     jsr bitmap_do
-    lda #2
-    jsr graphics_fade_out
     jsr splash_do
     jsr race_do
 

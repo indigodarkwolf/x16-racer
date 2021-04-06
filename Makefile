@@ -1,8 +1,12 @@
 PROJECT	:= x16-race
-EMUDIR  := ../../vs2019/x16-bin
+EMUDIR  := ../../x16-ce/out/build/x64-Debug
+#EMUDIR  := ../../vs2019/x16-bin
 #EMUDIR  := ../../x16emu_win-r38
-EMU     := ./x16emu_Release.exe
+EMU     := ./x16-ce_debug.exe
+#EMU     := ./x16emu_Release.exe
 #EMU     := ./x16emu.exe
+EMUFLAGS := -scale 2 -quality nearest -sym $(PROJECT).sym
+#EMUFLAGS := -debug -scale 2 -quality nearest
 MKDIR   := mkdir -p
 RMDIR   := rmdir -p
 CC      := ca65
@@ -32,16 +36,17 @@ all:
 
 run:
 	cp $(BIN)/* $(EMUDIR)/
-	cd $(EMUDIR) && $(EMU) -debug -scale 2 -quality nearest -prg $(PROJECT).prg
+	cp $(OBJ)/$(PROJECT).sym $(EMUDIR)/
+	cd $(EMUDIR) && $(EMU) $(EMUFLAGS) -prg $(PROJECT).prg
 
 runsd:
 	cp $(SDCARD) $(EMUDIR)/
-	cd $(EMUDIR) && $(EMU) -debug -scale 2 -quality nearest -sdcard $(PROJECT).img
+	cd $(EMUDIR) && $(EMU) $(EMUFLAGS) -sdcard $(PROJECT).img
 
 runhybrid:
 	cp $(SDCARD) $(EMUDIR)/
 	cp $(BIN)/* $(EMUDIR)/
-	cd $(EMUDIR) && $(EMU) -debug -scale 2 -quality nearest -sdcard $(PROJECT).img -prg $(PROJECT).prg
+	cd $(EMUDIR) && $(EMU) $(EMUFLAGS) -sdcard $(PROJECT).img -prg $(PROJECT).prg
 
 clean:
 	$(MAKE) clean -f Makefile_prg

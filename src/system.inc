@@ -3,8 +3,8 @@ SYSTEM_INC=1
 
 .include "kernal.inc"
 
-SYS_BANK_ROM = $9F60
-SYS_BANK_RAM = $9F61
+SYS_BANK_ROM = $01
+SYS_BANK_RAM = $00
 
 KERNAL_joystick_scan = $FF53
 KERNAL_joystick_get = $FF56

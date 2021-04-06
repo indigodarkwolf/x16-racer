@@ -30,6 +30,9 @@ BITMAP_ASM=1
     lda #16
     jsr sys_wait_for_frame
 
+    lda #2
+    jsr graphics_fade_out
+
     VERA_SET_SCALE 128
 
     rts
