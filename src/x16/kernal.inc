@@ -3,7 +3,7 @@ KERNAL_INC=1
 
 ;=================================================
 ;=================================================
-; 
+;
 ;   C64-compatible kernal calls
 ;
 ;-------------------------------------------------
@@ -66,6 +66,21 @@ KERNAL_INC=1
 ; Channel I/O
 ;
 
+SETMSG := $FF90
+READST := $FFB7
+SETLFS := $FFBA
+SETNAM := $FFBD
+OPEN := $FFC0
+CLOSE := $FFC3
+CHKIN := $FFC6
+CHKOUT := $FFC9
+CLRCHN := $FFCC
+BASIN := $FFCF
+BSOUT := $FFD2
+LOAD := $FFD5
+SAVE := $FFD8
+CLALL := $FFE7
+
 ;=================================================
 ; KERNAL_SETMSG
 ;   Set system error display switch at memory address $009D.
@@ -79,7 +94,7 @@ KERNAL_INC=1
 ; 
 .macro KERNAL_SETMSG value
     lda #value
-    jsr $FF90
+    jsr SETMSG
 .endmacro
 
 ;=================================================
@@ -94,7 +109,7 @@ KERNAL_INC=1
 ; MODIFIES: A
 ; 
 .macro KERNAL_READST value
-    jsr $FFB7
+    jsr READST
 .endmacro
 
 ;=================================================
@@ -114,7 +129,7 @@ KERNAL_INC=1
     lda #logical_num
     ldx #device_num
     ldy #secondary_address
-    jsr $FFBA
+    jsr SETLFS
 .endmacro
 
 ;=================================================
@@ -133,7 +148,7 @@ KERNAL_INC=1
     lda #name_len
     ldx #<name_addr
     ldy #>name_addr
-    jsr $FFBD
+    jsr SETNAM
 .endmacro
 
 ;=================================================
@@ -147,7 +162,7 @@ KERNAL_INC=1
 ; MODIFIES: A, X, Y
 ; 
 .macro KERNAL_OPEN
-    jsr $FFC0
+    jsr OPEN
 .endmacro
 
 ;=================================================
@@ -163,7 +178,7 @@ KERNAL_INC=1
 ; 
 .macro KERNAL_CLOSE logical_num
     lda #logical_num
-    jsr $FFC3
+    jsr CLOSE
 .endmacro
 
 ;=================================================
@@ -179,7 +194,7 @@ KERNAL_INC=1
 ; 
 .macro KERNAL_CHKIN logical_num
     ldx #logical_num
-    jsr $FFC6
+    jsr CHKIN
 .endmacro
 
 ;=================================================
@@ -195,7 +210,7 @@ KERNAL_INC=1
 ; 
 .macro KERNAL_CHKOUT logical_num
     ldx #logical_num
-    jsr $FFC9
+    jsr CHKOUT
 .endmacro
 
 ;=================================================
@@ -209,7 +224,7 @@ KERNAL_INC=1
 ; MODIFIES: A, X
 ; 
 .macro KERNAL_CLRCHN
-    jsr $FFCC
+    jsr CLRCHN
 .endmacro
 
 ;=================================================
@@ -224,7 +239,7 @@ KERNAL_INC=1
 ; MODIFIES: (none)
 ; 
 .macro KERNAL_BASIN
-    jsr $FFCF
+    jsr BASIN
 .endmacro
 
 ;=================================================
@@ -239,7 +254,7 @@ KERNAL_INC=1
 ; MODIFIES: A, Y
 ; 
 .macro KERNAL_BSOUT
-    jsr $FFD2
+    jsr BSOUT
 .endmacro
 
 ;=================================================
@@ -258,7 +273,7 @@ KERNAL_INC=1
     lda #verify
     ldx #<addr
     ldy #>addr
-    jsr $FFD5
+    jsr LOAD
 .endmacro
 
 ;=================================================
@@ -277,7 +292,7 @@ KERNAL_INC=1
     lda #zp_ptr
     ldx #<(end_address+1)
     ldy #>(end_address+1)
-    jsr $FFD8
+    jsr SAVE
 .endmacro
 
 ;=================================================
@@ -291,12 +306,22 @@ KERNAL_INC=1
 ; MODIFIES: A, X
 ; 
 .macro KERNAL_CLALL
-    jsr $FFE7
+    jsr CLALL
 .endmacro
 
 ;
 ; Commodore Peripheral Bus
 ;
+
+TALK := $FFB4
+LISTEN := $FFB1
+UNLSN := $FFAE
+UNTLK := $FFAB
+IECOUT := $FFA8
+IECIN := $FFA5
+SETTMO := $FFA2
+TKSA := $FF96
+SECOND := $FF93
 
 ;=================================================
 ; KERNAL_TALK 
@@ -310,7 +335,7 @@ KERNAL_INC=1
 ;
 .macro KERNAL_TALK device
     lda #device
-    jsr $FFB4
+    jsr TALK
 .endmacro
 
 ;=================================================
@@ -325,7 +350,7 @@ KERNAL_INC=1
 ;
 .macro KERNAL_LISTEN device
     lda device
-    jsr $FFB1
+    jsr LISTEN
 .endmacro
 
 ;=================================================
@@ -340,7 +365,7 @@ KERNAL_INC=1
 ;
 .macro KERNAL_UNLISTEN device
     lda device
-    jsr $FFAE
+    jsr UNLISTEN
 .endmacro
 
 ;=================================================
@@ -355,7 +380,7 @@ KERNAL_INC=1
 ;
 .macro KERNAL_UNTALK device
     lda #device
-    jsr $FFAB
+    jsr UNTALK
 .endmacro
 
 ;=================================================
@@ -370,7 +395,7 @@ KERNAL_INC=1
 ;
 .macro KERNAL_IECOUT data
     lda #data
-    jsr $FFA8
+    jsr IECOUT
 .endmacro
 
 ;=================================================
@@ -384,7 +409,7 @@ KERNAL_INC=1
 ; MODIFIES: A, X
 ;
 .macro KERNAL_IECIN
-    jsr $FFA5
+    jsr IECIN
 .endmacro
 
 ;=================================================
@@ -403,7 +428,7 @@ KERNAL_INC=1
     .else
         lda #$80
     .endif
-    jsr $FFA2
+    jsr SETTMO
 .endmacro
 
 ;=================================================
@@ -418,7 +443,7 @@ KERNAL_INC=1
 ;
 .macro KERNAL_TKSA command
     lda #command
-    jsr $FF96
+    jsr TKSA
 .endmacro
 
 ;=================================================
@@ -433,12 +458,15 @@ KERNAL_INC=1
 ;
 .macro KERNAL_SECOND command
     lda #command
-    jsr $FF93
+    jsr SECOND
 .endmacro
 
 ;
 ; Memory
 ;
+
+MEMBOT := $FF9C
+MEMTOP := $FF99
 
 ;=================================================
 ; KERNAL_MEMBOT_GET
@@ -452,7 +480,7 @@ KERNAL_INC=1
 ;
 .macro KERNAL_MEMBOT_GET device
     sec
-    jsr $FF9C
+    jsr MEMBOT
 .endmacro
 
 ;=================================================
@@ -469,7 +497,7 @@ KERNAL_INC=1
     ldx #<address
     ldy #>address
     clc
-    jsr $FF9C
+    jsr MEMBOT
 .endmacro
 
 
@@ -485,7 +513,7 @@ KERNAL_INC=1
 ;
 .macro KERNAL_MEMTOP_GET device
     sec
-    jsr $FF99
+    jsr MEMTOP
 .endmacro
 
 ;=================================================
@@ -502,12 +530,16 @@ KERNAL_INC=1
     ldx #<address
     ldy #>address
     clc
-    jsr $FF99
+    jsr MEMTOP
 .endmacro
 
 ;
 ; Time
 ;
+
+RDTIM := $FFDE
+SETTIM := $FFDB
+UDTIM := $FFEA
 
 ;=================================================
 ; KERNAL_RDTIM 
@@ -522,7 +554,7 @@ KERNAL_INC=1
 ; MODIFIES: A, X, Y
 ;
 .macro KERNAL_RDTIM
-    jsr $FFDE
+    jsr RDTIM
 .endmacro
 
 ;=================================================
@@ -539,7 +571,7 @@ KERNAL_INC=1
     lda #^new_time
     ldx #>new_time
     ldy #<new_time
-    jsr $FFDB
+    jsr SETTIM
 .endmacro
 
 ;=================================================
@@ -553,13 +585,19 @@ KERNAL_INC=1
 ; MODIFIES: A, X
 ;
 .macro KERNAL_UDTIM
-    jsr $FFEA
+    jsr UDTIM
 .endmacro
 
 
 ;
 ; Other
 ;
+
+STOP := $FFE1
+GETIN := $FFE4
+SCREEN := $FFED
+PLOT := $FFF0
+IOBASE := $FFF3
 
 ;=================================================
 ; KERNAL_STOP 
@@ -572,7 +610,7 @@ KERNAL_INC=1
 ; MODIFIES: A, X
 ;
 .macro KERNAL_STOP
-    jsr $FFE1
+    jsr STOP
 .endmacro
 
 ;=================================================
@@ -586,7 +624,7 @@ KERNAL_INC=1
 ; MODIFIES: A, X, Y
 ;
 .macro KERNAL_GETIN
-    jsr $FFE4
+    jsr GETIN
 .endmacro
 
 ;=================================================
@@ -601,7 +639,7 @@ KERNAL_INC=1
 ; MODIFIES: X, Y
 ;
 .macro KERNAL_SCREEN
-    jsr $FFED
+    jsr SCREEN
 .endmacro
 
 ;=================================================
@@ -618,7 +656,7 @@ KERNAL_INC=1
 .macro KERNAL_PLOT cursor_x, cursor_y
     ldx #cursor_x
     ldy #cursor_y
-    jsr $FFF0
+    jsr PLOT
 .endmacro
 
 ;=================================================
@@ -633,33 +671,7 @@ KERNAL_INC=1
 ; MODIFIES: X, Y
 ;
 .macro KERNAL_IOBASE device
-    jsr $FFF3
+    jsr IOBASE
 .endmacro
-
-
-
-;=================================================
-;=================================================
-; 
-;   X16-extension kernal calls
-;
-;-------------------------------------------------
-;
-; $FF90: SETMSG – set verbosity 
-; $FFB7: READST – return status byte 
-; $FFBA: SETLFS – set LA, FA and SA 
-; $FFBD: SETNAM – set filename 
-; $FFC0: OPEN – open a channel 
-; $FFC3: CLOSE – close a channel 
-; $FFC6: CHKIN – set channel for character input 
-; $FFC9: CHKOUT – set channel for character output 
-; $FFCC: CLRCHN – restore character I/O to screen/keyboard 
-; $FFCF: BASIN – get character 
-; $FFD2: BSOUT – write character 
-; $FFD5: LOAD – load a file into memory 
-; $FFD8: SAVE – save a file from memory 
-; $FFE7: CLALL – close all channels
-;
-
 
 .endif ; KERNAL_INC

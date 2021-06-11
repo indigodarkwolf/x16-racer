@@ -3,11 +3,13 @@ RACE_ASM=1
 
 .include "race.inc"
 
-.include "vera.inc"
-.include "system.inc"
+.include "controls.inc"
+.include "x16/vera.inc"
+.include "x16/system.inc"
 .include "graphics.inc"
 .include "math.inc"
-.include "kernal.inc"
+.include "x16/kernal.inc"
+.include "x16/kernal_ex.inc"
 
 .include "assets/mountains-palette.inc"
 .include "assets/font_courier_new-palette.inc"
@@ -269,6 +271,12 @@ __race__setup_scene:
     ; VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320), (240-64), 0, 0, 1, 0, 3, 2
 
 __race__begin:
+    jsr controls_clear_handlers
+    CONTROLS_SET_HANDLER handler_up_down, race_move_up
+    CONTROLS_SET_HANDLER handler_down_down, race_move_down
+    CONTROLS_SET_HANDLER handler_left_down, race_move_left
+    CONTROLS_SET_HANDLER handler_right_down, race_move_right
+
     lda #1
     jsr sys_wait_for_frame
 
@@ -281,6 +289,25 @@ __race__begin:
 __race__cleanup:
     VERA_DISABLE_SPRITES
     rts
+
+
+race_move_up:
+    ADD_24 Car_pos_y, Car_pos_y, Car_move_speed_neg
+    rts
+
+race_move_down:
+    ADD_24 Car_pos_y, Car_pos_y, Car_move_speed
+    rts
+
+race_move_left:
+    ADD_24 Car_pos_x, Car_pos_x, Car_move_speed_neg
+    rts
+
+race_move_right:
+    ADD_24 Car_pos_x, Car_pos_x, Car_move_speed
+    rts
+
+
 
 ; Since I'm doing a *lot* of work without waiting for frames (due to having everything turned off),
 ; I may be mid-frame when I turn things on. So instead of just doing that any time, do it in a
@@ -409,33 +436,7 @@ do_vblank_irq:
     ; Now do everything else.
     ;
 
-    SYS_POLLJOY
-    SYS_GETJOY 0
-
-    ; Update car position
-    tax
-    and #BUTTON_JOY_UP
-    bne button_up_end
-    ADD_24 Car_pos_y, Car_pos_y, Car_move_speed_neg
-button_up_end:
-    txa
-    and #BUTTON_JOY_DOWN
-    bne button_down_end
-    ADD_24 Car_pos_y, Car_pos_y, Car_move_speed
-button_down_end:
-    txa
-    and #BUTTON_JOY_LEFT
-    bne button_left_end
-    ADD_24 Car_pos_x, Car_pos_x, Car_move_speed_neg
-button_left_end:
-    txa
-    and #BUTTON_JOY_RIGHT
-    bne button_right_end
-    ADD_24 Car_pos_x, Car_pos_x, Car_move_speed
-button_right_end:
-    txa
-    and #BUTTON_NES_A
-
+    jsr controls_process
 
     BGE_16 Car_pos_x+1, Car_bb_left+1, check_car_left_end
     lda Car_bb_left

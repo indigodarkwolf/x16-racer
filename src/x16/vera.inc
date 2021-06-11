@@ -11,11 +11,7 @@ VERA_INC=1
 ;
 ;-------------------------------------------------
 
-.ifdef MACHINE_C64
-	VERA_base = $df00
-.else
-	VERA_base = $9f20
-.endif
+VERA_base = $9f20
 
 VERA_addr       = VERA_base+0
 VERA_addr_low   = VERA_base+0
@@ -119,20 +115,8 @@ TILE_VFLIP=(1 << 11)
 .macro VERA_SET_CTRL addr
 .scope
 vera_set_ctrl:
-	; lda VERA_ctrl
-	; .if addr = 0
-	; 	and #$FE
-	; .else
-	; 	ora #$01
-	; .endif
-	; sta VERA_ctrl
-	.if addr = 0
-		lda #1
-		trb VERA_ctrl
-	.else
-		lda #1
-		tsb VERA_ctrl
-	.endif
+	lda #addr
+	sta VERA_ctrl
 .endscope
 .endmacro
 
@@ -523,13 +507,20 @@ OFFSET=((((width)*(pixel_y))+(height))*(bpp))/8
 	.error "Sprite data does not obey alignment rules"
 .endif
 
+.scope
+vera_configure_sprite:
 .local DATA_ADDR
 DATA_ADDR=((data_addr)>>5)
 
+addr_and_mode:
 	VERA_WRITE ((DATA_ADDR) & $FF), (((DATA_ADDR) >> 8) | ((colors) << 7))
+pos:
 	VERA_WRITE ((xpos) & $0FF), (((xpos) & $300) >> 8), ((ypos) & $0FF), (((ypos) & $300) >> 8)
+flip_z_and_mask:
 	VERA_WRITE ((hflip) | ((vflip) << 1) | ((zdepth) << 2))
+palette_width_height:
 	VERA_WRITE (((palette_index) & $0F) | ((width) << 4) | ((height) << 6))
+.endscope
 .endmacro
 
 

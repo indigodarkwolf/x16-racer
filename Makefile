@@ -1,12 +1,17 @@
 PROJECT	:= x16-race
-EMUDIR  := ../../x16-ce/out/build/x64-Debug
-#EMUDIR  := ../../vs2019/x16-bin
-#EMUDIR  := ../../x16emu_win-r38
-EMU     := ./x16-ce_debug.exe
-#EMU     := ./x16emu_Release.exe
-#EMU     := ./x16emu.exe
+
+EMUDIR  := ../../git/box16/build/vs2019/out/x64/Release
+EMU     := ./box16.exe
 EMUFLAGS := -scale 2 -quality nearest -sym $(PROJECT).sym
+
+# EMUDIR  := ../../vs2019/x16-bin
+# EMU     := ./x16emu_Release.exe
+# EMUFLAGS := -debug -scale 2 -quality nearest
+
+#EMUDIR  := ../../x16emu_win-r38
+#EMU     := ./x16emu.exe
 #EMUFLAGS := -debug -scale 2 -quality nearest
+
 MKDIR   := mkdir -p
 RMDIR   := rmdir -p
 CC      := ca65
@@ -16,7 +21,7 @@ BIN     := ./build
 OBJ     := ./obj
 SRC     := ./src
 IMG     := ./img
-SRCS    := $(wildcard $(SRC)/*.asm)
+SRCS    := $(wildcard $(SRC)/*.asm) $(wildcard $(SRC)/x16/*.asm)
 OBJS    := $(patsubst $(SRC)/%.asm,$(OBJ)/%.o,$(SRCS))
 SEQS    := $(patsubst $(SRC)/%.asm,$(BIN)/%.seq,$(SRCS))
 EXE     := $(BIN)/$(PROJECT).prg
@@ -36,7 +41,6 @@ all:
 
 run:
 	cp $(BIN)/* $(EMUDIR)/
-	cp $(OBJ)/$(PROJECT).sym $(EMUDIR)/
 	cd $(EMUDIR) && $(EMU) $(EMUFLAGS) -prg $(PROJECT).prg
 
 runsd:

@@ -4,15 +4,15 @@ PROJECT	:= x16-race
 MKDIR   := mkdir -p
 RMDIR   := rmdir -p
 CC      := ca65
-LD      := cl65
+LD      := ~/src/cc65/bin/cl65
 BIN     := ./build
 OBJ     := ./obj
 SRC     := ./src
-SRCS    := $(wildcard $(SRC)/*.asm)
+SRCS    := $(wildcard $(SRC)/*.asm) $(wildcard $(SRC)/x16/*.asm)
 OBJS    := $(patsubst $(SRC)/%.asm,$(OBJ)/%.o,$(SRCS))
 EXE     := $(BIN)/$(call UC,$(PROJECT).prg)
 CFLAGS  := --cpu 65C02 -g
-LDFLAGS := --target cx16 -Ln $(OBJ)/$(PROJECT).sym
+LDFLAGS := --config ./cx16-asm.cfg -Ln $(BIN)/$(call UC,$(PROJECT).sym) -u __EXEHDR__
 
 .PHONY: all run clean
 
@@ -21,10 +21,10 @@ all: $(EXE) $(OBJS)
 $(EXE): $(OBJS) | $(BIN)
 	$(LD) $(LDFLAGS) $^ -o $@
 
-$(OBJ)/%.o: $(SRC)/%.asm | $(OBJ)
+$(OBJ)/%.o: $(SRC)/%.asm | $(OBJ) $(OBJ)/x16
 	$(CC) $(CFLAGS) $< -o $@
 
-$(BIN) $(OBJ):
+$(BIN) $(OBJ) $(OBJ)/x16:
 	$(MKDIR) $@
 
 run: $(EXE)

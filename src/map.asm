@@ -1,7 +1,9 @@
 .include "map.inc"
 
+.include "controls.inc"
 .include "math.inc"
-.include "vera.inc"
+.include "x16/vera.inc"
+.include "x16/kernal_ex.inc"
 
 .data
 ; Tile coordinate of map window's top-left corner
@@ -25,11 +27,6 @@ MAP_BANK_MASK = $0F
 
 .code
 .proc test_map_draw_column
-    SYS_INIT_BANK
-    SYS_INIT_IRQ
-    SYS_RAND_SEED $34, $56, $fe
-    SYS_CONFIGURE_MOUSE 0
-
     lda #(MAP_BANK_START)
     sta SYS_BANK_RAM
 
@@ -64,45 +61,17 @@ c1: sta $B000,y
 
 exit:
     jsr map_reset_view
+    jsr controls_clear_handlers
+    CONTROLS_SET_HANDLER handler_up_pressed, do_up
+    CONTROLS_SET_HANDLER handler_down_pressed, do_down
+    CONTROLS_SET_HANDLER handler_left_pressed, do_left
+    CONTROLS_SET_HANDLER handler_right_pressed, do_right
     SYS_SET_IRQ do_irq
 inf_loop:
     wai
     jmp inf_loop
 
-dpad_last_state: .byte $00, $00, $00
-dpad_state: .byte $00, $00, $00
-dpad_pressed: .byte $00, $00, $00
-
-do_irq:
-    SYS_POLLJOY
-    SYS_GETJOY 0
-    sta dpad_last_state
-    stx dpad_last_state+1
-    sty dpad_last_state+2
-    SYS_SET_IRQ repeat_irq
-    VERA_END_VBLANK_IRQ
-    SYS_END_IRQ
-    SYS_ABORT_IRQ
-
-repeat_irq:
-    SYS_POLLJOY
-    SYS_GETJOY 0
-    sta dpad_state
-    stx dpad_state+1
-    sty dpad_state+2
-
-.repeat 3,i
-    lda dpad_last_state+i
-    eor #$FF
-    and dpad_state+i
-    sta dpad_pressed+i
-.endrep
-
-    lda dpad_pressed
-check_right:
-    ror
-    bcc check_left
-    pha
+do_right:
     jsr map_incr_view_x
 
     lda VERA_l0_hscroll_l
@@ -120,12 +89,9 @@ check_right:
     lda VERA_l1_hscroll_h
     adc #0
     sta VERA_l1_hscroll_h
+    rts
 
-    pla
-check_left:
-    ror
-    bcc check_down
-    pha
+do_left:
     jsr map_decr_view_x
 
     lda VERA_l0_hscroll_l
@@ -143,13 +109,9 @@ check_left:
     lda VERA_l1_hscroll_h
     sbc #0
     sta VERA_l1_hscroll_h
+    rts
 
-    pla
-    jmp done
-check_down:
-    ror
-    bcc check_up
-    pha
+do_down:
     jsr map_incr_view_y
 
     lda VERA_l0_vscroll_l
@@ -167,12 +129,9 @@ check_down:
     lda VERA_l1_vscroll_h
     adc #0
     sta VERA_l1_vscroll_h
+    rts
 
-    pla
-check_up:
-    ror
-    bcc done
-    pha
+do_up:
     jsr map_decr_view_y
 
     lda VERA_l0_vscroll_l
@@ -190,16 +149,13 @@ check_up:
     lda VERA_l1_vscroll_h
     sbc #0
     sta VERA_l1_vscroll_h
+    rts
 
-    pla
-done:
+do_irq:
+    jsr controls_process
 
-.repeat 3,i
-    lda dpad_state+i
-    sta dpad_last_state+i
-.endrep
     VERA_END_VBLANK_IRQ
-    SYS_END_IRQ
+    ; SYS_END_IRQ
     SYS_ABORT_IRQ
 .endproc
 

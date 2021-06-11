@@ -3,8 +3,8 @@ BITMAP_ASM=1
 
 .include "bitmap.inc"
 
-.include "vera.inc"
-.include "system.inc"
+.include "x16/vera.inc"
+.include "x16/system.inc"
 .include "graphics.inc"
 .include "math.inc"
 

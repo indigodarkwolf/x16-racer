@@ -1,5 +1,6 @@
 .include "math.inc"
-.include "kernal.inc"
+.include "x16/kernal.inc"
+.include "x16/kernal_ex.inc"
 
 SQUARES_OVER_FOUR_TABLE = $A000
 SQUARES_OVER_FOUR_TABLE_LO = $A000
@@ -38,6 +39,102 @@ MATH_TABLES_STR: .asciiz MATH_TABLES_NAME
     ; KERNAL_SETNAM .strlen(MATH_TABLES_NAME), MATH_TABLES_STR
     ; KERNAL_LOAD 0, $A000
 
+    rts
+.endproc
+
+;=================================================
+; div_8
+;   Divide A by X, storing the results in A and remainder in X.
+;   Based on the bit-shifting algorithm from Ben Eater's
+;   https://www.youtube.com/watch?v=v3-a-zqKfgA
+;
+;-------------------------------------------------
+; INPUTS:   A   Lhs
+;           X   Rhs
+;
+;-------------------------------------------------
+; OUTPUTS:  A   Result
+;           X   Remainder
+;
+;-------------------------------------------------
+; MODIFIES: A, X, r0, r1L
+;-------------------------------------------------
+.code
+.proc div_8
+val = r0L
+rem = val + 1
+div = rem + 1
+
+    sta val
+    stz rem
+    stx div
+
+    ldx #8
+    asl val
+loop:
+    rol rem
+
+    sec
+    lda rem
+    sbc div
+    bcc ignore_result
+    sta rem
+ignore_result:
+    rol val
+    dex
+    bne loop
+    lda val
+    ldx rem
+    rts
+.endproc
+
+;=================================================
+; div_16
+;   Divide r0 by r1, storing the results in r0 and remainder in r2.
+;   Based on the bit-shifting algorithm from Ben Eater's
+;   https://www.youtube.com/watch?v=v3-a-zqKfgA
+;
+;-------------------------------------------------
+; INPUTS:   r0   Lhs
+;           r1   Rhs
+;
+;-------------------------------------------------
+; OUTPUTS:  r0   Result
+;           r2   Remainder
+;
+;-------------------------------------------------
+; MODIFIES: A, X, Y, r0, r1, r2
+;-------------------------------------------------
+.code
+.proc div_16
+val = r0
+div = val + 2
+rem = div + 2
+
+    stz rem
+    stz rem+1
+
+    ldx #16
+    asl val
+    rol val+1
+loop:
+    rol rem
+    rol rem+1
+
+    sec
+    lda rem
+    sbc div
+    tay
+    lda rem+1
+    sbc div+1
+    bcc ignore_result
+    sty rem
+    sta rem+1
+ignore_result:
+    rol val
+    rol val+1
+    dex
+    bne loop
     rts
 .endproc
 
@@ -234,3 +331,4 @@ multiplying_zero:
     lda SIN360_TABLE_HI, y
     rts
 .endproc
+

@@ -6,10 +6,6 @@ SYSTEM_INC=1
 SYS_BANK_ROM = $01
 SYS_BANK_RAM = $00
 
-KERNAL_joystick_scan = $FF53
-KERNAL_joystick_get = $FF56
-KERNAL_MOUSE = $FF68
-
 BUTTON_SNES_A       = (1 << 7)
 BUTTON_SNES_X       = (1 << 6)
 BUTTON_SNES_L       = (1 << 5)
@@ -473,31 +469,6 @@ ZP_COPY_SIZE = $7A
         dex
         bne @loop2
     .endif
-.endmacro
-
-
-;=================================================
-;=================================================
-; 
-;   Kernal calls
-;
-;-------------------------------------------------
-
-.macro SYS_POLLJOY
-    jsr KERNAL_joystick_scan
-.endmacro
-
-.macro SYS_GETJOY id
-    lda #id
-    jsr KERNAL_joystick_get
-.endmacro
-
-.macro SYS_CONFIGURE_MOUSE enabled, scale
-    lda #enabled
-    .if enabled <> 0
-        ldx #scale
-    .endif
-    jsr KERNAL_MOUSE
 .endmacro
 
 .endif ; SYSTEM_INC

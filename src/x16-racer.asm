@@ -1,10 +1,3 @@
-.segment "INIT"
-.segment "ONCE"
-.segment "CODE"
-.data
-start_data:
-.code
-
 ;=================================================
 ;=================================================
 ; 
@@ -12,12 +5,15 @@ start_data:
 ;
 ;-------------------------------------------------
 
+.include "controls.inc"
 .include "graphics.inc"
-.include "kernal.inc"
+.include "x16/kernal.inc"
+.include "x16/kernal_ex.inc"
 .include "math.inc"
-.include "system.inc"
-.include "vera.inc"
-.include "ym2151.inc"
+.include "map.inc"
+.include "x16/system.inc"
+.include "x16/vera.inc"
+.include "x16/ym2151.inc"
 
 .include "bitmap.inc"
 .include "race.inc"
@@ -47,7 +43,11 @@ start:
     SYS_INIT_BANK
     SYS_INIT_IRQ
     SYS_RAND_SEED $34, $56, $fe
-    SYS_CONFIGURE_MOUSE 0
+    X16_MOUSE_CONFIG 0
+
+    jsr controls_initialize
+
+    X16_I2C_WRITE_BYTE I2C_DEVICE_SMC, SMC_POWER_LED, $FF
 
     jsr graphics_init
     jsr math_init
@@ -63,8 +63,12 @@ start:
     ; YM2151_WRITE $08, $00 ; release previous note
     ; YM2151_WRITE $08, $40 ; play note
 
+    ; jsr test_map_draw_column
+
     jsr bitmap_do
     jsr splash_do
+    X16_I2C_WRITE_BYTE I2C_DEVICE_SMC, SMC_POWER_LED, $0
+    X16_I2C_WRITE_BYTE I2C_DEVICE_SMC, SMC_ACTIVITY_LED, $FF
     jsr race_do
 
     jmp *

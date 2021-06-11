@@ -3,8 +3,8 @@ GRAPHICS_ASM=1
 
 .include "graphics.inc"
 
-.include "kernal.inc"
-.include "vera.inc"
+.include "x16/kernal.inc"
+.include "x16/vera.inc"
 
 Gfx_palette_decrement_table = $A000
 Gfx_palette                 = $A100

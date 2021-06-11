@@ -1,8 +1,8 @@
 .ifndef SYSTEM_ASM
 SYSTEM_ASM=1
 
-.include "system.inc"
-.include "vera.inc"
+.include "x16/system.inc"
+.include "x16/vera.inc"
 
 .data
 Sys_irq_redirect: .byte $00, $00

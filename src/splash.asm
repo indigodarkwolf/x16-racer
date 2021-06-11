@@ -5,8 +5,8 @@ SPLASH_ASM=1
 
 .include "graphics.inc"
 .include "math.inc"
-.include "system.inc"
-.include "vera.inc"
+.include "x16/system.inc"
+.include "x16/vera.inc"
 
 .ifndef SPLASH_ADDR 
     SPLASH_ADDR=0

@@ -6,6 +6,8 @@ MAP_BANK_START = 32
 .global map_decr_view_y
 .global map_reset_view
 
+.global test_map_draw_column
+
 ;=================================================
 ; MAP_LOAD
 ;   Load a map into the map banks
