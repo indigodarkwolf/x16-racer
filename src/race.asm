@@ -1,21 +1,34 @@
 .ifndef RACE_ASM
 RACE_ASM=1
 
+<<<<<<< HEAD:src/race.asm
 .include "lib/x16/x16.inc"
 .include "lib/debug.inc"
 .include "lib/system.inc"
 .include "lib/graphics.inc"
+=======
+.include "race.inc"
 
-.include "assets/mountains.inc"
-.include "assets/font_courier_new.inc"
-.include "assets/forest.inc"
-.include "assets/forest-inner.inc"
-.include "assets/car.inc"
-.include "assets/road.inc"
-.include "assets/pillar.inc"
-.include "assets/wheel.inc"
+.include "controls.inc"
+.include "x16/vera.inc"
+.include "x16/system.inc"
+.include "graphics.inc"
+.include "math.inc"
+.include "x16/kernal64.inc"
+.include "x16/kernalx16.inc"
 
-.include "assets/licenses.inc"
+.include "assets/mountains-palette.inc"
+.include "assets/font_courier_new-palette.inc"
+.include "assets/forest-palette.inc"
+.include "assets/forest-inner-palette.inc"
+>>>>>>> playing_with_line_irqs:race.asm
+
+.include "assets/car-palette.inc"
+.include "assets/road-palette.inc"
+.include "assets/pillar-palette.inc"
+.include "assets/wheel-palette.inc"
+
+; .include "assets/licenses.inc"
 
 ;===========================
 ;
@@ -34,54 +47,83 @@ RACE_FOREST_MAP_SIZE=$04000 ; 128*64*2 bytes
 ;
 
 RACE_MOUNTAINS_TILES_ADDR=$08000 ; VERA_TILE_DATA_ALIGN(RACE_FOREST_MAP_ADDR + RACE_FOREST_MAP_SIZE)
-RACE_MOUNTAINS_TILES_SIZE=(mountain_end - mountain)
-
-RACE_FONT_TILES_ADDR=(RACE_MOUNTAINS_TILES_ADDR + RACE_MOUNTAINS_TILES_SIZE)
-RACE_FONT_TILES_SIZE=(font_courier_new_end - font_courier_new)
+; .out .concat("RACE_MOUNTAINS_TILES_ADDR    ", .string((RACE_MOUNTAINS_TILES_ADDR)))
+; RACE_MOUNTAINS_TILES_SIZE=(mountain_end - mountain)
+; .out .concat("RACE_MOUNTAINS_TILES_SIZE    ", .string((RACE_MOUNTAINS_TILES_SIZE)))
+; RACE_FONT_TILES_ADDR=(RACE_MOUNTAINS_TILES_ADDR + RACE_MOUNTAINS_TILES_SIZE)
+; .out .concat("RACE_FONT_TILES_ADDR         ", .string((RACE_FONT_TILES_ADDR)))
+; RACE_FONT_TILES_SIZE=(font_courier_new_end - font_courier_new)
+; .out .concat("RACE_FONT_TILES_SIZE         ", .string((RACE_FONT_TILES_SIZE)))
 
 ;===========================
 ;
 ; Tiles for forest map
 ;
+RACE_FOREST_TILES_ADDR=$9800
 
-RACE_FOREST_TILES_ADDR=VERA_TILE_DATA_ALIGN(RACE_FONT_TILES_ADDR + RACE_FONT_TILES_SIZE)
-RACE_FOREST_TILES_SIZE=(forest_end - forest)
+; RACE_FOREST_TILES_ADDR=VERA_TILE_DATA_ALIGN(RACE_FONT_TILES_ADDR + RACE_FONT_TILES_SIZE)
+; .out .concat("RACE_FOREST_TILES_ADDR       ", .string((RACE_FOREST_TILES_ADDR)))
+; RACE_FOREST_TILES_SIZE=(forest_end - forest)
+; .out .concat("RACE_FOREST_TILES_SIZE       ", .string((RACE_FOREST_TILES_SIZE)))
 
-RACE_FOREST_INNER_TILES_ADDR=(RACE_FOREST_TILES_ADDR + RACE_FOREST_TILES_SIZE)
-RACE_FOREST_INNER_TILES_SIZE=(forest_inner_end - forest_inner)
+; RACE_FOREST_INNER_TILES_ADDR=(RACE_FOREST_TILES_ADDR + RACE_FOREST_TILES_SIZE)
+; .out .concat("RACE_FOREST_INNER_TILES_ADDR ", .string((RACE_FOREST_INNER_TILES_ADDR)))
+; RACE_FOREST_INNER_TILES_SIZE=(forest_inner_end - forest_inner)
+; .out .concat("RACE_FOREST_INNER_TILES_SIZE ", .string((RACE_FOREST_INNER_TILES_SIZE)))
 
 ;===========================
 ;
 ; Sprite data
 ;
+RACE_SPRITES_ADDR=$A820
+RACE_CAR_ADDR=$A820
+RACE_CAR_SIZE=$400
+ROAD_ADDR=$AC20
+ROAD_SIZE=$800
+PILLAR_ADDR=$B420
+PILLAR_SIZE=$800
+WHEEL0_ADDR=$BC20
+WHEEL0_SIZE=$80
+WHEEL1_ADDR=$BCA0
+WHEEL1_SIZE=$80
 
-RACE_CAR_ADDR=VERA_SPRITE_DATA_ALIGN((RACE_FOREST_INNER_TILES_ADDR + RACE_FOREST_INNER_TILES_SIZE))
-RACE_CAR_SIZE=(car_end - car)
+; RACE_CAR_ADDR=VERA_SPRITE_DATA_ALIGN((RACE_FOREST_INNER_TILES_ADDR + RACE_FOREST_INNER_TILES_SIZE))
+; .out .concat("RACE_CAR_ADDR                ", .string((RACE_CAR_ADDR)))
+; RACE_CAR_SIZE=(car_end - car)
+; .out .concat("RACE_CAR_SIZE                ", .string((RACE_CAR_SIZE)))
 
-ROAD_ADDR=VERA_SPRITE_DATA_ALIGN((RACE_CAR_ADDR + RACE_CAR_SIZE))
-ROAD_SIZE=(road_end - road)
+; ROAD_ADDR=VERA_SPRITE_DATA_ALIGN((RACE_CAR_ADDR + RACE_CAR_SIZE))
+; .out .concat("ROAD_ADDR                    ", .string((ROAD_ADDR)))
+; ROAD_SIZE=(road_end - road)
+; .out .concat("ROAD_SIZE                    ", .string((ROAD_SIZE)))
 
-PILLAR_ADDR=VERA_SPRITE_DATA_ALIGN((ROAD_ADDR + ROAD_SIZE))
-PILLAR_SIZE=(pillar_end - pillar)
+; PILLAR_ADDR=VERA_SPRITE_DATA_ALIGN((ROAD_ADDR + ROAD_SIZE))
+; .out .concat("PILLAR_ADDR                  ", .string((PILLAR_ADDR)))
+; PILLAR_SIZE=(pillar_end - pillar)
+; .out .concat("PILLAR_SIZE                  ", .string((PILLAR_SIZE)))
 
-WHEEL0_ADDR=VERA_SPRITE_DATA_ALIGN((PILLAR_ADDR + PILLAR_SIZE))
-WHEEL0_SIZE=(wheel_01_00 - wheel_00_00)
+; WHEEL0_ADDR=VERA_SPRITE_DATA_ALIGN((PILLAR_ADDR + PILLAR_SIZE))
+; .out .concat("WHEEL0_ADDR                  ", .string((WHEEL0_ADDR)))
+; WHEEL0_SIZE=(wheel_01_00 - wheel_00_00)
+; .out .concat("WHEEL0_SIZE                  ", .string((WHEEL0_SIZE)))
 
-WHEEL1_ADDR=VERA_SPRITE_DATA_ALIGN((WHEEL0_ADDR + WHEEL0_SIZE))
-WHEEL1_SIZE=(wheel_end - wheel_01_00)
+; WHEEL1_ADDR=VERA_SPRITE_DATA_ALIGN((WHEEL0_ADDR + WHEEL0_SIZE))
+; .out .concat("WHEEL1_ADDR                  ", .string((WHEEL1_ADDR)))
+; WHEEL1_SIZE=(wheel_end - wheel_01_00)
+; .out .concat("WHEEL1_SIZE                  ", .string((WHEEL1_SIZE)))
 
 ;===========================
 ;
 ; String lengths
 ;
 
-LICENSE_0_SIZE=(license_0_end - license_0)
-LICENSE_1_SIZE=(license_1_end - license_1)
-LICENSE_2_SIZE=(license_2_end - license_2)
-LICENSE_3_SIZE=(license_3_end - license_3)
-LICENSE_4_SIZE=(license_4_end - license_4)
-LICENSE_5_SIZE=(license_5_end - license_5)
-LICENSE_6_SIZE=(license_6_end - license_6)
+; LICENSE_0_SIZE=(license_0_end - license_0)
+; LICENSE_1_SIZE=(license_1_end - license_1)
+; LICENSE_2_SIZE=(license_2_end - license_2)
+; LICENSE_3_SIZE=(license_3_end - license_3)
+; LICENSE_4_SIZE=(license_4_end - license_4)
+; LICENSE_5_SIZE=(license_5_end - license_5)
+; LICENSE_6_SIZE=(license_6_end - license_6)
 
 ;=================================================
 ; RACE_STREAM_ROW
@@ -126,12 +168,11 @@ LICENSE_6_SIZE=(license_6_end - license_6)
 ; MODIFIES: A, pos
 ; 
 .macro WRAP_X_TO_SCREEN_24 pos
-.local @onscreen
-.local @offscreen
-
+.scope
+wrap_x_to_screen_24:
     ADD_24 Temp, pos, Wrap_amount
 
-    BGE_16 Temp+1, Screen_width+1, @onscreen
+    BGE_16 Temp+1, Screen_width+1, onscreen
 ; ; TODO: This is basically a BGE_24 (branch greater-or-equal) Temp, Screen_width, @onscreen
 ; ;       with some .macro BGE lhs, rhs, branch_target
 ;     lda Temp+2
@@ -141,16 +182,31 @@ LICENSE_6_SIZE=(license_6_end - license_6)
 ;     lda Temp+1
 ;     cmp Screen_width+1
 ;     bcs @onscreen
-@offscreen:
+offscreen:
     lda Temp
     sta pos
     lda Temp+1
     sta pos+1
     lda Temp+2
     sta pos+2
-@onscreen:
+onscreen:
+.endscope
 .endmacro
 
+.data
+.define MOUNTAINS_MAP_NAME "race-mtn.seq"
+.define FOREST_MAP_NAME "race-for.seq"
+.define MOUNTAINS_TILES_NAME "race-ts1.seq"
+.define FOREST_TILES_NAME "race-ts2.seq"
+.define RACE_SPRITES_NAME "race-ss.seq"
+
+MOUNTAINS_MAP_STR: .asciiz MOUNTAINS_MAP_NAME
+FOREST_MAP_STR: .asciiz FOREST_MAP_NAME
+MOUNTAINS_TILE_STR: .asciiz MOUNTAINS_TILES_NAME
+FOREST_TILE_STR: .asciiz FOREST_TILES_NAME
+RACE_SPRITES_STR: .asciiz RACE_SPRITES_NAME
+
+.code
 ;=================================================
 ;=================================================
 ; 
@@ -162,43 +218,12 @@ LICENSE_6_SIZE=(license_6_end - license_6)
 ; Return to caller when done.
 ;
 race_do:
-    DEBUG_LABEL race_do
+    sei
     VERA_DISABLE_ALL
-
-    ; I've already spent a lot of memory on assets, and don't want to bother with file I/O just yet
-    ; or image compression (though the splash logo could *majorly* benefit from RLE encoding, let me
-    ; tell you).
-    ;
-    ; So instead of doing a nice, clean, block copy of pre-calculated tilemap data into VRAM, I'm
-    ; breaking it up into chunks of assembly because that's smaller.
-
-    ; The mountains background tilemap, with some art credits in the sky
-    VERA_SET_CTRL 0
-    VERA_SET_ADDR RACE_MOUNTAINS_MAP_ADDR
-    SYS_STREAM Race_mountains_map, VERA_data, (256*2+44)
-
-    SYS_STREAM_OUT license_1, VERA_data, LICENSE_1_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 44 - LICENSE_1_SIZE + 46)
-    SYS_STREAM_OUT license_2, VERA_data, LICENSE_2_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 46 - LICENSE_2_SIZE + 48)
-    SYS_STREAM_OUT license_3, VERA_data, LICENSE_3_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 48 - LICENSE_3_SIZE)
-
-    SYS_STREAM Race_mountains_map, VERA_data, (256*3+128)
-
-    SYS_STREAM_OUT license_4, VERA_data, LICENSE_4_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 128 - LICENSE_4_SIZE + 130)
-    SYS_STREAM_OUT license_5, VERA_data, LICENSE_5_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 130 - LICENSE_5_SIZE + 132)
-    SYS_STREAM_OUT license_6, VERA_data, LICENSE_6_SIZE
-    SYS_STREAM Race_mountains_map, VERA_data, (256 - 132 - LICENSE_6_SIZE)
-
-    SYS_STREAM Race_mountains_map, VERA_data, (256*11)
-    .repeat 8, i
-        RACE_STREAM_ROW Race_mountains_map, i
-    .endrep
-    SYS_STREAM Race_mountains_map, VERA_data, 256*30
+    SYS_FILE_VLOAD MOUNTAINS_MAP_STR, .strlen(MOUNTAINS_MAP_NAME), RACE_MOUNTAINS_MAP_ADDR
+    SYS_FILE_VLOAD FOREST_MAP_STR, .strlen(FOREST_MAP_NAME), RACE_FOREST_MAP_ADDR
     
+<<<<<<< HEAD:src/race.asm
     ; The forest background tilemap
     VERA_SET_ADDR RACE_FOREST_MAP_ADDR
     SYS_STREAM Race_mountains_map, VERA_data, 256*28
@@ -225,6 +250,25 @@ race_do:
     GRAPHICS_STREAM_OUT_DATA pillar, PILLAR_ADDR, PILLAR_SIZE
     GRAPHICS_STREAM_OUT_DATA wheel_00_00, WHEEL0_ADDR, WHEEL0_SIZE
     GRAPHICS_STREAM_OUT_DATA wheel_01_00, WHEEL1_ADDR, WHEEL1_SIZE
+=======
+__race__stream_tiles:
+    SYS_FILE_VLOAD MOUNTAINS_TILE_STR, .strlen(MOUNTAINS_TILES_NAME), RACE_MOUNTAINS_TILES_ADDR
+    SYS_FILE_VLOAD FOREST_TILE_STR, .strlen(FOREST_TILES_NAME), RACE_FOREST_TILES_ADDR
+    SYS_FILE_VLOAD RACE_SPRITES_STR, .strlen(RACE_SPRITES_NAME), RACE_SPRITES_ADDR
+
+    ; VERA_SET_CTRL 0
+
+    ; ; Tile data
+    ; VERA_STREAM_OUT_DATA mountain, RACE_MOUNTAINS_TILES_ADDR, RACE_MOUNTAINS_TILES_SIZE
+    ; VERA_STREAM_OUT_DATA font_courier_new, RACE_FONT_TILES_ADDR, RACE_FONT_TILES_SIZE
+    ; VERA_STREAM_OUT_DATA forest, RACE_FOREST_TILES_ADDR, RACE_FOREST_TILES_SIZE
+    ; VERA_STREAM_OUT_DATA forest_inner, RACE_FOREST_INNER_TILES_ADDR, RACE_FOREST_INNER_TILES_SIZE
+    ; VERA_STREAM_OUT_DATA car, RACE_CAR_ADDR, RACE_CAR_SIZE
+    ; VERA_STREAM_OUT_DATA road, ROAD_ADDR, ROAD_SIZE
+    ; VERA_STREAM_OUT_DATA pillar, PILLAR_ADDR, PILLAR_SIZE
+    ; VERA_STREAM_OUT_DATA wheel_00_00, WHEEL0_ADDR, WHEEL0_SIZE
+    ; VERA_STREAM_OUT_DATA wheel_01_00, WHEEL1_ADDR, WHEEL1_SIZE
+>>>>>>> playing_with_line_irqs:race.asm
 
     ; Palette data
     GRAPHICS_STREAM_OUT_DATA mountain_palette, VRAM_palette0, 16*2
@@ -253,7 +297,9 @@ __race__setup_scene:
     VERA_CONFIGURE_SPRITE PILLAR_ADDR, 0, (64), (352), 0, 0, 3, 4, 3, 3
     VERA_CONFIGURE_SPRITE PILLAR_ADDR, 0, (64), (416), 0, 0, 3, 4, 3, 3
 
-    ; These were just tests of the palettes
+    .repeat 112, i
+    VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (i*4), (i*3), (i .mod 2), ((i/2) .mod 2), 3, 2, 3, 2
+    .endrep
 
     ; VERA_SET_SPRITE 1
     ; VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320-64), (240-64), 0, 0, 1, 1, 3, 2
@@ -261,9 +307,16 @@ __race__setup_scene:
     ; VERA_CONFIGURE_SPRITE RACE_CAR_ADDR, 0, (320), (240-64), 0, 0, 1, 0, 3, 2
 
 __race__begin:
+    jsr controls_clear_handlers
+    CONTROLS_SET_HANDLER handler_up_down, race_move_up
+    CONTROLS_SET_HANDLER handler_down_down, race_move_down
+    CONTROLS_SET_HANDLER handler_left_down, race_move_left
+    CONTROLS_SET_HANDLER handler_right_down, race_move_right
+
     lda #1
     jsr sys_wait_for_frame
 
+    sei
     SYS_SET_IRQ race_irq_first
     cli
 
@@ -273,6 +326,25 @@ __race__cleanup:
     VERA_DISABLE_SPRITES
     rts
 
+
+race_move_up:
+    ADD_24 Car_pos_y, Car_pos_y, Car_move_speed_neg
+    rts
+
+race_move_down:
+    ADD_24 Car_pos_y, Car_pos_y, Car_move_speed
+    rts
+
+race_move_left:
+    ADD_24 Car_pos_x, Car_pos_x, Car_move_speed_neg
+    rts
+
+race_move_right:
+    ADD_24 Car_pos_x, Car_pos_x, Car_move_speed
+    rts
+
+
+
 ; Since I'm doing a *lot* of work without waiting for frames (due to having everything turned off),
 ; I may be mid-frame when I turn things on. So instead of just doing that any time, do it in a
 ; one-off IRQ that flows sets and then continues into the real IRQ, so that we'll ideally avoid
@@ -280,19 +352,9 @@ __race__cleanup:
 ;
 ; Overthinking? Whatever, low-hanging fruit at this point.
 
-race_irq_first: DEBUG_LABEL race_irq_first
-    ; I'm not sure what I'm blowing up with this macro just yet. It's supposed to be a faster
-    ; way of toggling layers and sprites on, by taking advantage of the fact that the "enabled"
-    ; bit is the most significant bit of byte 0 on both layers and the sprite info, and that
-    ; there are all mapped $1000 bytes apart from each other. Until I solve that, I have to
-    ; go the "slow" way. 
-    ;
-    ; Listen to that, it's the world's smallest fiddle, playing "my heart cries out for you."
-    ; It's playing for me.
-    ;
-    ; VERA_ENABLE_ALL
-
+race_irq_first:
     VERA_ENABLE_ALL
+<<<<<<< HEAD:src/race.asm
     SYS_SET_IRQ race_irq
 
     lda Gfx_do_line_irqs_work
@@ -303,11 +365,20 @@ race_irq_first: DEBUG_LABEL race_irq_first
     sta Line_irq
     lda #>do_cloud0_irq
     sta Line_irq+1
+=======
+    SYS_SET_IRQ do_cloud0_irq
+>>>>>>> playing_with_line_irqs:race.asm
 
+    VERA_DISABLE_VBLANK_IRQ
     VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
     VERA_ENABLE_LINE_IRQ
+<<<<<<< HEAD:src/race.asm
 no_line_irqs:
 race_irq: DEBUG_LABEL race_irq
+=======
+
+race_irq:
+>>>>>>> playing_with_line_irqs:race.asm
     lda VERA_isr
     and #2
     bne do_line_irq
@@ -318,40 +389,81 @@ race_irq: DEBUG_LABEL race_irq
     jmp do_vblank_irq
 :   jmp irq_done
 
-do_line_irq: DEBUG_LABEL do_line_irq
+do_line_irq:
     jmp (Line_irq)
 
-do_cloud0_irq: DEBUG_LABEL do_cloud0_irq
+do_cloud0_irq:
     VERA_SET_LAYER_SCROLL_X 0, Cloud1_pos+1
     VERA_CONFIGURE_LINE_IRQ Cloud1_stop_y
-    lda #<do_cloud1_irq
-    sta Line_irq
-    lda #>do_cloud1_irq
-    sta Line_irq+1
+    SYS_SET_IRQ do_cloud1_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_cloud1_irq: DEBUG_LABEL do_cloud1_irq
+do_cloud1_irq:
+    VERA_SET_LAYER_SCROLL_X 0, Cloud2_pos+1
+    VERA_CONFIGURE_LINE_IRQ Cloud2_stop_y
+    SYS_SET_IRQ do_cloud2_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_cloud2_irq:
+    VERA_SET_LAYER_SCROLL_X 0, Cloud3_pos+1
+    VERA_CONFIGURE_LINE_IRQ Cloud3_stop_y
+    SYS_SET_IRQ do_cloud3_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_cloud3_irq:
+    VERA_SET_LAYER_SCROLL_X 0, Cloud4_pos+1
+    VERA_CONFIGURE_LINE_IRQ Cloud4_stop_y
+    SYS_SET_IRQ do_cloud4_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_cloud4_irq:
     VERA_SET_LAYER_SCROLL_X 0, Mountains_pos+1
     VERA_CONFIGURE_LINE_IRQ Swap_test_y
-    lda #<do_swap_test_irq
-    sta Line_irq
-    lda #>do_swap_test_irq
-    sta Line_irq+1
+    SYS_SET_IRQ do_swap_test_irq
     VERA_END_LINE_IRQ
     SYS_ABORT_IRQ
 
-do_swap_test_irq: DEBUG_LABEL do_swap_test_irq
+do_swap_test_irq:
+    VERA_CONFIGURE_LINE_IRQ Swap_test2_y
+    VERA_SWAP_LAYERS
+    SYS_SET_IRQ do_swap_test2_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_swap_test2_irq:
+    VERA_CONFIGURE_LINE_IRQ Swap_test3_y
+    VERA_SWAP_LAYERS
+    SYS_SET_IRQ do_swap_test3_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_swap_test3_irq:
+    VERA_CONFIGURE_LINE_IRQ Swap_test4_y
+    VERA_SWAP_LAYERS
+    SYS_SET_IRQ do_swap_test4_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_swap_test4_irq:
+    VERA_CONFIGURE_LINE_IRQ Screen_stop_y
+    VERA_SWAP_LAYERS
+    SYS_SET_IRQ do_bottom_irq
+    VERA_END_LINE_IRQ
+    SYS_ABORT_IRQ
+
+do_bottom_irq:
     VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
-    lda #<do_cloud0_irq
-    sta Line_irq
-    lda #>do_cloud0_irq
-    sta Line_irq+1
     VERA_END_LINE_IRQ
+    jmp do_vblank_irq
+    SYS_SET_IRQ do_vblank_irq
     SYS_ABORT_IRQ
 
-
-do_vblank_irq: DEBUG_LABEL do_vblank_irq
+do_vblank_irq:
+    SYS_SET_IRQ do_cloud0_irq
     ;
     ; Start with draw updates
     ;
@@ -378,65 +490,42 @@ do_vblank_irq: DEBUG_LABEL do_vblank_irq
     ; Now do everything else.
     ;
 
-    SYS_POLLJOY
-    SYS_GETJOY 0
+    jsr controls_process
 
-    ; Update car position
-    tax
-    and #BUTTON_JOY_UP
-    bne @button_up_end
-    ADD_24 Car_pos_y, Car_pos_y, Car_move_speed_neg
-@button_up_end:
-    txa
-    and #BUTTON_JOY_DOWN
-    bne @button_down_end
-    ADD_24 Car_pos_y, Car_pos_y, Car_move_speed
-@button_down_end:
-    txa
-    and #BUTTON_JOY_LEFT
-    bne @button_left_end
-    ADD_24 Car_pos_x, Car_pos_x, Car_move_speed_neg
-@button_left_end:
-    txa
-    and #BUTTON_JOY_RIGHT
-    bne @button_right_end
-    ADD_24 Car_pos_x, Car_pos_x, Car_move_speed
-@button_right_end:
-
-    BGE_16 Car_pos_x+1, Car_bb_left+1, @check_car_left_end
+    BGE_16 Car_pos_x+1, Car_bb_left+1, check_car_left_end
     lda Car_bb_left
     sta Car_pos_x
     lda Car_bb_left+1
     sta Car_pos_x+1
     lda Car_bb_left+2
     sta Car_pos_x+2
-    jmp @check_car_right_end
-@check_car_left_end:
-    BLT_16 Car_pos_x+1, Car_bb_right+1, @check_car_right_end
+    jmp check_car_right_end
+check_car_left_end:
+    BLT_16 Car_pos_x+1, Car_bb_right+1, check_car_right_end
     lda Car_bb_right
     sta Car_pos_x
     lda Car_bb_right+1
     sta Car_pos_x+1
     lda Car_bb_right+2
     sta Car_pos_x+2
-@check_car_right_end:
-    BGE_16 Car_pos_y+1, Car_bb_top+1, @check_car_top_end
+check_car_right_end:
+    BGE_16 Car_pos_y+1, Car_bb_top+1, check_car_top_end
     lda Car_bb_top
     sta Car_pos_y
     lda Car_bb_top+1
     sta Car_pos_y+1
     lda Car_bb_top+2
     sta Car_pos_y+2
-    jmp @check_car_bottom_end
-@check_car_top_end:
-    BLT_16 Car_pos_y+1, Car_bb_bottom+1, @check_car_bottom_end
+    jmp check_car_bottom_end
+check_car_top_end:
+    BLT_16 Car_pos_y+1, Car_bb_bottom+1, check_car_bottom_end
     lda Car_bb_bottom
     sta Car_pos_y
     lda Car_bb_bottom+1
     sta Car_pos_y+1
     lda Car_bb_bottom+2
     sta Car_pos_y+2
-@check_car_bottom_end:
+check_car_bottom_end:
 
     ; Update tire positions
     ADD_24 Tire0_pos_x, Car_pos_x, Tire0_offset_x
@@ -448,6 +537,9 @@ do_vblank_irq: DEBUG_LABEL do_vblank_irq
     ; Scroll the background layers
     ADD_24 Cloud0_pos, Cloud0_pos, Cloud0_speed
     ADD_24 Cloud1_pos, Cloud1_pos, Cloud1_speed
+    ADD_24 Cloud2_pos, Cloud2_pos, Cloud2_speed
+    ADD_24 Cloud3_pos, Cloud3_pos, Cloud3_speed
+    ADD_24 Cloud4_pos, Cloud4_pos, Cloud4_speed
     ADD_24 Mountains_pos, Mountains_pos, Mountains_speed
     ADD_24 Forest_pos, Forest_pos, Forest_speed
 
@@ -467,7 +559,7 @@ do_vblank_irq: DEBUG_LABEL do_vblank_irq
 
     lda Wheel_state+1
     and #$01
-    beq @set_wheel0
+    beq set_wheel0
 
     VERA_SET_ADDR (VRAM_spr_attrib)
     lda #((WHEEL1_ADDR >> 5) & $FF)
@@ -480,9 +572,9 @@ do_vblank_irq: DEBUG_LABEL do_vblank_irq
     sta VERA_data
     lda #(WHEEL1_ADDR >> 13)
     sta VERA_data
-    jmp @wheels_end
+    jmp wheels_end
 
-@set_wheel0:
+set_wheel0:
     VERA_SET_ADDR (VRAM_spr_attrib)
     lda #((WHEEL0_ADDR >> 5) & $FF)
     sta VERA_data
@@ -495,27 +587,28 @@ do_vblank_irq: DEBUG_LABEL do_vblank_irq
     lda #(WHEEL0_ADDR >> 13)
     sta VERA_data
 
-@wheels_end:
+wheels_end:
     dec Ticks_until_fade_in
     lda #0
     cmp Ticks_until_fade_in
-    bne @credits_fade_in_end
+    bne credits_fade_in_end
 
-@credits_fade_in:
+credits_fade_in:
     VERA_SET_ADDR (VRAM_palette6+5), 0
     lda VERA_data
     cmp font_courier_new_palette+5
-    beq @credits_fade_in_end
+    beq credits_fade_in_end
     clc
     adc #1
     sta VERA_data
     lda #$20
     sta Ticks_until_fade_in
-@credits_fade_in_end:
+credits_fade_in_end:
 
-@frame_done:
+frame_done:
     VERA_END_VBLANK_IRQ
 irq_done:
+    SYS_END_IRQ
     SYS_ABORT_IRQ
 
 ;=================================================
@@ -527,8 +620,13 @@ irq_done:
 
 .data
 
+Race_in_progress: .byte $01
+
 Cloud0_pos: .byte $00, $00, $00
 Cloud1_pos: .byte $00, $00, $00
+Cloud2_pos: .byte $00, $00, $00
+Cloud3_pos: .byte $00, $00, $00
+Cloud4_pos: .byte $00, $00, $00
 Mountains_pos: .byte $00, $00, $00
 Forest_pos: .byte $00, $00, $00
 
@@ -536,14 +634,27 @@ Cloud0_speed: .word $0033
     .byte 0
 Cloud1_speed: .word $002B
     .byte 0
+Cloud2_speed: .word $0020
+    .byte 0
+Cloud3_speed: .word $0010
+    .byte 0
+Cloud4_speed: .word $0007
+    .byte 0
 Mountains_speed: .word $0088
     .byte 0
 Forest_speed: .word $0233
     .byte 0
 
-Cloud0_stop_y: .word 16+24
-Cloud1_stop_y: .word 16+24+24+24
-Swap_test_y: .word 16+24+24+24+24
+Cloud0_stop_y:  .word 8+24
+Cloud1_stop_y:  .word 8+24+8+24
+Cloud2_stop_y:  .word 8+24+8+24+8+24
+Cloud3_stop_y:  .word 8+24+8+24+8+24+8+24
+Cloud4_stop_y:  .word 8+24+8+24+8+24+8+24+8+24
+Swap_test_y:    .word 8+24+8+24+8+24+8+24+8+24+24
+Swap_test2_y:   .word 8+24+8+24+8+24+8+24+8+24+24+1
+Swap_test3_y:   .word 8+24+8+24+8+24+8+24+8+24+24+24
+Swap_test4_y:   .word 8+24+8+24+8+24+8+24+8+24+24+24+1
+Screen_stop_y:  .word 479
 Moutains_stop_y: .word $ffff
 
 Line_irq: .word 0
@@ -598,30 +709,33 @@ Roads_speed: .word $F776
 Race_credits_palette_start:
 	.word $0000, $00ff, $00ff
 
-Race_mountains_map:
-    .word $0000, $0000, $0000, $0001, $0002, $0000, $0000, $0000
-    .word $0000, $0003, $0004, $0005, $0006, $0007, $0008, $0000
-    .word $0009, $000a, $000b, $000c, $000d, $000e, $000f, $0010
-    .word $0011, $0012, $0013, $0014, $0015, $0016, $0017, $0018
-    .word $0019, $001a, $001b, $001c, $001d, $001e, $001f, $0020
-    .word $0021, $0022, $0023, $0024, $0025, $0026, $0027, $0028
-    .word $0029, $002a, $002b, $002c, $002d, $002e, $002f, $0030
-    .word $0031, $0032, $0033, $0034, $0035, $0036, $0037, $0038
+; Race_mountains_map:
+;     .word $0000, $0000, $0000, $0001, $0002, $0000, $0000, $0000
+;     .word $0000, $0003, $0004, $0005, $0006, $0007, $0008, $0000
+;     .word $0009, $000a, $000b, $000c, $000d, $000e, $000f, $0010
+;     .word $0011, $0012, $0013, $0014, $0015, $0016, $0017, $0018
+;     .word $0019, $001a, $001b, $001c, $001d, $001e, $001f, $0020
+;     .word $0021, $0022, $0023, $0024, $0025, $0026, $0027, $0028
+;     .word $0029, $002a, $002b, $002c, $002d, $002e, $002f, $0030
+;     .word $0031, $0032, $0033, $0034, $0035, $0036, $0037, $0038
 
-Race_forest_map:
-    .repeat 8, yi
-        .repeat 8, xi
-            .word ($1000 | (yi*8 + xi + 1))
-        .endrep
-    .endrep
+; Race_forest_map:
+;     .repeat 8, yi
+;         .repeat 8, xi
+;             .word ($1000 | (yi*8 + xi + 1))
+;         .endrep
+;     .endrep
 
-Race_forest_inner_map:
-    .repeat 8, yi
-        .repeat 8, xi
-            .word ($1000 | (yi*8 + xi + 65))
-        .endrep
-    .endrep
+; Race_forest_inner_map:
+;     .repeat 8, yi
+;         .repeat 8, xi
+;             .word ($1000 | (yi*8 + xi + 65))
+;         .endrep
+;     .endrep
 
+<<<<<<< HEAD:src/race.asm
 .include "lib/system.asm"
 
+=======
+>>>>>>> playing_with_line_irqs:race.asm
 .endif ; RACE_ASM

@@ -1,4 +1,9 @@
 bin
+build
+img
+obj
 .vs
 *.o
 *.log
+*.gif
+*.tar
