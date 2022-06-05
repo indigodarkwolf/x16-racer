@@ -3,7 +3,7 @@
 .include "controls.inc"
 .include "math.inc"
 .include "x16/vera.inc"
-.include "x16/kernal_ex.inc"
+.include "x16/kernalx16.inc"
 
 .data
 ; Tile coordinate of map window's top-left corner
@@ -18,58 +18,43 @@ Grid_y: .byte $00
 Bank_x: .byte $00
 Bank_y: .byte $00
 
+Run_map_test: .byte $00
+
 TILEMAP_L0 = $00000
 TILEMAP_L1 = $04000
 
-MAP_BANK_WIDTH = 4
-MAP_BANK_HEIGHT = 4
-MAP_BANK_MASK = $0F
+.define MAP_BANK_WIDTH 2
+.define MAP_BANK_HEIGHT 8
+.define MAP_BANK_MASK $0F
+
+.define MAP_TEST_NAME "test-map.seq"
+
+.data
+MAP_TEST_STR: .asciiz MAP_TEST_NAME
 
 .code
 .proc test_map_draw_column
-    lda #(MAP_BANK_START)
-    sta SYS_BANK_RAM
-
-    ldy #0
-    ldx #16
-
-    lda #0
-    sta store_page+1
-
-store_bank:
-    lda #$A0
-    sta c0+2
-    lda #$B0
-    sta c1+2
-store_page:
-    lda #0
-store_byte:
-c0: sta $A000,y
-c1: sta $B000,y
-    dey
-    bne store_byte
-    inc store_page+1
-    inc c0+2
-    inc c1+2
-    lda #$c0
-    cmp c1+2
-    bne store_page
-    dex
-    beq exit
-    inc SYS_BANK_RAM
-    bra store_bank
-
-exit:
+    SYS_SET_BANK MAP_BANK_START
+    SYS_FILE_LOAD MAP_TEST_STR, .strlen(MAP_TEST_NAME), $A000
+    VERA_DISABLE_ALL
     jsr map_reset_view
     jsr controls_clear_handlers
+    VERA_CONFIGURE_TILE_LAYER 0, 0, 0, 0, 0, 2, 1, $00000, $1F000
+    VERA_ENABLE_LAYER 0
     CONTROLS_SET_HANDLER handler_up_pressed, do_up
     CONTROLS_SET_HANDLER handler_down_pressed, do_down
     CONTROLS_SET_HANDLER handler_left_pressed, do_left
     CONTROLS_SET_HANDLER handler_right_pressed, do_right
+    CONTROLS_SET_HANDLER handler_a_pressed, do_a
+    VERA_ENABLE_LAYER 0
+    lda #1
+    sta Run_map_test
     SYS_SET_IRQ do_irq
 inf_loop:
     wai
-    jmp inf_loop
+    lda Run_map_test
+    bne inf_loop
+    rts
 
 do_right:
     jsr map_incr_view_x
@@ -151,6 +136,10 @@ do_up:
     sta VERA_l1_vscroll_h
     rts
 
+do_a:
+    stz Run_map_test
+    rts
+
 do_irq:
     jsr controls_process
 
@@ -162,7 +151,7 @@ do_irq:
 .proc map_incr_view_x
     lda Bank_x
     inc
-    and #$03
+    and #(MAP_BANK_WIDTH - 1)
     sta Bank_x
     jsr map_draw_column
 
@@ -172,7 +161,7 @@ do_irq:
     lda View_x+1
     rol
     sta Grid_x
-    and #$03
+    and #(MAP_BANK_WIDTH - 1)
     sta Bank_x
 
     rts
@@ -185,7 +174,7 @@ do_irq:
     lda View_x+1
     rol
     sta Grid_x
-    and #$03
+    and #(MAP_BANK_WIDTH - 1)
     sta Bank_x
 
     jsr map_draw_column
@@ -196,7 +185,7 @@ do_irq:
     lda Bank_y
     inc
     inc
-    and #$03
+    and #(MAP_BANK_HEIGHT - 1)
     sta Bank_y
     jsr map_draw_row
 
@@ -216,7 +205,7 @@ do_irq:
     ora Grid_y
     sta Grid_y
 
-    and #$03
+    and #(MAP_BANK_HEIGHT - 1)
     sta Bank_y
     rts
 .endproc
@@ -238,7 +227,7 @@ do_irq:
     ora Grid_y
     sta Grid_y
 
-    and #$03
+    and #(MAP_BANK_HEIGHT - 1)
     sta Bank_y
 
     jsr map_draw_row
@@ -317,10 +306,17 @@ do_irq:
     sta a1+2
 
 column_bank_set:
-    ; Banks are 4x4
+    ; Banks are MAP_BANK_WIDTH x MAP_BANK_HEIGHT
     lda Bank_y
-    asl
-    asl
+    .if MAP_BANK_WIDTH >= 2
+        asl
+    .endif
+    .if MAP_BANK_WIDTH >= 4
+        asl
+    .endif
+    .if MAP_BANK_WIDTH >= 8
+        asl
+    .endif
     ora Bank_x
 
     clc
@@ -462,10 +458,17 @@ done:
     sta a1+2
 
 row_bank_set:
-    ; Banks are 4x4
+    ; Banks are MAP_BANK_WIDTH x MAP_BANK_HEIGHT
     lda Bank_y
-    asl
-    asl
+    .if MAP_BANK_WIDTH >= 2
+        asl
+    .endif
+    .if MAP_BANK_WIDTH >= 4
+        asl
+    .endif
+    .if MAP_BANK_WIDTH >= 8
+        asl
+    .endif
     ora Bank_x
 
     clc
@@ -524,9 +527,17 @@ row_inc_bank:
     inc
     and #(MAP_BANK_WIDTH-1)
     sta SYS_BANK_RAM
+    ; Banks are MAP_BANK_WIDTH x MAP_BANK_HEIGHT
     lda Bank_y
-    asl
-    asl
+    .if MAP_BANK_WIDTH >= 2
+        asl
+    .endif
+    .if MAP_BANK_WIDTH >= 4
+        asl
+    .endif
+    .if MAP_BANK_WIDTH >= 8
+        asl
+    .endif
     ora SYS_BANK_RAM
     clc
     adc #MAP_BANK_START

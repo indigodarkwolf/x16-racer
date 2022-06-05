@@ -1,5 +1,5 @@
-.ifndef KERNAL_EX_INC
-KERNAL_EX_INC=1
+.ifndef KERNAL_X16_INC
+KERNAL_X16_INC=1
 
 ;=================================================
 ;=================================================
@@ -7,6 +7,13 @@ KERNAL_EX_INC=1
 ;   X16 New API kernal calls
 ;
 ;-------------------------------------------------
+;
+; IEEE
+;
+; $FF44: MACPTR - read multiple bytes from the peripheral bus
+;
+; Memory
+;
 ;
 ; Clock
 ;
@@ -80,6 +87,8 @@ KERNAL_EX_INC=1
 ; $FEE7: memory_copy - copy memory region 
 ; $FEEA: memory_crc - calculate CRC16 of memory region 
 ; $FEED: memory_decompress - decompress LZSA2 block 
+; $FF74: fetch - read a byte from any RAM or ROM bank
+; $FF77: stash - write a byte to any RAM bank
 ; $FECF: entropy_get - get 24 random bits 
 ; $FF44: monitor - enter machine language monitor 
 ; $FF47: enter_basic - enter BASIC 
@@ -147,6 +156,102 @@ r14H = $1F
 r15 = $20
 r15L = $20
 r15H = $21
+
+;
+; IEEE
+;
+X16_macptr := $FF44 ; MACPTR - read multiple bytes from the peripheral bus
+
+;=================================================
+; X16_MACPTR
+;   read multiple bytes from the peripheral bus
+;-------------------------------------------------
+; INPUTS:   num_bytes   Number of bytes to read (0 to let kernal decide)
+;           dest_addr   destination address to write to
+;-------------------------------------------------
+; OUTPUTS:  X           Number of bytes read (low byte)
+;           Y           Number of bytes read (high byte)
+;           Carry       0 Bytes successfully read
+;                       1 MACPTR not supported, call ACPTR instead
+;-------------------------------------------------
+; MODIFIES: A, X, Y
+;
+.macro X16_MACPTR num_bytes, dest_addr
+    lda #num_bytes
+    ldx #<dest_addr
+    ldy #>dest_addr
+    jsr X16_macptr
+.endmacro
+
+;
+; Memory
+;
+
+X16_memory_fill := $FEE4
+X16_memory_copy := $FEE7
+X16_memory_crc := $FEEA
+X16_memory_decompress := $FEED
+X16_fetch := $FF74
+X16_stash := $FF77
+
+;=================================================
+; X16_MEMORY_FILL
+;   Fill a memory region with a byte value.
+;   If the start address is $9F00-$9FFF, all bytes
+;   will be written to the start address.
+;-------------------------------------------------
+; INPUTS:   r0      start address
+;           r1      size
+;           A       byte value to fill with
+;-------------------------------------------------
+; OUTPUTS:  (none)
+;-------------------------------------------------
+; MODIFIES: A, X, Y
+;
+.macro X16_MEMORY_FILL start_address, size, value
+    lda #<start_address 
+    sta r0L
+    lda #>start_address
+    sta r0H
+    lda #<size
+    sta r1L
+    lda #>size
+    sta r1H
+    lda #value
+    jsr X16_memory_fill
+.endmacro
+
+;=================================================
+; X16_MEMORY_COPY
+;   Copy a memory region to a different region.
+;   If the source address is $9F00-$9FFF, all bytes
+;   will be read from the start address.
+;   If the target address is $9F00-$9FFF, all bytes
+;   will be written to the target address.
+;-------------------------------------------------
+; INPUTS:   r0      start address
+;           r1      target adress
+;           r2      num bytes
+;-------------------------------------------------
+; OUTPUTS:  (none)
+;-------------------------------------------------
+; MODIFIES: A, X, Y
+;
+.macro X16_MEMORY_COPY start_address, target_address, num_bytes
+    lda #<start_address 
+    sta r0L
+    lda #>start_address
+    sta r0H
+    lda #<target_address
+    sta r1L
+    lda #>target_address
+    sta r1H
+    lda #<num_bytes
+    sta r2L
+    lda #>num_bytes
+    sta r2H
+    jsr X16_memory_copy
+.endmacro
 
 ;
 ; Clock
@@ -275,7 +380,7 @@ X16_joystick_get := $FF56
 ; X16_JOYSTICK_GET
 ;   Get the state of one of the joysticks 
 ;-------------------------------------------------
-; INPUTS:   stick   Which joystick to get (0-3)
+; INPUTS:   stick   Which joystick to get (0-4)
 ;-------------------------------------------------
 ; OUTPUTS:  A       button flags:
 ;                       $80:    B
@@ -831,10 +936,6 @@ X16_console_set_paging_message := $FED5
 ;
 ; Other
 ;
-X16_memory_fill := $FEE4
-X16_memory_copy := $FEE7
-X16_memory_crc := $FEEA
-X16_memory_decompress := $FEED
 X16_entropy_get := $FECF
 X16_monitor := $FF44
 X16_enter_basic := $FF47
@@ -847,4 +948,4 @@ X16_JSRFAR := $FF6E
 ;
 
 
-.endif ; KERNAL_EX_INC
+.endif ; KERNAL_X16_INC

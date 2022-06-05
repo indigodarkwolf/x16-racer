@@ -3,7 +3,7 @@ GRAPHICS_ASM=1
 
 .include "graphics.inc"
 
-.include "x16/kernal.inc"
+.include "x16/kernal64.inc"
 .include "x16/vera.inc"
 
 Gfx_palette_decrement_table = $A000
@@ -330,16 +330,13 @@ next_palette_entry:
 
     ldy #0
 stream_byte:
+.repeat 4
     lda Gfx_palette_gb,y
     sta VERA_data
     lda Gfx_palette_r,y
     sta VERA_data
     iny
-    lda Gfx_palette_gb,y
-    sta VERA_data
-    lda Gfx_palette_r,y
-    sta VERA_data
-    iny
+.endrep
     bne stream_byte
 
     rts

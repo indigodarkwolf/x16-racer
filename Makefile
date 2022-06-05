@@ -1,8 +1,8 @@
 PROJECT	:= x16-race
 
-EMUDIR  := ../../git/box16/build/vs2019/out/x64/Release
+EMUDIR  := ../../git/box16/build/vs2022/out/x64/Release
 EMU     := ./box16.exe
-EMUFLAGS := -scale 2 -quality nearest -sym $(PROJECT).sym
+EMUFLAGS := -scale 2 -quality nearest -sym $(PROJECT).sym -hypercall_path ./
 
 # EMUDIR  := ../../vs2019/x16-bin
 # EMU     := ./x16emu_Release.exe
@@ -35,13 +35,18 @@ SDCARD  := $(IMG)/$(PROJECT).img
 
 default: all
 
+headerless:
+	$(MAKE) -j8 all -f Makefile_prg DFLAGS="-D HEADERLESS"
+	$(MAKE) -j8 all -f Makefile_seqs DFLAGS="-D HEADERLESS"
+
 all:
-	$(MAKE) all -f Makefile_prg
-	$(MAKE) all -f Makefile_seqs
+	$(MAKE) -j8 all -f Makefile_prg
+	$(MAKE) -j8 all -f Makefile_seqs
 
 run:
-	cp $(BIN)/* $(EMUDIR)/
-	cd $(EMUDIR) && $(EMU) $(EMUFLAGS) -prg $(PROJECT).prg
+	cd $(BIN) && ../$(EMUDIR)/$(EMU) $(EMUFLAGS) -prg $(PROJECT).prg
+#	cp $(BIN)/* $(EMUDIR)/
+#	cd $(EMUDIR) && $(EMU) $(EMUFLAGS) -prg $(PROJECT).prg
 
 runsd:
 	cp $(SDCARD) $(EMUDIR)/

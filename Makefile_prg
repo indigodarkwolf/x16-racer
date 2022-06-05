@@ -12,7 +12,7 @@ SRCS    := $(wildcard $(SRC)/*.asm) $(wildcard $(SRC)/x16/*.asm)
 OBJS    := $(patsubst $(SRC)/%.asm,$(OBJ)/%.o,$(SRCS))
 EXE     := $(BIN)/$(call UC,$(PROJECT).prg)
 CFLAGS  := --cpu 65C02 -g
-LDFLAGS := --config ./cx16-asm.cfg -Ln $(BIN)/$(call UC,$(PROJECT).sym) -u __EXEHDR__
+LDFLAGS := --config ./cx16-asm.cfg -Ln $(BIN)/$(call UC,$(PROJECT).sym) -u __EXEHDR__ -m $(BIN)/$(call UC,$(PROJECT).map) -l $(BIN)/$(call UC,$(PROJECT).listing)
 
 .PHONY: all run clean
 
@@ -22,7 +22,7 @@ $(EXE): $(OBJS) | $(BIN)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 $(OBJ)/%.o: $(SRC)/%.asm | $(OBJ) $(OBJ)/x16
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $(DFLAGS) $< -o $@
 
 $(BIN) $(OBJ) $(OBJ)/x16:
 	$(MKDIR) $@

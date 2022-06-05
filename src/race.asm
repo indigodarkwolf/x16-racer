@@ -8,8 +8,8 @@ RACE_ASM=1
 .include "x16/system.inc"
 .include "graphics.inc"
 .include "math.inc"
-.include "x16/kernal.inc"
-.include "x16/kernal_ex.inc"
+.include "x16/kernal64.inc"
+.include "x16/kernalx16.inc"
 
 .include "assets/mountains-palette.inc"
 .include "assets/font_courier_new-palette.inc"

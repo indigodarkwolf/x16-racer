@@ -1,5 +1,5 @@
-.ifndef KERNAL_INC
-KERNAL_INC=1
+.ifndef KERNAL64_INC
+KERNAL64_INC=1
 
 ;=================================================
 ;=================================================
@@ -10,57 +10,75 @@ KERNAL_INC=1
 ;
 ; Channel I/O
 ;
-; $FF90: SETMSG – set verbosity 
-; $FFB7: READST – return status byte 
-; $FFBA: SETLFS – set LA, FA and SA 
-; $FFBD: SETNAM – set filename 
-; $FFC0: OPEN – open a channel 
-; $FFC3: CLOSE – close a channel 
-; $FFC6: CHKIN – set channel for character input 
-; $FFC9: CHKOUT – set channel for character output 
-; $FFCC: CLRCHN – restore character I/O to screen/keyboard 
-; $FFCF: BASIN – get character 
-; $FFD2: BSOUT – write character 
-; $FFD5: LOAD – load a file into memory 
-; $FFD8: SAVE – save a file from memory 
-; $FFE7: CLALL – close all channels
+; $FF90: SETMSG - set verbosity 
+; $FFB7: READST - return status byte 
+; $FFBA: SETLFS - set LA, FA and SA 
+; $FFBD: SETNAM - set filename 
+; $FFC0: OPEN - open a channel 
+; $FFC3: CLOSE - close a channel 
+; $FFC6: CHKIN - set channel for character input 
+; $FFC9: CHKOUT - set channel for character output 
+; $FFCC: CLRCHN - restore character I/O to screen/keyboard 
+; $FFCF: BASIN - get character 
+; $FFD2: BSOUT - write character 
+; $FFD5: LOAD - load a file into memory 
+; $FFD8: SAVE - save a file from memory 
+; $FFE7: CLALL - close all channels
 ;
 ;
 ; Commodore Peripheral Bus
 ;
-; $FFB4: TALK – send TALK command 
-; $FFB1: LISTEN – send LISTEN command 
-; $FFAE: UNLSN – send UNLISTEN command 
-; $FFAB: UNTLK – send UNTALK command 
-; $FFA8: IECOUT – send byte to serial bus 
-; $FFA5: IECIN – read byte from serial bus 
-; $FFA2: SETTMO – set timeout 
-; $FF96: TKSA – send TALK secondary address 
-; $FF93: SECOND – send LISTEN secondary address
+; $FFB4: TALK - send TALK command 
+; $FFB1: LISTEN - send LISTEN command 
+; $FFAE: UNLSN - send UNLISTEN command 
+; $FFAB: UNTLK - send UNTALK command 
+; $FFA8: IECOUT - send byte to serial bus 
+; $FFA5: IECIN - read byte from serial bus 
+; $FFA2: SETTMO - set timeout 
+; $FF96: TKSA - send TALK secondary address 
+; $FF93: SECOND - send LISTEN secondary address
 ;
 ;
 ; Memory
 ;
-; $FF9C: MEMBOT – read/write address of start of usable RAM 
-; $FF99: MEMTOP – read/write address of end of usable RAM
+; $FF9C: MEMBOT - read/write address of start of usable RAM 
+; $FF99: MEMTOP - read/write address of end of usable RAM
 ;
 ;
 ; Time
 ;
-; $FFDE: RDTIM – read system clock 
-; $FFDB: SETTIM – write system clock 
-; $FFEA: UDTIM – advance clock
+; $FFDE: RDTIM - read system clock 
+; $FFDB: SETTIM - write system clock 
+; $FFEA: UDTIM - advance clock
 ;
 ;
 ; Other
 ;
-; $FFE1: STOP – test for STOP key 
-; $FFE4: GETIN – get character from keyboard 
-; $FFED: SCREEN – get the screen resolution 
-; $FFF0: PLOT – read/write cursor position 
-; $FFF3: IOBASE – return start of I/O area
+; $FFE1: STOP - test for STOP key 
+; $FFE4: GETIN - get character from keyboard 
+; $FFED: SCREEN - get the screen resolution 
+; $FFF0: PLOT - read/write cursor position 
+; $FFF3: IOBASE - return start of I/O area
 ;
 ;
+; C64 Vectors
+;
+; $0314-$0315: CINV - IRQ Interrupt Routine
+; $0316-$0317: CBINV - BRK Instruction Interrupt
+; $0318-$0319: NMINV - Non-Maskable Interrupt
+; $031A-$031B: IOPEN - Kernal OPEN Routine
+; $031C-$031D: ICLOSE - Kernal CLOSE Routine
+; $031E-$031F: ICHKIN - Kernal CHKIN Routine
+; $0320-$0321: ICKOUT - Kernal CKOUT Routine
+; $0322-$0323: ICLRCH - Kernal CLRCHN Routine
+; $0324-$0325: IBASIN - Kernal CHRIN Routine
+; $0326-$0327: IBSOUT - Kernal CHROUT Routine
+; $0328-$0329: ISTOP - Kernal STOP Routine
+; $032A-$032B: IGETIN - Kernal GETIN Routine
+; $032C-$032D: ICLALL - Kernal CLALL Routine
+; $0330-$0331: ILOAD - Kernal LOAD Routine
+; $0332-$0333: ISAVE - Kernal SAVE Routine
+; 
 
 ;
 ; Channel I/O
@@ -674,4 +692,24 @@ IOBASE := $FFF3
     jsr IOBASE
 .endmacro
 
-.endif ; KERNAL_INC
+;
+; C64 Vectors
+;
+
+CINV := $0314 ; IRQ Interrupt Routine
+CBINV := $0316 ; BRK Instruction Interrupt
+NMINV := $0318 ; Non-Maskable Interrupt
+IOPEN := $031A ; Kernal OPEN Routine
+ICLOSE := $031C ; Kernal CLOSE Routine
+ICHKIN := $031E ; Kernal CHKIN Routine
+ICKOUT := $0320 ; Kernal CKOUT Routine
+ICLRCH := $0322 ; Kernal CLRCHN Routine
+IBASIN := $0324 ; Kernal CHRIN Routine
+IBSOUT := $0326 ; Kernal CHROUT Routine
+ISTOP := $0328 ; Kernal STOP Routine
+IGETIN := $032A ; Kernal GETIN Routine
+ICLALL := $032C ; Kernal CLALL Routine
+ILOAD := $0330 ; Kernal LOAD Routine
+ISAVE := $0332 ; Kernal SAVE Routine
+
+.endif ; KERNAL64_INC

@@ -1,5 +1,5 @@
 .include "controls.inc"
-.include "x16/kernal_ex.inc"
+.include "x16/kernalx16.inc"
 
 .segment "LOWMEM"
 controls_last_state: .res 3 ; = $0400 ; .byte $00, $00, $00
@@ -87,7 +87,7 @@ state_loop:
 
 .proc controls_process
     X16_JOYSTICK_SCAN
-    X16_JOYSTICK_GET 0
+    X16_JOYSTICK_GET 1
     eor #$ff
     sta controls_state
     txa

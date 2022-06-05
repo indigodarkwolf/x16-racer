@@ -1,7 +1,7 @@
 .ifndef SYSTEM_INC
 SYSTEM_INC=1
 
-.include "kernal.inc"
+.include "kernal64.inc"
 
 SYS_BANK_ROM = $01
 SYS_BANK_RAM = $00
@@ -67,6 +67,28 @@ ZP_COPY_SIZE = $7A
     .endif
 .endmacro
 
+;=================================================
+; SYS_FILE_LOAD_HEADERLESS
+;   Load a file into memory.
+;-------------------------------------------------
+; INPUTS:   fname_addr  Memory address containing the filename string
+;           fname_len   Length of the filename string
+;           load_addr   (Optional) Address to load into
+;
+;-------------------------------------------------
+; MODIFIES: A, X, Y
+; 
+.macro SYS_FILE_LOAD_HEADERLESS fname_addr, fname_len, load_addr
+    .ifblank load_addr
+        KERNAL_SETLFS 1, 8, 3
+        KERNAL_SETNAM fname_len, fname_addr
+        KERNAL_LOAD 0, 0
+    .else
+        KERNAL_SETLFS 1, 8, 2
+        KERNAL_SETNAM fname_len, fname_addr
+        KERNAL_LOAD 0, load_addr
+    .endif
+.endmacro
 
 ;=================================================
 ; SYS_FILE_VLOAD

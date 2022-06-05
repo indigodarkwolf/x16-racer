@@ -1,3 +1,6 @@
+.ifndef MAP_INC
+MAP_INC=1
+
 MAP_BANK_START = 32
 
 .global map_incr_view_x
@@ -26,3 +29,5 @@ MAP_BANK_START = 32
 
     jsr map_reset_view
 .endmacro
+
+.endif ; MAP_INC

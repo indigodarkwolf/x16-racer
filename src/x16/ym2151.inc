@@ -39,6 +39,8 @@ YM2151_modulation_sensitivity = $38
 ; MODIFIES: A
 ; 
 .macro YM2151_WRITE register, value
+:   bit YM2151_data
+    bmi :-
 	lda #register
 	sta YM2151_addr
     lda #value

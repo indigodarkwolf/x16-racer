@@ -13,7 +13,7 @@ SRCS    := $(wildcard $(SRC)/*.asm)
 OBJS    := $(patsubst $(SRC)/%.asm,$(OBJ)/%.o,$(SRCS))
 SEQS    := $(patsubst $(SRC)/%.asm,$(BIN)/%.seq,$(SRCS))
 CFLAGS  := --cpu 65C02
-LDFLAGS := --target none
+LDFLAGS := --config ./cx16-tables.cfg
 
 .PHONY: all run clean
 
@@ -23,7 +23,7 @@ $(BIN)/%.seq: $(OBJ)/%.o | $(BIN)
 	$(LD) $(LDFLAGS) $^ -o $(subst $(UCBIN),$(BIN),$(call UC,$@))
 
 $(OBJ)/%.o: $(SRC)/%.asm | $(OBJ)
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $(DFLAGS) $< -o $@
 
 $(BIN) $(OBJ):
 	$(MKDIR) $@

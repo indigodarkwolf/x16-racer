@@ -1,6 +1,6 @@
 .include "math.inc"
-.include "x16/kernal.inc"
-.include "x16/kernal_ex.inc"
+.include "x16/kernal64.inc"
+.include "x16/kernalx16.inc"
 
 SQUARES_OVER_FOUR_TABLE = $A000
 SQUARES_OVER_FOUR_TABLE_LO = $A000
@@ -34,7 +34,11 @@ MATH_TABLES_STR: .asciiz MATH_TABLES_NAME
     SYS_SET_BANK MATH_TABLES_BANK
 
     ; Load tables into himem
-    SYS_FILE_LOAD MATH_TABLES_STR, .strlen(MATH_TABLES_NAME), $A000
+    .ifndef HEADERLESS
+        SYS_FILE_LOAD MATH_TABLES_STR, .strlen(MATH_TABLES_NAME), $A000
+    .else
+        SYS_FILE_LOAD_HEADERLESS MATH_TABLES_STR, .strlen(MATH_TABLES_NAME), $A000
+    .endif
     ; KERNAL_SETLFS 1, 8, 0
     ; KERNAL_SETNAM .strlen(MATH_TABLES_NAME), MATH_TABLES_STR
     ; KERNAL_LOAD 0, $A000
