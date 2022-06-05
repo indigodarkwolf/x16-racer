@@ -1,12 +1,6 @@
 .ifndef RACE_ASM
 RACE_ASM=1
 
-<<<<<<< HEAD:src/race.asm
-.include "lib/x16/x16.inc"
-.include "lib/debug.inc"
-.include "lib/system.inc"
-.include "lib/graphics.inc"
-=======
 .include "race.inc"
 
 .include "controls.inc"
@@ -21,7 +15,6 @@ RACE_ASM=1
 .include "assets/font_courier_new-palette.inc"
 .include "assets/forest-palette.inc"
 .include "assets/forest-inner-palette.inc"
->>>>>>> playing_with_line_irqs:race.asm
 
 .include "assets/car-palette.inc"
 .include "assets/road-palette.inc"
@@ -223,34 +216,6 @@ race_do:
     SYS_FILE_VLOAD MOUNTAINS_MAP_STR, .strlen(MOUNTAINS_MAP_NAME), RACE_MOUNTAINS_MAP_ADDR
     SYS_FILE_VLOAD FOREST_MAP_STR, .strlen(FOREST_MAP_NAME), RACE_FOREST_MAP_ADDR
     
-<<<<<<< HEAD:src/race.asm
-    ; The forest background tilemap
-    VERA_SET_ADDR RACE_FOREST_MAP_ADDR
-    SYS_STREAM Race_mountains_map, VERA_data, 256*28
-    .repeat 8, i
-        RACE_STREAM_ROW Race_forest_map, i
-    .endrep
-    .repeat 8, i
-        RACE_STREAM_ROW Race_forest_inner_map, i
-    .endrep
-    .repeat 8, i
-        RACE_STREAM_ROW Race_forest_inner_map, i
-    .endrep
-    .repeat 8, i
-        RACE_STREAM_ROW Race_forest_inner_map, i
-    .endrep
-
-    ; Tile data
-    GRAPHICS_STREAM_OUT_DATA mountain, RACE_MOUNTAINS_TILES_ADDR, RACE_MOUNTAINS_TILES_SIZE
-    GRAPHICS_STREAM_OUT_DATA font_courier_new, RACE_FONT_TILES_ADDR, RACE_FONT_TILES_SIZE
-    GRAPHICS_STREAM_OUT_DATA forest, RACE_FOREST_TILES_ADDR, RACE_FOREST_TILES_SIZE
-    GRAPHICS_STREAM_OUT_DATA forest_inner, RACE_FOREST_INNER_TILES_ADDR, RACE_FOREST_INNER_TILES_SIZE
-    GRAPHICS_STREAM_OUT_DATA car, RACE_CAR_ADDR, RACE_CAR_SIZE
-    GRAPHICS_STREAM_OUT_DATA road, ROAD_ADDR, ROAD_SIZE
-    GRAPHICS_STREAM_OUT_DATA pillar, PILLAR_ADDR, PILLAR_SIZE
-    GRAPHICS_STREAM_OUT_DATA wheel_00_00, WHEEL0_ADDR, WHEEL0_SIZE
-    GRAPHICS_STREAM_OUT_DATA wheel_01_00, WHEEL1_ADDR, WHEEL1_SIZE
-=======
 __race__stream_tiles:
     SYS_FILE_VLOAD MOUNTAINS_TILE_STR, .strlen(MOUNTAINS_TILES_NAME), RACE_MOUNTAINS_TILES_ADDR
     SYS_FILE_VLOAD FOREST_TILE_STR, .strlen(FOREST_TILES_NAME), RACE_FOREST_TILES_ADDR
@@ -268,17 +233,16 @@ __race__stream_tiles:
     ; VERA_STREAM_OUT_DATA pillar, PILLAR_ADDR, PILLAR_SIZE
     ; VERA_STREAM_OUT_DATA wheel_00_00, WHEEL0_ADDR, WHEEL0_SIZE
     ; VERA_STREAM_OUT_DATA wheel_01_00, WHEEL1_ADDR, WHEEL1_SIZE
->>>>>>> playing_with_line_irqs:race.asm
 
     ; Palette data
-    GRAPHICS_STREAM_OUT_DATA mountain_palette, VRAM_palette0, 16*2
-    GRAPHICS_STREAM_OUT_DATA forest_palette, VRAM_palette1, 16*2
-    GRAPHICS_STREAM_OUT_DATA car_palette, VRAM_palette2, 16*2
-    GRAPHICS_STREAM_OUT_DATA road_palette, VRAM_palette3, 6*2
-    GRAPHICS_STREAM_OUT_DATA pillar_palette, VRAM_palette4, 16*2
-    GRAPHICS_STREAM_OUT_DATA wheel_palette, VRAM_palette5, 16*2
-    GRAPHICS_STREAM_OUT_DATA Race_credits_palette_start, VRAM_palette6, 3*2
-    ; GRAPHICS_STREAM_OUT_DATA font_courier_new_palette, VRAM_palette6, 3*2  ; It's a secret to everyone!
+    VERA_STREAM_OUT_DATA mountain_palette, VRAM_palette0, 16*2
+    VERA_STREAM_OUT_DATA forest_palette, VRAM_palette1, 16*2
+    VERA_STREAM_OUT_DATA car_palette, VRAM_palette2, 16*2
+    VERA_STREAM_OUT_DATA road_palette, VRAM_palette3, 6*2
+    VERA_STREAM_OUT_DATA pillar_palette, VRAM_palette4, 16*2
+    VERA_STREAM_OUT_DATA wheel_palette, VRAM_palette5, 16*2
+    VERA_STREAM_OUT_DATA Race_credits_palette_start, VRAM_palette6, 3*2
+    ; VERA_STREAM_OUT_DATA font_courier_new_palette, VRAM_palette6, 3*2  ; It's a secret to everyone!
 
 __race__setup_scene:
     VERA_CONFIGURE_TILE_LAYER 0, 2, 0, 0, 0, 2, 1, RACE_MOUNTAINS_MAP_ADDR, RACE_MOUNTAINS_TILES_ADDR
@@ -354,31 +318,13 @@ race_move_right:
 
 race_irq_first:
     VERA_ENABLE_ALL
-<<<<<<< HEAD:src/race.asm
-    SYS_SET_IRQ race_irq
-
-    lda Gfx_do_line_irqs_work
-    cmp #0
-    beq no_line_irqs
-    
-    lda #<do_cloud0_irq
-    sta Line_irq
-    lda #>do_cloud0_irq
-    sta Line_irq+1
-=======
     SYS_SET_IRQ do_cloud0_irq
->>>>>>> playing_with_line_irqs:race.asm
 
     VERA_DISABLE_VBLANK_IRQ
     VERA_CONFIGURE_LINE_IRQ Cloud0_stop_y
     VERA_ENABLE_LINE_IRQ
-<<<<<<< HEAD:src/race.asm
-no_line_irqs:
-race_irq: DEBUG_LABEL race_irq
-=======
 
 race_irq:
->>>>>>> playing_with_line_irqs:race.asm
     lda VERA_isr
     and #2
     bne do_line_irq
@@ -733,9 +679,4 @@ Race_credits_palette_start:
 ;         .endrep
 ;     .endrep
 
-<<<<<<< HEAD:src/race.asm
-.include "lib/system.asm"
-
-=======
->>>>>>> playing_with_line_irqs:race.asm
 .endif ; RACE_ASM

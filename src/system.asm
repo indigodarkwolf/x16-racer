@@ -1,19 +1,12 @@
 .ifndef SYSTEM_ASM
 SYSTEM_ASM=1
 
-<<<<<<< HEAD:src/lib/system.asm
-.include "system.inc"
-
-.data
-Sys_kernal_irq: .byte $00, $00
-=======
 .include "x16/system.inc"
 .include "x16/vera.inc"
 
 .data
 Sys_irq_redirect: .byte $00, $00
 Sys_rom_original: .byte $00
->>>>>>> playing_with_line_irqs:src/system.asm
 Sys_rand_mem: .byte $00, $00, $00
 Sys_frame: .byte $00
 

@@ -129,9 +129,9 @@ ZP_COPY_SIZE = $7A
 ; 
 .macro SYS_INIT_IRQ
     lda $0314
-    sta Sys_kernal_irq
+    sta Sys_irq_redirect
     lda $0315
-    sta Sys_kernal_irq+1
+    sta Sys_irq_redirect+1
 .endmacro
 
 ;=================================================
@@ -162,7 +162,7 @@ ZP_COPY_SIZE = $7A
 ; MODIFIES: A, X, Y
 ; 
 .macro SYS_END_IRQ
-    jmp (Sys_kernal_irq)
+    jmp (Sys_irq_redirect)
 .endmacro
 
 ;=================================================

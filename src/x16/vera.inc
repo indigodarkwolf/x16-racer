@@ -2,6 +2,8 @@
 .ifndef VERA_INC
 VERA_INC=1
 
+.include "system.inc"
+
 ;=================================================
 ;=================================================
 ;
@@ -599,8 +601,6 @@ palette_width_height:
 .endmacro
 
 ;=================================================
-<<<<<<< HEAD:src/lib/x16/vera.inc
-=======
 ; VERA_STREAM_OUT
 ;   Stream out a block of data to a location in VRAM
 ;-------------------------------------------------
@@ -645,7 +645,6 @@ palette_width_height:
 .endmacro
 
 ;=================================================
->>>>>>> playing_with_line_irqs:src/x16/vera.inc
 ; VERA_ENABLE_ALL
 ;   Enables all layers and global sprites
 ;-------------------------------------------------

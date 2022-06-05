@@ -1,13 +1,9 @@
 .ifndef GRAPHICS_ASM
 GRAPHICS_ASM=1
 
-<<<<<<< HEAD:src/lib/graphics.asm
-.include "debug.inc"
-=======
 .include "graphics.inc"
 
 .include "x16/kernal64.inc"
->>>>>>> playing_with_line_irqs:src/graphics.asm
 .include "x16/vera.inc"
 
 Gfx_palette_decrement_table = $A000
@@ -48,13 +44,7 @@ Gfx_palette_r_14           = $A2E0
 Gfx_palette_r_15           = $A2F0
 
 .data
-<<<<<<< HEAD:src/lib/graphics.asm
-Gfx_all_palettes_at_full:
-Gfx_all_palettes_cleared: .byte $00
-Gfx_do_line_irqs_work: .word 639
-=======
 Gfx_idle_flag: .byte $00
->>>>>>> playing_with_line_irqs:src/graphics.asm
 
 .define GRAPHICS_TABLES_NAME "gfx.seq"
 GRAPHICS_TABLES_STR: .asciiz GRAPHICS_TABLES_NAME
@@ -88,39 +78,6 @@ GRAPHICS_TABLES_STR: .asciiz GRAPHICS_TABLES_NAME
     KERNAL_SETLFS 1, 8, 0
     KERNAL_SETNAM .strlen(GRAPHICS_TABLES_NAME), GRAPHICS_TABLES_STR
     KERNAL_LOAD 0, $A000
-
-    jsr graphics_check_for_r37_vsync_bug
-    rts
-.endproc
-
-;=================================================
-; graphics_check_for_r37_vsync_bug
-;   Check for the r37 line IRQ bug
-;
-;-------------------------------------------------
-; INPUTS:   (None)
-;
-;-------------------------------------------------
-; OUTPUTS:  (None)
-;
-;-------------------------------------------------
-; MODIFIES: A
-;
-.proc graphics_check_for_r37_vsync_bug
-    VERA_CONFIGURE_LINE_IRQ Gfx_do_line_irqs_work
-    lda VERA_irqline_l
-    cmp Gfx_do_line_irqs_work
-    beq check_irq_bit_8
-    stz Gfx_do_line_irqs_work
-    rts
-
-check_irq_bit_8:
-    lda VERA_ien
-    and #$80
-    beq check_complete
-    stz Gfx_do_line_irqs_work
-
-check_complete:
     rts
 .endproc
 
@@ -445,121 +402,5 @@ loop:
     rts
 .endproc
 
-
-;==============================================
-; graphics_stream_out_data
-; Stream out a block of memory to VERA_data
-;----------------------------------------------
-; INPUT: X   - number of pages to stream
-;        Y   - number of bytes to stream
-;        $FB - low byte of starting address
-;        $FC - high byte of starting address
-;----------------------------------------------
-; Modifies: A, X, Y, $FC
-;
-.proc graphics_stream_out_data
-    ; If no pages to copy, skip to bytes
-    cpx #0
-    beq copy_last_block
-
-    ; Copy X pages to VERA_data
-    phy
-    ldy #0
-copy_byte:
-    lda ($FB),Y
-    sta VERA_data
-    iny
-    bne copy_byte
-
-    inc $FC
-    dex
-    bne copy_byte
-
-    plx
-
-copy_last_block:
-    ; Copy X bytes to VERA_data
-    ldy #0
-copy_byte2:
-    lda ($FB),Y
-    sta VERA_data
-    iny
-    dex
-    bne copy_byte2
-    rts
-.endproc
-
-;==============================================
-; graphics_stream_out_rle
-; Stream out a block of rle-compressed memory to VERA_data
-;----------------------------------------------
-; INPUT: X   - number of rle pages to stream
-;        Y   - number of rle bytes to stream (0 for 256)
-;        $FB - low byte of starting address
-;        $FC - high byte of starting address
-;----------------------------------------------
-; Modifies: A, X, Y, $FC
-;
-.proc graphics_stream_out_rle
-    ; If no pages to copy, skip to bytes
-    cpx #0
-    beq copy_last_block
-
-    ; Copy X pages to VERA_data
-    phy
-    ldy #0
-page_loop:
-    phx
-tuple_loop:
-    ; First byte is the number of repetitions
-    lda ($FB),Y
-    tax
-    iny
-
-    ; Second byte is the value to stream
-    lda ($FB),Y
-    iny
-
-byte_loop:
-    sta VERA_data
-    dex
-    bne byte_loop
-
-    cpy #0
-    bne tuple_loop
-
-    inc $FC
-    plx
-    dex
-    bne page_loop
-
-    ldy #0
-    bra check_for_work
-
-copy_last_block: DEBUG_LABEL gfx_so_rle_copy_last_block
-    ; Copy X bytes to VERA_data
-
-tuple_loop2:
-    phx
-    
-    ; First byte is the number of repetitions
-    lda ($FB),Y
-    tax
-    iny
-
-    ; Second byte is the value to stream
-    lda ($FB),Y
-    iny
-byte_loop2:
-    sta VERA_data
-    dex
-    bne byte_loop2
-check_for_work: DEBUG_LABEL gfx_so_rle_check_for_work
-    plx
-    dex
-    bne tuple_loop2
-    
-    rts
-.endproc
-
+.code
 .endif ; GRAPHICS_ASM
