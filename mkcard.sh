@@ -78,6 +78,8 @@ if [ -z ${size+x} ]; then
     exit 0
 fi
 
+# If you're working with the image file later on, 
+# you can use @@1M instead of @@1048576
 alignment=1048576
 size=$((size *(1<<20)))
 size=$(( (size + alignment - 1)/alignment * alignment))
