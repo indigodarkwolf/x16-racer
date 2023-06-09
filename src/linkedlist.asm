@@ -1,237 +1,321 @@
-.define SIZE 100
+;=================================================
+; LIST_INSTANTIATE
+;   Instantiate a list's variables here.
+;-------------------------------------------------
+; INPUTS:   NAME	Quoted string naming the list. This name will be 
+;					concatenated into symbol names to create unique symbols 
+;					for this list instace.
+;			SIZE	Maximum elements in the list.
+;-------------------------------------------------
+; MODIFIES: (none)
+; 
+.macro LIST_INSTANTIATE NAME, SIZE
 
-.byte 
+.ident (.concat ("list_", NAME, "_avail_head")): 
+	.byte $00
 
-.proc list_remove_avail_foo 		; list_remove_avail_foo(signed char elem)
-	tay								; We're going to preserve signed char elem in the Y register because we frequently need it for indexing.
-	cmp avail_head_foo				; signed char elem is already in A register.
-	bne avail_head_handled
-	lda next_foo,y
-	cmp avail_head_foo
-	bne advance_avail_head
+.ident (.concat ("list_", NAME, "_used_head")): 
+	.byte $00
+
+.ident (.concat ("list_", NAME, "_next")):
+.repeat SIZE
+	.byte $00
+.endrep
+
+.ident (.concat ("list_", NAME, "_prev")):
+.repeat SIZE
+	.byte $00
+.endrep
+
+.ident (.concat ("list_", NAME, "_allocated")):
+.repeat SIZE
+	.byte $00
+.endrep
+
+.endmacro
+
+;=================================================
+; LIST_IMPLEMENT
+;   Implement the subroutines for working with a list here.
+;-------------------------------------------------
+; INPUTS:   NAME	Quoted string naming the list. This name will be 
+;					concatenated into symbol names to create unique symbols 
+;					for this list instace.
+;			SIZE	Maximum elements in the list.
+;-------------------------------------------------
+; MODIFIES: (none)
+; 
+.macro LIST_IMPLEMENT NAME, SIZE
+.proc .ident (.concat ("list_", NAME, "_remove_avail"))			; .ident (.concat ("list_", NAME, "_remove_avail"))(signed char elem)
+	tay														; We're going to preserve signed char elem in the Y register because we frequently need it for indexing.
+	cmp .ident (.concat ("list_", NAME, "_avail_head"))				; signed char elem is already in A register.
+	bne .ident (.concat ("list_", NAME, "_avail_head_handled"))
+	lda .ident (.concat ("list_", NAME, "_next")),y
+	cmp .ident (.concat ("list_", NAME, "_avail_head"))
+	bne .ident (.concat ("list_", NAME, "_advanced_avail_head"))
 	lda #$FF
-	sta avail_head_foo
-	bra avail_head_handled
+	sta .ident (.concat ("list_", NAME, "_avail_head"))
+	bra .ident (.concat ("list_", NAME, "_avail_head_handled"))
 
-advance_avail_head:
-	sta avail_head_foo 				; next_foo[elem] is already in A register
-									; We can fall-through to avail_head_handled.
-avail_head_handled:
-	lda prev_foo,y 					; A now contains prev_foo[elem]
-	ldx next_foo,y 					; X now contains next_foo[elem]
-	sta prev_foo,x
-	tay 							; We no longer need signed char elem, so we'll put prev_foo[elem] in Y.
-	txa 							; We need A for storing to absolute address plus index, so we'll put next_foo[elem] in A
-	sta next_foo,y
+.ident (.concat ("list_", NAME, "_advanced_avail_head")):
+	sta .ident (.concat ("list_", NAME, "_avail_head")) 				; .ident (.concat ("list_", NAME, "_next"))[elem] is already in A register
+															; We can fall-through to .ident (.concat ("list_", NAME, "_avail_head_handled")).
+.ident (.concat ("list_", NAME, "_avail_head_handled")):
+	lda .ident (.concat ("list_", NAME, "_prev")),y 					; A now contains .ident (.concat ("list_", NAME, "_prev"))[elem]
+	ldx .ident (.concat ("list_", NAME, "_next")),y 					; X now contains .ident (.concat ("list_", NAME, "_next"))[elem]
+	sta .ident (.concat ("list_", NAME, "_prev")),x
+	tay 													; We no longer need signed char elem, so we'll put .ident (.concat ("list_", NAME, "_prev"))[elem] in Y.
+	txa 													; We need A for storing to absolute address plus index, so we'll put .ident (.concat ("list_", NAME, "_next"))[elem] in A
+	sta .ident (.concat ("list_", NAME, "_next")),y
 	rts
 .endproc
 
-.proc list_remove_used_foo			; list_remove_used_foo(signed char elem)
-	tay								; We're going to preserve signed char elem in the Y register because we frequently need it for indexing.
-	cmp used_head_foo				; signed char elem is already in A register.
-	bne used_head_handled
-	lda next_foo,y
-	cmp used_head_foo
-	bne advance_used_head
+.proc .ident (.concat ("list_", NAME, "_remove_used"))			; .ident (.concat ("list_", NAME, "_remove_used"))(signed char elem)
+	tay														; We're going to preserve signed char elem in the Y register because we frequently need it for indexing.
+	cmp .ident (.concat ("list_", NAME, "_used_head"))				; signed char elem is already in A register.
+	bne .ident (.concat ("list_", NAME, "_used_head_handled"))
+	lda .ident (.concat ("list_", NAME, "_next")),y
+	cmp .ident (.concat ("list_", NAME, "_used_head"))
+	bne .ident (.concat ("list_", NAME, "_advance_used_head"))
 	lda #$FF
-	sta used_head_foo
-	bra used_head_handled
+	sta .ident (.concat ("list_", NAME, "_used_head"))
+	bra .ident (.concat ("list_", NAME, "_used_head_handled"))
 
-advance_used_head:
-	sta used_head_foo 				; next_foo[elem] is already in A register
-									; We can fall-through to used_head_handled.
-used_head_handled:
-	lda prev_foo,y 					; A now contains prev_foo[elem]
-	ldx next_foo,y 					; X now contains next_foo[elem]
-	sta prev_foo,x
-	tay 							; We no longer need signed char elem, so we'll put prev_foo[elem] in Y.
-	txa 							; We need A for storing to absolute address plus index, so we'll put next_foo[elem] in A
-	sta next_foo,y
+.ident (.concat ("list_", NAME, "_advance_used_head")):
+	sta .ident (.concat ("list_", NAME, "_used_head")) 				; .ident (.concat ("list_", NAME, "_next"))[elem] is already in A register
+															; We can fall-through to .ident (.concat ("list_", NAME, "_used_head_handled")).
+.ident (.concat ("list_", NAME, "_used_head_handled")):
+	lda .ident (.concat ("list_", NAME, "_prev")),y 					; A now contains .ident (.concat ("list_", NAME, "_prev"))[elem]
+	ldx .ident (.concat ("list_", NAME, "_next")),y 					; X now contains .ident (.concat ("list_", NAME, "_next"))[elem]
+	sta .ident (.concat ("list_", NAME, "_prev")),x
+	tay 													; We no longer need signed char elem, so we'll put .ident (.concat ("list_", NAME, "_prev"))[elem] in Y.
+	txa 													; We need A for storing to absolute address plus index, so we'll put .ident (.concat ("list_", NAME, "_next"))[elem] in A
+	sta .ident (.concat ("list_", NAME, "_next")),y
 	rts
 .endproc
 
-.proc list_add_avail_foo            ; void list_add_avail_foo(signed char elem) 
-    tay                             ; signed char elem to Y
-;	if(avail_head_foo != -1) {
-    ldx avail_head_foo
-    cpx #$FF
-    beq empty_list
+.proc .ident (.concat ("list_", NAME, "_add_avail"))			; void .ident (.concat ("list_", NAME, "_add_avail"))(signed char elem) 
+	tay							 							; signed char elem to Y
+;	if(.ident (.concat ("list_", NAME, "_avail_head")) != -1) {
+	ldx .ident (.concat ("list_", NAME, "_avail_head"))
+	cpx #$FF
+	beq .ident (.concat ("list_", NAME, "_empty_avail"))
 
-;		prev_foo[elem] = prev_foo[avail_head_foo];
-    lda prev_foo,x
-    sta prev_foo,y
+;		.ident (.concat ("list_", NAME, "_prev"))[elem] = .ident (.concat ("list_", NAME, "_prev"))[.ident (.concat ("list_", NAME, "_avail_head"))];
+	lda .ident (.concat ("list_", NAME, "_prev")),x
+	sta .ident (.concat ("list_", NAME, "_prev")),y
 
-;		next_foo[elem] = avail_head_foo;
-    txa                             ; avail_head_foo to A
-    sta next_foo,y
+;		.ident (.concat ("list_", NAME, "_next"))[elem] = .ident (.concat ("list_", NAME, "_avail_head"));
+	txa							 							; .ident (.concat ("list_", NAME, "_avail_head")) to A
+	sta .ident (.concat ("list_", NAME, "_next")),y
 
-;		next_foo[prev_foo[avail_head_foo]] = elem;
-    lda prev_foo,x
-    tax                             ; prev_foo[avail_head_foo] to X
-    tya                             ; elem to A
-    sta next_foo,x
+;		.ident (.concat ("list_", NAME, "_next"))[.ident (.concat ("list_", NAME, "_prev"))[.ident (.concat ("list_", NAME, "_avail_head"))]] = elem;
+	lda .ident (.concat ("list_", NAME, "_prev")),x
+	tax							 ; .ident (.concat ("list_", NAME, "_prev"))[.ident (.concat ("list_", NAME, "_avail_head"))] to X
+	tya							 							; elem to A
+	sta .ident (.concat ("list_", NAME, "_next")),x
 
-;		prev_foo[avail_head_foo] = elem;
-    ldx avail_head_foo
-    sta prev_foo,x
-    rts
+;		.ident (.concat ("list_", NAME, "_prev"))[.ident (.concat ("list_", NAME, "_avail_head"))] = elem;
+	ldx .ident (.concat ("list_", NAME, "_avail_head"))
+	sta .ident (.concat ("list_", NAME, "_prev")),x
+	rts
 ;	} else {
-empty_list:
-;		avail_head_foo = elem;
-    sta avail_head_foo
-;		next_foo[elem] = elem;
-    sta next_foo,y
-;		prev_foo[elem] = elem;
-    sta prev_foo,y    
+.ident (.concat ("list_", NAME, "_empty_avail")):
+;		.ident (.concat ("list_", NAME, "_avail_head")) = elem;
+	sta .ident (.concat ("list_", NAME, "_avail_head"))
+;		.ident (.concat ("list_", NAME, "_next"))[elem] = elem;
+	sta .ident (.concat ("list_", NAME, "_next")),y
+;		.ident (.concat ("list_", NAME, "_prev"))[elem] = elem;
+	sta .ident (.concat ("list_", NAME, "_prev")),y	
 ;	}
-    rts
+	rts
 .endproc
 
-.proc list_add_used_foo            ; void list_add_used_foo(signed char elem) 
-    tay                             ; signed char elem to Y
-;	if(used_head_foo != -1) {
-    ldx used_head_foo
-    cpx #$FF
-    beq empty_list
+.proc .ident (.concat ("list_", NAME, "_add_used"))				; void .ident (.concat ("list_", NAME, "_add_used"))(signed char elem) 
+	tay							 							; signed char elem to Y
+;	if(.ident (.concat ("list_", NAME, "_used_head")) != -1) {
+	ldx .ident (.concat ("list_", NAME, "_used_head"))
+	cpx #$FF
+	beq .ident (.concat ("list_", NAME, "_empty_used"))
 
-;		prev_foo[elem] = prev_foo[used_head_foo];
-    lda prev_foo,x
-    sta prev_foo,y
+;		.ident (.concat ("list_", NAME, "_prev"))[elem] = .ident (.concat ("list_", NAME, "_prev"))[.ident (.concat ("list_", NAME, "_used_head"))];
+	lda .ident (.concat ("list_", NAME, "_prev")),x
+	sta .ident (.concat ("list_", NAME, "_prev")),y
 
-;		next_foo[elem] = used_head_foo;
-    txa                             ; used_head_foo to A
-    sta next_foo,y
+;		.ident (.concat ("list_", NAME, "_next"))[elem] = .ident (.concat ("list_", NAME, "_used_head"));
+	txa							 							; .ident (.concat ("list_", NAME, "_used_head")) to A
+	sta .ident (.concat ("list_", NAME, "_next")),y
 
-;		next_foo[prev_foo[used_head_foo]] = elem;
-    lda prev_foo,x
-    tax                             ; prev_foo[used_head_foo] to X
-    tya                             ; elem to A
-    sta next_foo,x
+;		.ident (.concat ("list_", NAME, "_next"))[.ident (.concat ("list_", NAME, "_prev"))[.ident (.concat ("list_", NAME, "_used_head"))]] = elem;
+	lda .ident (.concat ("list_", NAME, "_prev")),x
+	tax							 							; .ident (.concat ("list_", NAME, "_prev"))[.ident (.concat ("list_", NAME, "_used_head"))] to X
+	tya							 							; elem to A
+	sta .ident (.concat ("list_", NAME, "_next")),x
 
-;		prev_foo[used_head_foo] = elem;
-    ldx used_head_foo
-    sta prev_foo,x
-    rts
+;		.ident (.concat ("list_", NAME, "_prev"))[.ident (.concat ("list_", NAME, "_used_head"))] = elem;
+	ldx .ident (.concat ("list_", NAME, "_used_head"))
+	sta .ident (.concat ("list_", NAME, "_prev")),x
+	rts
 ;	} else {
-empty_list:
-;		used_head_foo = elem;
-    sta used_head_foo
-;		next_foo[elem] = elem;
-    sta next_foo,y
-;		prev_foo[elem] = elem;
-    sta prev_foo,y    
+.ident (.concat ("list_", NAME, "_empty_used")):
+;		.ident (.concat ("list_", NAME, "_used_head")) = elem;
+	sta .ident (.concat ("list_", NAME, "_used_head"))
+;		.ident (.concat ("list_", NAME, "_next"))[elem] = elem;
+	sta .ident (.concat ("list_", NAME, "_next")),y
+;		.ident (.concat ("list_", NAME, "_prev"))[elem] = elem;
+	sta .ident (.concat ("list_", NAME, "_prev")),y	
 ;	}
-    rts
+	rts
 .endproc
 
-.proc init_list_foo ; void init_list_foo()
+.proc .ident (.concat ("list_", NAME, "_init_list")) ; void .ident (.concat ("list_", NAME, "_init_list"))()
 ;{
 ;	signed char i;
-;	used_head_foo = -1;
-    lda #$FF
-    sta used_head_foo
-;	avail_head_foo = 0;
-    stz avail_head_foo
-;	allocated_foo[0] = 0;
-    stz allocated_foo
-;	prev_foo[0] = SIZE-1;
-    lda #(SIZE-1)
-    sta prev_foo
-;	next_foo[0] = 1;
-    lda #$1
-    sta next_foo
+;	.ident (.concat ("list_", NAME, "_used_head")) = -1;
+	lda #$FF
+	sta .ident (.concat ("list_", NAME, "_used_head"))
+;	.ident (.concat ("list_", NAME, "_avail_head")) = 0;
+	stz .ident (.concat ("list_", NAME, "_avail_head"))
+;	.ident (.concat ("list_", NAME, "_allocated"))[0] = 0;
+	stz .ident (.concat ("list_", NAME, "_allocated"))
+;	.ident (.concat ("list_", NAME, "_prev"))[0] = SIZE-1;
+	lda #(SIZE-1)
+	sta .ident (.concat ("list_", NAME, "_prev"))
+;	.ident (.concat ("list_", NAME, "_next"))[0] = 1;
+	lda #$1
+	sta .ident (.concat ("list_", NAME, "_next"))
+	tax
+	clc
 ;	for(i=1; i<SIZE-1; ++i) {
-    tay
-    sec
-for_loop:
-;		prev_foo[i] = i-1;
-        sbc #$01
-        sta prev_foo,y
-;		next_foo[i] = i+1;
-        adc #$02
-        sta next_foo,y
-;		allocated_foo[i] = 0;
-        stz allocated_foo,y
-        iny
-        tya
-        cmp #(SIZE-1)
-        bcc for_loop
+.ident (.concat ("list_", NAME, "_init_for")):
+;		.ident (.concat ("list_", NAME, "_next"))[i] = i+1;
+		adc #$01
+		sta .ident (.concat ("list_", NAME, "_next")),x
+;		.ident (.concat ("list_", NAME, "_prev"))[i] = i-1;
+		sbc #$01
+		sta .ident (.concat ("list_", NAME, "_prev")),x
+;		.ident (.concat ("list_", NAME, "_allocated"))[i] = 0;
+		stz .ident (.concat ("list_", NAME, "_allocated")),x
+		inx
+		txa
+		cmp #(SIZE-1)
+		bcc .ident (.concat ("list_", NAME, "_init_for"))
 ;	}
-;	prev_foo[SIZE-1] = SIZE-2;
-    sbc #$01
-    sta prev_foo,y
-;	next_foo[SIZE-1] = 0;
-    stz next_foo,y
-;	allocated_foo[SIZE-1] = 0;
-    stz allocated_foo,y
+;	.ident (.concat ("list_", NAME, "_prev"))[SIZE-1] = SIZE-2;
+	sbc #$01
+	sta .ident (.concat ("list_", NAME, "_prev")),x
+;	.ident (.concat ("list_", NAME, "_next"))[SIZE-1] = 0;
+	stz .ident (.concat ("list_", NAME, "_next")),x
+;	.ident (.concat ("list_", NAME, "_allocated"))[SIZE-1] = 0;
+	stz .ident (.concat ("list_", NAME, "_allocated")),x
 ;}
-    rts
+	rts
 .endproc
 
-.proc alloc_index_foo ; signed char alloc_index_foo()
+.proc .ident (.concat ("list_", NAME, "_alloc_index")) ; signed char .ident (.concat ("list_", NAME, "_alloc_index"))()
 ;{
 ;	signed char index;
-;	if(avail_head_foo != -1) {
-    lda avail_head_foo
-    cmp #$FF
-    beq no_indices_available
-;   	index = avail_head_foo;
-    pha
-;	    list_remove_avail_foo(index);
-    jsr list_remove_avail_foo
-;	    list_add_used_foo(index);
-    pla
-    pha
-    jsr list_add_used_foo
-;	    allocated_foo[index] = 1;
-    ply
-    lda #$01
-    sta allocated_foo,y
-;	    return index;
-    tya
-    rts
+;	if(.ident (.concat ("list_", NAME, "_avail_head")) != -1) {
+	lda .ident (.concat ("list_", NAME, "_avail_head"))
+	cmp #$FF
+	beq .ident (.concat ("list_", NAME, "_no_indices_available"))
+;   	index = .ident (.concat ("list_", NAME, "_avail_head"));
+	pha
+;		.ident (.concat ("list_", NAME, "_remove_avail"))(index);
+	jsr .ident (.concat ("list_", NAME, "_remove_avail"))
+;		.ident (.concat ("list_", NAME, "_add_used"))(index);
+	pla
+	pha
+	jsr .ident (.concat ("list_", NAME, "_add_used"))
+;		.ident (.concat ("list_", NAME, "_allocated"))[index] = 1;
+	ply
+	lda #$01
+	sta .ident (.concat ("list_", NAME, "_allocated")),y
+;		return index;
+	tya
+	rts
 ;   } else {
 ;		return -1;
-no_indices_available:
-    lda #$FF
-    rts
+.ident (.concat ("list_", NAME, "_no_indices_available")):
+	lda #$FF
+	rts
 ;	}
 ;}
 .endproc
 
-.proc free_index_foo ; void free_index_foo(signed char index)
+.proc .ident (.concat ("list_", NAME, "_free_index")) ; void .ident (.concat ("list_", NAME, "_free_index"))(signed char index)
 ;{
-    tay
-;	if(allocated_foo[index] != 0) {
-    lda allocated_foo,y
-    beq already_freed
+	tax
+;	if(.ident (.concat ("list_", NAME, "_allocated"))[index] != 0) {
+	lda .ident (.concat ("list_", NAME, "_allocated")),x
+	beq .ident (.concat ("list_", NAME, "_already_freed"))
 
-;	    list_remove_used_foo(index);
-    phy
-    tya
-    jsr list_remove_used_foo
+;		.ident (.concat ("list_", NAME, "_remove_used"))(index);
+	phx
+	txa
+	jsr .ident (.concat ("list_", NAME, "_remove_used"))
 
-;	    list_add_avail_foo(index);
-    pla
-    pha
-    jsr list_add_avail_foo
+;		.ident (.concat ("list_", NAME, "_add_avail"))(index);
+	pla
+	pha
+	jsr .ident (.concat ("list_", NAME, "_add_avail"))
 
-;	    allocated_foo[index] = 0;
-    ply
-    stz allocated_foo,y
-    ; fall-through
+;		.ident (.concat ("list_", NAME, "_allocated"))[index] = 0;
+	plx
+	stz .ident (.concat ("list_", NAME, "_allocated")),x
+	; fall-through
 ;   } else {
-already_freed:
+.ident (.concat ("list_", NAME, "_already_freed")):
 ;		return;
-    rts
+	rts
 ;	}
 ;}
 .endproc
 
-;#define LIST_INIT(NAME) init_list_foo()
-;#define LIST_ALLOC(NAME) alloc_index_foo()
-;#define LIST_FREE(NAME, INDEX) free_index_foo(INDEX)
+.endmacro
 
-;#define LIST_IS_ALLOCATED(NAME, INDEX) (allocated_foo[INDEX] != 0)
-;#define LIST_FOR_EACH(NAME, INDEX_NAME) for(INDEX_NAME=used_head_foo; INDEX_NAME != -1; INDEX_NAME = (next_foo[INDEX_NAME] != used_head_foo ? next_foo[INDEX_NAME] : -1))
+;==============================
+;
+; Public API
+;
+;------------------------------
+
+.macro LIST_INIT NAME
+	jsr .ident (.concat ("list_", NAME, "_init_list"))
+.endmacro
+
+.macro LIST_ALLOC NAME
+	jsr .ident (.concat ("list_", NAME, "_alloc_index"))
+.endmacro
+
+.macro LIST_FREE NAME, ADDR
+	.ifnblank ADDR
+		lda ADDR
+	.endif
+	jsr .ident (.concat ("list_", NAME, "_free_index"))
+.endmacro
+
+;==============================
+;
+; Example use
+;
+;------------------------------
+
+LIST_INSTANTIATE "foo", 100
+LIST_IMPLEMENT "foo", 100
+
+.proc list_test
+	LIST_INIT "foo"
+	LIST_ALLOC "foo"	; Allocates index 0
+	LIST_ALLOC "foo"	; Allocates index 1
+	LIST_ALLOC "foo"	; Allocates index 2
+	LIST_ALLOC "foo"	; Allocates index 3
+	LIST_ALLOC "foo"	; Allocates index 4
+	lda #2
+	LIST_FREE "foo"		; Frees index 2
+.endproc
+.export list_test
+
+;#define LIST_IS_ALLOCATED(NAME, INDEX) (.ident (.concat ("list_", NAME, "_allocated"))[INDEX] != 0)
+;#define LIST_FOR_EACH(NAME, INDEX_NAME) for(INDEX_NAME=.ident (.concat ("list_", NAME, "_used_head")); INDEX_NAME != -1; INDEX_NAME = (.ident (.concat ("list_", NAME, "_next"))[INDEX_NAME] != .ident (.concat ("list_", NAME, "_used_head")) ? .ident (.concat ("list_", NAME, "_next"))[INDEX_NAME] : -1))
 

@@ -38,8 +38,12 @@ Test_lhs: .byte $03, $00, $00, $00
 Test_rhs: .byte $01, $02, $03, $00
 Test_dst: .byte $00, $00, $00, $00
 
+.import list_test
+
 .segment "STARTUP"
 start:
+    jsr list_test
+    
     SYS_INIT_BANK
     SYS_INIT_IRQ
     SYS_RAND_SEED $34, $56, $fe
