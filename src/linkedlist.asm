@@ -274,11 +274,12 @@
 
 .endmacro
 
-;==============================
+;=================================================
+;=================================================
 ;
 ; Public API
 ;
-;------------------------------
+;-------------------------------------------------
 
 .macro LIST_INIT NAME
 	jsr .ident (.concat ("list_", NAME, "_init_list"))
@@ -288,18 +289,106 @@
 	jsr .ident (.concat ("list_", NAME, "_alloc_index"))
 .endmacro
 
-.macro LIST_FREE NAME, ADDR
-	.ifnblank ADDR
-		lda ADDR
+.macro LIST_FREE NAME, IDX_ADDR
+	.ifnblank IDX_ADDR
+		lda IDX_ADDR
 	.endif
 	jsr .ident (.concat ("list_", NAME, "_free_index"))
 .endmacro
 
-;==============================
+.macro LIST_GET_FIRST NAME
+	lda .ident (.concat ("list_", NAME, "_used_head"))
+.endmacro
+
+.macro LIST_GET_NEXT NAME, IDX_ADDR
+	.ifnblank IDX_ADDR
+		lda IDX_ADDR
+	.else
+		tax
+	.endif
+	lda .ident (.concat ("list_", NAME, "_next")),x
+.endmacro
+
+.macro LIST_GET_PREV NAME, IDX_ADDR
+	.ifnblank IDX_ADDR
+		lda IDX_ADDR
+	.else
+		tax
+	.endif
+	lda .ident (.concat ("list_", NAME, "_next")),x
+.endmacro
+
+.macro LIST_GET_ALLOCATED NAME, IDX_ADDR
+	.ifnblank IDX_ADDR
+		ldx IDX_ADDR
+	.else
+		tax
+	.endif
+	lda .ident (.concat ("list_", NAME, "_allocated")),x
+.endmacro
+
+;#define LIST_FOR_EACH(NAME, INDEX_NAME) for(INDEX_NAME=.ident (.concat ("list_", NAME, "_used_head")); INDEX_NAME != -1; INDEX_NAME = (.ident (.concat ("list_", NAME, "_next"))[INDEX_NAME] != .ident (.concat ("list_", NAME, "_used_head")) ? .ident (.concat ("list_", NAME, "_next"))[INDEX_NAME] : -1))
+.macro LIST_FOR_BEGIN NAME, FOR_LABEL
+.ident (.concat (FOR_LABEL, "_begin")):
+	LIST_GET_FIRST NAME
+	cmp #$FF
+	beq .ident (.concat (FOR_LABEL, "_end"))
+.ident (FOR_LABEL):
+	pha
+.endmacro
+
+.macro LIST_FOR_CONTINUE NAME, FOR_LABEL
+	pla
+	LIST_GET_NEXT NAME
+	cmp .ident (.concat ("list_", NAME, "_used_head"))
+	bne .ident (FOR_LABEL)
+	bra SKIP_LABEL
+.endmacro
+
+.macro LIST_FOR_END NAME, FOR_LABEL
+	pla
+	LIST_GET_NEXT NAME
+	cmp .ident (.concat ("list_", NAME, "_used_head"))
+	bne .ident (FOR_LABEL)
+.ident (.concat (FOR_LABEL, "_end")):
+.endmacro
+
+.macro LIST_LONGFOR_BEGIN NAME, FOR_LABEL
+.ident (.concat (FOR_LABEL, "_begin")):
+	LIST_GET_FIRST NAME
+	cmp #$FF
+	bne .ident (FOR_LABEL)
+	jmp .ident (.concat (FOR_LABEL, "_end"))
+.ident (FOR_LABEL):
+	pha
+.endmacro
+
+.macro LIST_LONGFOR_CONTINUE NAME, FOR_LABEL
+	pla
+	LIST_GET_NEXT NAME
+	cmp .ident (.concat ("list_", NAME, "_used_head"))
+	.local jump_to_end
+	bne jump_to_end
+	jmp .ident (FOR_LABEL)
+jump_to_end:
+	jmp .ident (.concat (FOR_LABEL, "_end"))
+.endmacro
+
+.macro LIST_LONGFOR_END NAME, FOR_LABEL
+	pla
+	LIST_GET_NEXT NAME
+	cmp .ident (.concat ("list_", NAME, "_used_head"))
+	beq .ident (.concat (FOR_LABEL, "_end"))
+	jmp .ident (FOR_LABEL)
+.ident (.concat (FOR_LABEL, "_end")):
+.endmacro
+
+;=================================================
+;=================================================
 ;
 ; Example use
 ;
-;------------------------------
+;-------------------------------------------------
 
 LIST_INSTANTIATE "foo", 100
 LIST_IMPLEMENT "foo", 100
@@ -315,7 +404,4 @@ LIST_IMPLEMENT "foo", 100
 	LIST_FREE "foo"		; Frees index 2
 .endproc
 .export list_test
-
-;#define LIST_IS_ALLOCATED(NAME, INDEX) (.ident (.concat ("list_", NAME, "_allocated"))[INDEX] != 0)
-;#define LIST_FOR_EACH(NAME, INDEX_NAME) for(INDEX_NAME=.ident (.concat ("list_", NAME, "_used_head")); INDEX_NAME != -1; INDEX_NAME = (.ident (.concat ("list_", NAME, "_next"))[INDEX_NAME] != .ident (.concat ("list_", NAME, "_used_head")) ? .ident (.concat ("list_", NAME, "_next"))[INDEX_NAME] : -1))
 
