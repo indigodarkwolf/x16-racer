@@ -342,7 +342,7 @@
 	LIST_GET_NEXT NAME
 	cmp .ident (.concat ("list_", NAME, "_used_head"))
 	bne .ident (FOR_LABEL)
-	bra SKIP_LABEL
+	bra .ident (.concat (FOR_LABEL, "_end"))
 .endmacro
 
 .macro LIST_FOR_END NAME, FOR_LABEL, PULL_METHOD
@@ -406,10 +406,16 @@ LIST_IMPLEMENT "foo", 100
 	lda #2
 	LIST_FREE "foo"		; Frees index 2
 
-	ldx #2
+	ldx #0
 	phx
 	LIST_FOR_BEGIN "foo", "test_for", sta $02
 		plx
+		cpx #$03
+		bne not_index_3
+		inx
+		phx
+		LIST_FOR_CONTINUE "foo", "test_for", lda $02
+	not_index_3:		
 		sta $03,x
 		inx
 		phx
@@ -431,10 +437,16 @@ LIST_IMPLEMENT "foo", 100
 	LIST_ALLOC "foo"	; Allocates index 8
 	LIST_ALLOC "foo"	; Allocates index 9
 
-	ldx #2
+	ldx #0
 	phx
 	LIST_LONGFOR_BEGIN "foo", "test_longfor", sta $02
 		plx
+		cpx #$07
+		bne not_index_7
+		inx
+		phx
+		LIST_FOR_CONTINUE "foo", "test_for", lda $02
+	not_index_7:
 		sta $03,x
 		inx
 		phx
