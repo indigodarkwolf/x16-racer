@@ -368,7 +368,7 @@
 	LIST_GET_NEXT NAME
 	cmp .ident (.concat ("list_", NAME, "_used_head"))
 	.local jump_to_end
-	bne jump_to_end
+	beq jump_to_end
 	jmp .ident (FOR_LABEL)
 jump_to_end:
 	jmp .ident (.concat (FOR_LABEL, "_end"))
