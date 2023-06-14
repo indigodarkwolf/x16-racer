@@ -353,36 +353,6 @@
 .ident (.concat (FOR_LABEL, "_end")):
 .endmacro
 
-.macro LIST_LONGFOR_BEGIN NAME, FOR_LABEL, PUSH_METHOD
-.ident (.concat (FOR_LABEL, "_begin")):
-	LIST_GET_FIRST NAME
-	cmp #$FF
-	bne .ident (FOR_LABEL)
-	jmp .ident (.concat (FOR_LABEL, "_end"))
-.ident (FOR_LABEL):
-	PUSH_METHOD
-.endmacro
-
-.macro LIST_LONGFOR_CONTINUE NAME, FOR_LABEL, PULL_METHOD
-	PULL_METHOD
-	LIST_GET_NEXT NAME
-	cmp .ident (.concat ("list_", NAME, "_used_head"))
-	.local jump_to_end
-	beq jump_to_end
-	jmp .ident (FOR_LABEL)
-jump_to_end:
-	jmp .ident (.concat (FOR_LABEL, "_end"))
-.endmacro
-
-.macro LIST_LONGFOR_END NAME, FOR_LABEL, PULL_METHOD
-	PULL_METHOD
-	LIST_GET_NEXT NAME
-	cmp .ident (.concat ("list_", NAME, "_used_head"))
-	beq .ident (.concat (FOR_LABEL, "_end"))
-	jmp .ident (FOR_LABEL)
-.ident (.concat (FOR_LABEL, "_end")):
-.endmacro
-
 ;=================================================
 ;=================================================
 ;
@@ -426,7 +396,7 @@ LIST_IMPLEMENT "foo", 100
 	LIST_ALLOC "foo"	; Allocates index 9
 	LIST_ALLOC "foo"	; Allocates index 10
 
-	jsr list_longfor_test
+	jsr list_for_test
 
 	rts
 .endproc
@@ -443,22 +413,6 @@ LIST_IMPLEMENT "foo", 100
 		inx
 		stx $03
 	LIST_FOR_END "foo", "test_for", lda $02
-
-	rts
-.endproc
-
-.proc list_longfor_test
-	stz $03
-	LIST_LONGFOR_BEGIN "foo", "test_longfor", sta $02
-		cmp #$07
-		bne not_index_7
-		LIST_LONGFOR_CONTINUE "foo", "test_longfor", lda $02
-	not_index_7:
-		ldx $03
-		sta $04,x
-		inx
-		stx $03
-	LIST_LONGFOR_END "foo", "test_longfor", lda $02
 
 	rts
 .endproc
