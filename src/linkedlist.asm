@@ -405,22 +405,9 @@ LIST_IMPLEMENT "foo", 100
 	LIST_ALLOC "foo"	; Allocates index 4
 	lda #2
 	LIST_FREE "foo"		; Frees index 2
+	LIST_ALLOC "foo"	; Allocates index 5
 
-	ldx #0
-	phx
-	LIST_FOR_BEGIN "foo", "test_for", sta $02
-		plx
-		cpx #$03
-		bne not_index_3
-		inx
-		phx
-		LIST_FOR_CONTINUE "foo", "test_for", lda $02
-	not_index_3:		
-		sta $03,x
-		inx
-		phx
-	LIST_FOR_END "foo", "test_for", lda $02
-	plx
+	jsr list_for_test
 
 	lda #0
 	LIST_FREE "foo"
@@ -430,30 +417,51 @@ LIST_IMPLEMENT "foo", 100
 	LIST_FREE "foo"
 	lda #4
 	LIST_FREE "foo"
+	lda #5
+	LIST_FREE "foo"
 
-	LIST_ALLOC "foo"	; Allocates index 5
 	LIST_ALLOC "foo"	; Allocates index 6
 	LIST_ALLOC "foo"	; Allocates index 7
 	LIST_ALLOC "foo"	; Allocates index 8
 	LIST_ALLOC "foo"	; Allocates index 9
+	LIST_ALLOC "foo"	; Allocates index 10
 
-	ldx #0
-	phx
-	LIST_LONGFOR_BEGIN "foo", "test_longfor", sta $02
-		plx
-		cpx #$07
-		bne not_index_7
-		inx
-		phx
-		LIST_FOR_CONTINUE "foo", "test_for", lda $02
-	not_index_7:
-		sta $03,x
-		inx
-		phx
-	LIST_LONGFOR_END "foo", "test_longfor", lda $02
-	plx
+	jsr list_longfor_test
 
 	rts
 .endproc
+
+.proc list_for_test
+	stz $03
+	LIST_FOR_BEGIN "foo", "test_for", sta $02
+		cmp #$03
+		bne not_index_3
+		LIST_FOR_CONTINUE "foo", "test_for", lda $02
+	not_index_3:
+		ldx $03
+		sta $04,x
+		inx
+		stx $03
+	LIST_FOR_END "foo", "test_for", lda $02
+
+	rts
+.endproc
+
+.proc list_longfor_test
+	stz $03
+	LIST_LONGFOR_BEGIN "foo", "test_longfor", sta $02
+		cmp #$07
+		bne not_index_7
+		LIST_LONGFOR_CONTINUE "foo", "test_longfor", lda $02
+	not_index_7:
+		ldx $03
+		sta $04,x
+		inx
+		stx $03
+	LIST_LONGFOR_END "foo", "test_longfor", lda $02
+
+	rts
+.endproc
+
 .export list_test
 
