@@ -1,7 +1,10 @@
 .ifndef GRAPHICS_INC
 GRAPHICS_INC=1
 
-.global Gfx_idle_flag
+.globalzp Gfx_idle_flag
+.globalzp Gfx_palette_ptr
+.globalzp Gfx_palette_start
+.globalzp Gfx_palette_end
 
 .global graphics_init
 .global graphics_decrement_palette
@@ -9,8 +12,13 @@ GRAPHICS_INC=1
 .global graphics_apply_palette
 .global graphics_fade_out
 .global graphics_fade_in
+.global graphics_apply_sprites
+.global graphics_do_frame
+
 
 GRAPHICS_TABLES_BANK = $02
+
+PALETTE_PTR = $FA
 
 ;=================================================
 ; GRAPHICS_FADE_OUT
@@ -39,13 +47,13 @@ GRAPHICS_TABLES_BANK = $02
 ; 
 .macro GRAPHICS_FADE_IN palette_data, first_color, last_color
     lda #<palette_data
-    sta $FA
+    sta Gfx_palette_ptr
     lda #>palette_data
-    sta $FB
+    sta Gfx_palette_ptr+1
     lda #first_color
-    sta $FC
+    sta Gfx_palette_start
     lda #last_color
-    sta $FD
+    sta Gfx_palette_end
 
     lda #2
     jsr graphics_fade_in
@@ -64,19 +72,19 @@ GRAPHICS_TABLES_BANK = $02
 ; 
 .macro GRAPHICS_INCREMENT_PALETTE palette_data, first_color, last_color
     lda #<palette_data
-    sta $FA
+    sta Gfx_palette_ptr
     lda #>palette_data
-    sta $FB
+    sta Gfx_palette_ptr+1
     lda #first_color
-    sta $FC
+    sta Gfx_palette_start
     lda #last_color
-    sta $FD
+    sta Gfx_palette_end
 
     jsr graphics_increment_palette
 .endmacro
 
 ;=================================================
-; GRAPHICS_DeCREMENT_PALETTE
+; GRAPHICS_DECREMENT_PALETTE
 ;   Fade out graphics by one step
 ;-------------------------------------------------
 ; INPUTS:   (None)

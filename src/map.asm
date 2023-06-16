@@ -4,6 +4,7 @@
 .include "math.inc"
 .include "x16/vera.inc"
 .include "x16/kernalx16.inc"
+.include "graphics.inc"
 
 .data
 ; Tile coordinate of map window's top-left corner
@@ -141,6 +142,7 @@ do_a:
     rts
 
 do_irq:
+	jsr graphics_do_frame
     jsr controls_process
 
     VERA_END_VBLANK_IRQ

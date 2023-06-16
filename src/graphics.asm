@@ -43,9 +43,26 @@ Gfx_palette_r_13           = $A2D0
 Gfx_palette_r_14           = $A2E0
 Gfx_palette_r_15           = $A2F0
 
-.data
-Gfx_idle_flag: .byte $00
+Gfx_sprite_addr_low		   = $A300
+Gfx_sprite_addr_high	   = $A380
+Gfx_sprite_x_low		   = $A400
+Gfx_sprite_x_high		   = $A480
+Gfx_sprite_y_low		   = $A500
+Gfx_sprite_y_high		   = $A580
+Gfx_sprite_czvh			   = $A600
+Gfx_sprite_hwpal		   = $A680
 
+.segment "ZEROPAGE"
+Gfx_idle_flag: .byte $00
+Gfx_palette_ptr: .byte $00, $00
+Gfx_palette_start: .byte $00
+Gfx_palette_end: .byte $00
+Gfx_temp: .byte $00, $00
+
+.bss
+Gfx_tick: .byte $00
+
+.data
 .define GRAPHICS_TABLES_NAME "gfx.seq"
 GRAPHICS_TABLES_STR: .asciiz GRAPHICS_TABLES_NAME
 
@@ -181,46 +198,46 @@ next_entry:
 ; graphics_increment_palette
 ;   Fade the palette one step towards a set of desired values
 ;-------------------------------------------------
-; INPUTS:   $FA-$FB Address of intended palette
-;           $FC     First color in palette
-;           $FD     Last color of palette
+; INPUTS:   Gfx_palette_ptr 	16-bit address of intended palette
+;           Gfx_palette_start     First color in palette
+;           Gfx_palette_end     Last color of palette
 ;
 ;-------------------------------------------------
-; MODIFIES: A, X, Y, $FE-$FF, Gfx_idle_flag
+; MODIFIES: A, X, Y, Gfx_palette_end, Gfx_temp, Gfx_idle_flag
 ; 
 .proc graphics_increment_palette
-    lda $FA
-    sta $FE
-    lda $FB
-    sta $FF
-    inc $FD
+    lda Gfx_palette_ptr
+    sta Gfx_temp
+    lda Gfx_palette_ptr+1
+    sta Gfx_temp+1
+    inc Gfx_palette_ptr
     ; This is an optimistic flag: have we cleared the entire palette? 
     ; We'll falsify if not.
     lda #1
     sta Gfx_idle_flag
 
-    ldy $FC ; 256 colors in palette
+    ldy Gfx_palette_start ; 256 colors in palette
 check_palette_entry:
     lda Gfx_palette_gb,y
     ; Don't need to increment if already at target value
-    cmp ($FE),y
+    cmp (Gfx_temp),y
     bne has_work_gb
 
-    inc $FE
+    inc Gfx_temp
     bne :+
-    inc $FF
+    inc Gfx_temp+1
 :
 
     lda Gfx_palette_r,y
     ; Don't need to increment if already at target value
-    cmp ($FE),y
+    cmp (Gfx_temp),y
     bne has_work_r
 
     iny
-    cpy $FD
+    cpy Gfx_palette_end
     bne check_palette_entry
 
-    dec $FD
+    dec Gfx_palette_end
     rts
 
 
@@ -262,12 +279,12 @@ has_work_r:
 increment_palette_entry:
     lda Gfx_palette_gb,y
     ; Don't need to increment if already at target value
-    cmp ($FE),y
+    cmp (Gfx_temp),y
     beq next_byte
 
     tax
 continue_gb:
-    eor ($FE),y
+    eor (Gfx_temp),y
     cmp #$10
     bcc low_nibble
 
@@ -277,7 +294,7 @@ continue_gb:
     tax
 low_nibble:
     txa
-    eor ($FE),y
+    eor (Gfx_temp),y
     and #$0F
     beq :+
     inx
@@ -289,14 +306,14 @@ low_nibble:
 next_byte:
     ; Y holds the number of colors we've copied, so increment our starting address here instead.
     ; we'll still increment Y at the bottom.
-    inc $FE
+    inc Gfx_temp
     bne :+
-    inc $FF
+    inc Gfx_temp+1
 :   
 
     lda Gfx_palette_r,y
     ; Don't need to increment if already at target value
-    cmp ($FE),y
+    cmp (Gfx_temp),y
     beq next_palette_entry
 
 continue_r:
@@ -308,10 +325,10 @@ continue_r:
 
 next_palette_entry:
     iny
-    cpy $FD
+    cpy Gfx_palette_end
     bne increment_palette_entry
 
-    dec $FD
+    dec Gfx_palette_end
     rts
 .endproc
 
@@ -330,7 +347,7 @@ next_palette_entry:
 
     ldy #0
 stream_byte:
-.repeat 4
+.repeat 8
     lda Gfx_palette_gb,y
     sta VERA_data
     lda Gfx_palette_r,y
@@ -375,13 +392,13 @@ loop:
 ; graphics_fade_in
 ;   Use palette incmenting to fade in the screen from black.
 ;-------------------------------------------------
-; INPUTS:   $FA-$FB Address of intended palette
-;           $FC     First color in the palette
-;           $FD     Last color in the palette
-;           A       Number of frames to wait between fade in steps
+; INPUTS:   Gfx_palette_ptr 	16-bit address of intended palette
+;           Gfx_palette_start   First color in the palette
+;           Gfx_palette_end     Last color in the palette
+;           A       			Number of frames to wait between fade in steps
 ;
 ;-------------------------------------------------
-; MODIFIES: A, X, Y, $FE-$FF
+; MODIFIES: A, X, Y, Gfx_temp
 ; 
 .proc graphics_fade_in
     pha
@@ -402,5 +419,55 @@ loop:
     rts
 .endproc
 
-.code
+;=================================================
+; graphics_apply_sprites
+;   Copy sprite data into VERA
+;-------------------------------------------------
+; INPUTS:   (none)
+;
+;-------------------------------------------------
+; MODIFIES: A, X
+; 
+.proc graphics_apply_sprites
+    VERA_SET_CTRL 0
+	VERA_SET_ADDR VRAM_spr_attrib, 0
+	ldx #0
+copy_byte:
+.repeat 2
+	lda Gfx_sprite_addr_low,x
+	sta VERA_data
+	lda Gfx_sprite_addr_high,x
+	sta VERA_data
+	lda Gfx_sprite_x_low,x
+	sta VERA_data
+	lda Gfx_sprite_x_high,x
+	sta VERA_data
+	lda Gfx_sprite_y_low,x
+	sta VERA_data
+	lda Gfx_sprite_y_high,x
+	sta VERA_data
+	lda Gfx_sprite_czvh,x
+	sta VERA_data
+	lda Gfx_sprite_hwpal,x
+	sta VERA_data
+	inx
+.endrep
+	bpl copy_byte
+	rts
+.endproc
+
+.proc graphics_do_frame
+    SYS_SET_BANK GRAPHICS_TABLES_BANK
+	lda #$80
+	eor Gfx_tick
+	sta Gfx_tick
+	bpl plus
+	jsr graphics_apply_sprites
+	rts
+plus:
+	jsr graphics_apply_palette
+	jsr graphics_apply_palette
+	rts
+.endproc
+
 .endif ; GRAPHICS_ASM
